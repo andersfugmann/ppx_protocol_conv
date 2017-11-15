@@ -1,0 +1,8 @@
+(jbuild_version 1)
+
+(library
+ ((name deriving_protocol)
+  (public_name ppx_deriving_protocol.runtime)
+  (libraries (base))
+ )
+)
