@@ -6,7 +6,7 @@ dev-repo: "git+https://github.com/andersfugmann/deriving-protocol"
 bug-reports: "https://github.com/andersfugmann/deriving-protocol/issues"
 build: [["jbuilder" "build" "-p" name "-j" jobs]]
 build-test: [["jbuilder" "runtest" "-p" name "-j" jobs]]
-version: "0.1"
+version: "0.8"
 depends: [
   "yojson"
   "xml-light"
