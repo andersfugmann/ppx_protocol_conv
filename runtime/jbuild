@@ -4,5 +4,6 @@
  ((name deriving_protocol)
   (public_name ppx_deriving_protocol.runtime)
   (libraries (base))
+  (synopsis "runtime library for ppx_deriving_protocol")
  )
 )
