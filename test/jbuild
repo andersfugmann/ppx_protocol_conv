@@ -1,8 +1,11 @@
 (executable (
  (name example)
- (public_name example)
  (libraries (deriving_protocol deriving_protocol_json deriving_protocol_xml))
  (preprocess (pps (ppx_deriving_protocol ppx_driver.runner)))
 ))
 
 (jbuild_version 1)
+
+(alias
+  ((name   runtest)
+   (action (run ${exe:example.exe}))))
