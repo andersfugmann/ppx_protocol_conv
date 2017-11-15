@@ -1,4 +1,4 @@
-.PHONY: build clean install uninstall reinstall
+.PHONY: build clean install uninstall reinstall test
 build:
 	jbuilder build @install --dev
 
@@ -12,3 +12,6 @@ uninstall:
 	jbuilder uninstall
 
 reinstall: uninstall install
+
+test:
+	jbuilder runtest --dev
