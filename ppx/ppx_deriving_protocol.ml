@@ -30,7 +30,7 @@ let rec string_of_ident = function
 let driver_func ~driver ~flags ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (driver, name) } in
   match flags with
-  | None ->[%expr [%e func]]
+  | None ->[%expr (fun t -> [%e func] t)]
   | Some flag -> [%expr [%e func] ~flags:[%e flag] ]
 
 (** Concatinate the list of expressions into a single expression using list concatination *)
