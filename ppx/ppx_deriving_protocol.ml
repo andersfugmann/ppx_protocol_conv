@@ -29,7 +29,9 @@ let rec string_of_ident = function
 
 let driver_func ~driver ~flags ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (driver, name) } in
-  [%expr [%e func] ~flags:[%e flags] ]
+  match flags with
+  | None ->[%expr [%e func]]
+  | Some flag -> [%expr [%e func] ~flags:[%e flag] ]
 
 (** Concatinate the list of expressions into a single expression using list concatination *)
 let list_expr ~loc l =
@@ -232,10 +234,6 @@ let str_type_decl ~loc ~(driver:longident) ~flags tdecl =
 
 let str_type_decls ~loc ~path:_ (_rec_flag, tydecls) driver flags =
   let driver = ident_of_module ~loc driver in
-  let flags = match flags with
-    | None -> [%expr None]
-    | Some flags -> [%expr Some [%e flags]]
-  in
   List.concat_map ~f:(str_type_decl ~loc ~driver ~flags) tydecls
 
 let sig_type_decl ~loc ~(driver:longident) tdecl : signature =
