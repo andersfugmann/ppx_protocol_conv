@@ -4,9 +4,6 @@ type (_, _, _) structure =
 
 let ( ^:: ) a b = Cons (a, b)
 
-
-
-
 module type Driver = sig
   type t
   type flags
@@ -20,6 +17,10 @@ module type Driver = sig
   val of_list:   flags:flags option -> ('a -> t) -> 'a list -> t
   val to_int:    flags:flags option -> t -> int
   val of_int:    flags:flags option -> int -> t
+  val to_int32:  flags:flags option -> t -> int32
+  val of_int32:  flags:flags option -> int32 -> t
+  val to_int64:  flags:flags option -> t -> int64
+  val of_int64:  flags:flags option -> int64 -> t
   val to_string: flags:flags option -> t -> string
   val of_string: flags:flags option -> string -> t
   val to_float:  flags:flags option -> t -> float

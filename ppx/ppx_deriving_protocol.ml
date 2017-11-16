@@ -44,7 +44,7 @@ let ident_of_module ~loc = function
   | None -> raise_errorf ~loc "~driver argument missing"
 
 let is_primitive_type = function
-  | "string" | "int" | "float" | "bool" | "unit" -> true
+  | "string" | "int" | "int32" | "int64" | "float" | "bool" | "unit" -> true
   | _ -> false
 
 let is_meta_type = function

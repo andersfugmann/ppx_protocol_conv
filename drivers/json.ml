@@ -5,8 +5,6 @@ type flags = [ `Mangle of (string->string) ]
 
 (* Missing int32 and int64 (maybe other primitive types) *)
 
-exception Dubplicate_key of string * string
-
 (* Convert a_bcd_e_ to aBcdE *)
 let mangle (s : string) =
   let rec inner : char list -> char list = function
@@ -68,6 +66,12 @@ let of_list: flags:flags option -> ('a -> t) -> 'a list -> t = fun ~flags:_ of_v
 let to_int ~flags:_ t = Yojson.Safe.Util.to_int t
 let of_int ~flags:_ (i:int) : t = `Int i
 
+let to_int32 ~flags:_ t = Yojson.Safe.Util.to_int t |> Int32.of_int_exn
+let of_int32 ~flags:_ i : t = `Int (Int32.to_int_exn i)
+
+let to_int64 ~flags:_ t = Yojson.Safe.Util.to_int t |> Int64.of_int_exn
+let of_int64 ~flags:_ i : t = `Int (Int64.to_int_exn i)
+
 let to_string ~flags:_ t = Yojson.Safe.Util.to_string t
 let of_string ~flags:_ s = `String s
 
@@ -75,7 +79,7 @@ let to_float ~flags:_ t = Yojson.Safe.Util.to_float t
 let of_float ~flags:_ s = `Float s
 
 let to_bool ~flags:_ t = Yojson.Safe.Util.to_bool t
-let of_bool ~flags:_ b= `Bool b
+let of_bool ~flags:_ b = `Bool b
 
 let to_unit ~flags t = to_tuple ~flags Runtime.Nil () t
 let of_unit ~flags () = of_tuple ~flags []

@@ -80,9 +80,15 @@ let to_bool ~flags:_ = to_value "%b"
 let of_bool ~flags:_ = of_value "%b"
 
 let to_unit ~flags:_ = function [ Xml.PCData "" ] -> ()
-                            | _ -> failwith "unit expected"
-
+                              | _ -> failwith "unit expected"
 let of_unit ~flags:_ () = [ Xml.PCData "" ]
+
+
+let to_int32 ~flags:_ = to_value "%ld"
+let of_int32 ~flags:_ = of_value "%ld"
+
+let to_int64 ~flags:_ = to_value "%Ld"
+let of_int64 ~flags:_ = of_value "%Ld"
 
 
 (* Variants without arguments should be encoded as a string.
