@@ -14,6 +14,15 @@ let rec element_to_map m = function
 
 let element name t = [ Xml.Element (name, [], t) ]
 
+(* Records could be optimized by first creating a map of existing
+   usable labels -> id's (at startup). Then map the input data to an
+   array of lists (mutable). Then do the decoding. That would be O(n
+   log n) (n = fields), but its almost the same as the current, which
+   does two lookups: O(2 * n log n) = O(n log n) where n is the number
+   of fields in the input data. There is hardly anypoint to
+   that. Although it would be fun to create.
+*)
+
 let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
   let rec inner: type a b. (t, a, b) structure -> a -> 't -> b = function
     | Cons ((field, to_value_func), xs) ->
@@ -98,5 +107,7 @@ let of_int64 = of_value "%Ld"
 
 
 (* Variants without arguments should be encoded as a string.
-   Variant with arguments should be encoded as a list
+   Variant with arguments should be encoded as a list.
+
+
 *)
