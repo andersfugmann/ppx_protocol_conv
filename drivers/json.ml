@@ -5,8 +5,6 @@ type flag = [ `Mangle of (string -> string) ]
 type 'a flags = ?flags:flag -> 'a
 
 
-(* Missing int32 and int64 (maybe other primitive types) *)
-
 (* Convert a_bcd_e_ to aBcdE *)
 let mangle (s : string) =
   let rec inner : char list -> char list = function
@@ -17,20 +15,32 @@ let mangle (s : string) =
   in
   String.to_list s |> inner |> String.of_char_list
 
-let rec to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t -> b = fun ?flags ->
+(* Get all the strings, and create a mapping from string to id? *)
+let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t -> b = fun ?flags spec constr ->
   let open Runtime in
   let field_func x = match flags with
     | None -> x
     | Some (`Mangle f) -> f x
   in
-  function
-  | Cons ((field, to_value_func), xs) ->
-    let field_name = field_func field in
-    let cont = to_record ?flags xs in
-    fun constr t ->
-      let v = Yojson.Safe.Util.member field_name t |> to_value_func in
-      cont (constr v) t
-  | Nil -> fun a _t -> a
+  let rec inner: type a b. (t, a, b) Runtime.structure -> a -> 'c -> b =
+    function
+    | Cons ((field, to_value_func), xs) ->
+      let field_name = field_func field in
+      let cont = inner xs in
+      fun constr t ->
+        let v = Map.find_exn t field_name |> to_value_func in
+        cont (constr v) t
+    | Nil -> fun a _t -> a
+  in
+  let f = inner spec constr in
+  fun t ->
+    let values =
+      Yojson.Safe.Util.to_assoc t
+      |> List.fold_left
+        ~init:(Map.Using_comparator.empty ~comparator:String.comparator)
+        ~f:(fun m (key, data) -> Map.add ~key ~data m)
+    in
+    f values
 
 let of_record: ?flags:flag -> (string * t) list -> t = fun ?flags assoc ->
   let assoc = match flags with

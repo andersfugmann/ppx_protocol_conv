@@ -4,40 +4,46 @@ open Deriving_protocol.Runtime
 type t = Xml.xml list
 type 'a flags = 'a no_flags
 
-(* Always return a list of elements *)
-let rec member: string -> t -> t = fun field -> function
-  | (Xml.Element(name, _, _) as x) :: xs when String.equal name field -> x :: (member field xs)
-  | _ :: xs -> member field xs
-  | [] -> []
+
+let rec element_to_map m = function
+  | (Xml.Element(name, _, _) as x) :: xs ->
+    let m = Map.add_multi m ~key:name ~data:x in
+    element_to_map m xs
+  | _ :: xs -> element_to_map m xs
+  | [] -> m
 
 let element name t = [ Xml.Element (name, [], t) ]
 
-let to_record: type a b. (t, a, b) structure -> a -> t -> b =
-  let rec inner: type a b. (t, a, b) structure -> a -> t -> b = function
+let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
+  let rec inner: type a b. (t, a, b) structure -> a -> 't -> b = function
     | Cons ((field, to_value_func), xs) ->
       let cont = inner xs in
       fun constr t ->
-        let v = member field t |> to_value_func in
+        let v = Map.find t field
+                |> Option.value ~default:[]
+                |> List.rev
+                |> to_value_func
+        in
         cont (constr v) t
     | Nil -> fun a _t -> a
   in
-  fun spec ->
-    let f = inner spec in
-    fun constr -> function [ Xml.Element (_, _, t) ] -> f constr t
-                         | _ -> failwith "Not a record superstruture"
+  let f = inner spec in
+  fun constr -> function
+    | [ Xml.Element (_, _, t) ] ->
+      let m = Map.Using_comparator.empty ~comparator:String.comparator in
+      f constr (element_to_map m t)
+    | _ -> failwith "Not a record superstruture"
 
 let of_record: (string * t) list -> t = fun assoc ->
   List.concat_map ~f:(
     fun (name, es) -> List.map ~f:(
-        (* If a list was a list of Elements, it would be the same. *)
-        function Xml.Element (_name, attributes, data) -> Xml.Element(name, attributes, data)
-               | Xml.PCData _ as e -> Xml.Element (name, [], [e])
-                 (* failwith ("Record elements cannot be pc data elements: " ^ s) *)
+        function
+        | Xml.Element (_name, attributes, data) ->
+          Xml.Element(name, attributes, data)
+        | Xml.PCData _ as e -> Xml.Element (name, [], [e])
       ) es
   ) assoc |> element "record"
 
-let _name = function Xml.Element(name, _, _) -> name
-                   | PCData _ -> "<pcdata>"
 
 let to_tuple = to_record
 
