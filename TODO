@@ -3,4 +3,6 @@ Handle more types:
   * recursive types (and mutial recursive types)
   * polymorphic variants
 
-Signature for protocol providers
+Add driver for msgpack
+Split into multiple packages, so we dont require all to install
+   yojson, xml or msgpack
