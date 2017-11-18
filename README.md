@@ -24,18 +24,28 @@ Evaluates to
 [ "thisIsOcaml", `Int 42; "notJavascript", `String "really"] (* Yojson.Safe.json *)
 ```
 
-Flags can be specified using the driver argument ~flags. For the json module, the `mangle` function transforms record label names to
-be lower camelcase: a_bc_de -> aBcDe and a_bc_de_ -> aBcDe. Beware that this may cause name collisions, which can only be determined at compile time.
+`to_protocol` deriver will generate serilization of the
+type. `of_protocol` deriver generates de-serilization of the type,
+while `protocol` deriver will generate both serilizarion and de-serilization functions.
+
+Flags can be specified using the driver argument ~flags. For the json
+module, the `mangle` function transforms record label names to be
+lower camelcase: a_bc_de -> aBcDe and a_bc_de_ -> aBcDe. Beware that
+this may cause name collisions, which can only be determined at
+compile time.
 
 ## Attributes
-The deriver allows tag `[@key <string>]` on record declarations, which allows overriding default record label names.
-the key can be prefixed with the name of the driver (lowercased), e.g. `[@json.key "new key"]`
+The deriver allows tag `[@key <string>]` on record declarations, which
+allows overriding default record label names.  the key can be prefixed
+with the name of the driver (lowercased), e.g. `[@json.key "new key"]`
 
 ## Signatures
-The protocol deriver works also handles signature, but disallows `[@key ...]` and `~flags:...` as these does not impact signatures.
+The protocol deriver works also handles signature, but disallows
+`[@key ...]` and `~flags:...` as these does not impact signatures.
 
 ## Drivers
-The protocol deriver currently only implements the `Json` driver, which serialises and de-serialises to the type `Yojson.Safe.t`
+The protocol deriver currently only implements the `Json` driver,
+which serialises and de-serialises to the type `Yojson.Safe.t`
 
 ### Custom drivers
 A protocol driver must implement the signature
@@ -45,4 +55,5 @@ include Lib.Driver with type t = ... and type flags = ...
 ```
 
 ## Limitations
-The protocol deriver currently does not support sum types or parameterised types.
+The protocol deriver currently does not support sum types or
+parameterised types.

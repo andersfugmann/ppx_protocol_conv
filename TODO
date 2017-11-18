@@ -3,5 +3,3 @@ Handle polymorphic variants
 
 Add driver for msgpack
 Split drivers into multiple driver packages
-Add to_protocol and of_protocol to allow specification of either
-   serialization/deserialization

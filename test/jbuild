@@ -1,7 +1,7 @@
 (jbuild_version 1)
 
 (executables
- ((names (example variant))
+ ((names (example variant from_to_protocol))
   (modules (:standard util))
   (libraries (deriving_protocol deriving_protocol_json deriving_protocol_xml))
   (preprocess (pps (ppx_deriving_protocol ppx_driver.runner)))
@@ -10,5 +10,14 @@
 (alias
   ((name   runtest)
    (action (run ${exe:example.exe}))
+))
+
+(alias
+  ((name   runtest)
    (action (run ${exe:variant.exe}))
+))
+
+(alias
+  ((name   runtest)
+   (action (run ${exe:from_to_protocol.exe}))
 ))

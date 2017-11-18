@@ -2,8 +2,6 @@ open !Base
 open !Deriving_protocol_json
 open !Deriving_protocol_xml
 
-
-
 module Simple = struct
   type v = A | B of int | C of int * int | D of (int * int)
   [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
@@ -46,7 +44,15 @@ module Recursion = struct
     Util.test_xml "Variant.Recursion" v_to_xml_light v_of_xml_light t;
     ()
 end
-(*
+
+(* Not supported yet
+module Poly = struct
+  type t = [ `A of int ]
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+end
+*)
+
+(* Not supported yet
 module Record = struct
   type v = V of { v1: int; v2: string}
          | U of { u1: string; u2: int }

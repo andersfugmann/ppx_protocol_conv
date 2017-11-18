@@ -2,6 +2,7 @@
 * Support int32 and int64
 * Don't require all drivers to accept a flags parameter
 * Add support for variants
+* Support of_protocol and to_protocol
 
 0.8:
 * Initial release
