@@ -15,6 +15,18 @@ let mangle (s : string) =
   in
   String.to_list s |> inner |> String.of_char_list
 
+let of_variant ?flags:_ destruct t =
+  match destruct t with
+  | name, [] -> `String name
+  | name, args -> `List (`String name :: args)
+
+let to_variant ?flags:_ constr (t : t) =
+  match t with
+  | `String name -> constr (name, [])
+  | `List (`String name :: ts) -> constr (name, ts)
+  | _ -> failwith "Variant type not found"
+
+
 (* Get all the strings, and create a mapping from string to id? *)
 let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t -> b = fun ?flags spec constr ->
   let open Runtime in

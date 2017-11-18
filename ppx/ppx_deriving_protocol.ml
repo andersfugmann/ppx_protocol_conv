@@ -4,6 +4,7 @@ open Ast_builder.Default
 
 open !Printf
 
+(* In variants, dont encode as tuple.... *)
 let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_deriving_protocol: " ^^ fmt)
 
 let expr_of_ident ?(prefix="") ?(suffix="") { loc; txt } =
@@ -26,6 +27,8 @@ let rec string_of_ident = function
   | Lident s -> s
   | Ldot (i, s) -> string_of_ident i ^ "." ^ s
   | Lapply _  -> raise_errorf "lapply???"
+
+let ident_of_string_loc { loc; txt} = { loc; txt=Lident txt }
 
 let driver_func ~driver ~flags ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (driver, name) } in
@@ -160,36 +163,6 @@ let rec deserialize_expr_of_type_descr ~loc ~(driver:longident) ~flags = functio
   | Ptyp_package _
   | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
 
-    (* For each type I need the of_function. We should split into two *)
-    (*
-    let to_pattern = function
-      (* The the variant name *)
-      | { pcd_name; pcd_args=Pcstr_tuple core_types; pcd_res=_; pcd_loc:_; pcd_attributes:_ } ->
-        (* So now I can create <name> (x1, x2, x3) -> of_variant ~flags name (x1, x2, x3) *)
-        pexp_apply
-        [%pat? ]
-    in
-*)
-
-    (* So we need a function:
-       function
-       A x1, x2, x3 ->
-    *)
-    (*
-       val: to_variant: (string * (t list -> 'a)) list -> t -> 'a
-       val: of_variant: string -> t list -> t
-       How do we know that there are no constructors? Do we need a nil constr?
-
-    let names = List.map constrs ~f:(fun constr -> constr.pdc_name
-    *)
-(*
-    let typedef_of_pcd_args = function
-      | Pcstr_record _ -> failwith "Anonymous records not supported"
-      | Pcstr_tuple core_types -> List.map ~f:typedef_of_core_type core_types
-    in
-    let ctrs = List.map ~f:(fun pcd -> pcd.pcd_name.txt, typedef_of_pcd_args pcd.pcd_args) constrs in
-    Adt ctrs
-*)
 
 let field_names_of_record ~driver labels =
   List.map ~f:(fun label -> match Attribute.get (key_attrib ~driver) label with
@@ -214,8 +187,52 @@ let serialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
         serialize_expr_of_type_descr ~loc ~driver ~flags core_type.ptyp_desc
       | None -> raise_errorf ~loc "Manifest is none"
     end
-  | Ptype_variant _constrs ->
-    raise_errorf ~loc "variant type not supported"
+  | Ptype_variant constrs ->
+    (*
+       val: to_variant: (string * (t list -> 'a)) list -> t -> 'a
+       val: of_variant: string -> t list -> t
+    *)
+
+    (* construct | A (x, y) -> ... *)
+    let mk_pattern core_types =
+      List.mapi ~f:(fun i (core_type:core_type) ->
+          ppat_var
+            ~loc:core_type.ptyp_loc
+            { loc = core_type.ptyp_loc; txt = sprintf "c%d" i }
+        ) core_types
+      |> ppat_tuple_opt ~loc
+    in
+    let mk_case = function
+      | { pcd_args = Pcstr_record _; pcd_loc; _ } -> raise_errorf ~loc:pcd_loc "Anonymous records not supported"
+      | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } ->
+        let lhs =
+          ppat_construct
+            ~loc
+            (ident_of_string_loc pcd_name)
+            (mk_pattern core_types)
+        in
+        (* of_variant "A" [ of_int c1; of_list c2; ... ] *)
+        let args =
+          List.mapi ~f:(
+            fun i core_type ->
+              pexp_apply ~loc
+              (serialize_expr_of_type_descr
+                 ~driver
+                 ~flags
+                 ~loc core_type.ptyp_desc)
+              [Nolabel, pexp_ident ~loc { loc; txt=Lident (sprintf "c%d" i) }]
+          ) core_types
+        in
+        let rhs =
+          [%expr ( [%e estring ~loc pcd_name.txt ],
+                   [%e args |> list_expr ~loc] )]
+        in
+        case ~lhs ~guard:None ~rhs
+    in
+    [%expr
+      [%e driver_func ~loc ~driver ~flags "of_variant" ]
+        [%e pexp_function ~loc (List.map ~f:mk_case constrs) ]
+    ]
   | Ptype_record labels ->
     (* Map field names. @key attribute takes priority, and test for name clashes *)
     let field_names = field_names_of_record ~driver labels in
@@ -243,6 +260,12 @@ let serialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
 
   | Ptype_open -> raise_errorf ~loc "open types not supported"
 
+let default_case ~loc =
+  let efail = pexp_apply ~loc (pexp_ident ~loc { loc; txt=Lident "failwith" })
+      [ Nolabel, estring ~loc "Unknown variant or arity error" ]
+  in
+  case ~lhs:(ppat_any ~loc) ~guard:None ~rhs:efail
+
 let deserialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
   match tdecl.ptype_kind with
   | Ptype_abstract -> begin
@@ -251,8 +274,44 @@ let deserialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
         deserialize_expr_of_type_descr ~loc ~driver ~flags core_type.ptyp_desc
       | None -> raise_errorf ~loc "Manifest is none"
     end
-  | Ptype_variant _constrs ->
-    raise_errorf ~loc "variant type not supported"
+  | Ptype_variant constrs ->
+    let mk_case = function
+      | { pcd_args = Pcstr_record _; pcd_loc; _ } -> raise_errorf ~loc:pcd_loc "Anonymous records not supported"
+      | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } ->
+        (* val: to_variant: ((string * t list) -> 'a) -> t -> 'a *)
+        let lhs =
+          let pcstr s pat = ppat_construct ~loc { loc; txt=Lident s } pat in
+          core_types
+          |> List.rev_mapi ~f:(fun i _ -> sprintf "c%d" i)
+          |> List.map ~f:(fun s -> { loc; txt=s })
+          |> List.fold_left ~init:(pcstr "[]" None)
+            ~f:(fun acc var ->
+                pcstr "::" (Some (ppat_tuple ~loc
+                                    [ppat_var ~loc var; acc]))
+              )
+          |> fun p -> ppat_tuple ~loc [ ppat_constant ~loc (Pconst_string (pcd_name.txt, None)); p ]
+        in
+        let rhs =
+          (* A function c1 c2 c3 -> A (to_t c1, to_t c2, to_t c3) *)
+          let of_p var core_type =
+            let e = deserialize_expr_of_type_descr ~loc ~driver ~flags core_type in
+            pexp_apply ~loc e [Nolabel, pexp_ident ~loc { loc; txt=Lident var }]
+          in
+
+          let args = match core_types with
+            | [] -> None
+            | cts -> List.mapi ~f:(fun i ct -> of_p (sprintf "c%d" i) ct.ptyp_desc ) cts
+                    |> pexp_tuple ~loc
+                    |> Option.some
+          in
+          pexp_construct (ident_of_string_loc pcd_name) ~loc args
+        in
+        case ~lhs ~guard:None ~rhs
+    in
+    [%expr
+      [%e driver_func ~loc ~driver ~flags "to_variant" ]
+        [%e pexp_function ~loc (List.map ~f:mk_case constrs |> fun ps -> ps @ [default_case ~loc]) ]
+    ]
   | Ptype_record labels ->
     (* Map field names. @key attribute takes priority, and test for name clashes *)
     let field_names = field_names_of_record ~driver labels in
@@ -289,17 +348,29 @@ let serialize_function_name ~loc ~(driver:longident) name =
 let deserialize_function_name ~loc ~(driver:longident) name =
   sprintf "%s_of_%s" name.txt (module_name ~loc driver) |> Located.mk ~loc
 
-let str_type_decl ~loc ~(driver:longident) ~flags tdecl =
+let serialize_type_decl ~loc ~(driver:longident) ~flags tdecl =
   let name = tdecl.ptype_name in
-  [%stri let [%p ppat_var ~loc (serialize_function_name ~loc ~driver name) ] =
-           [%e serialize_expr_of_tdecl ~loc ~driver ~flags tdecl] ] ::
-  [%stri let [%p ppat_var ~loc (deserialize_function_name ~loc ~driver name) ] =
-           [%e deserialize_expr_of_tdecl ~loc ~driver ~flags tdecl] ] ::
-  []
+  ( serialize_function_name ~loc ~driver name,
+    [%expr fun t -> [%e serialize_expr_of_tdecl ~loc ~driver ~flags tdecl] t]
+  )
+
+let deserialize_type_decl ~loc ~(driver:longident) ~flags tdecl =
+  let name = tdecl.ptype_name in
+  ( deserialize_function_name ~loc ~driver name,
+    [%expr fun t -> [%e deserialize_expr_of_tdecl ~loc ~driver ~flags tdecl] t] )
+
+let pstr_value_of_funcs ~loc elements =
+  List.map ~f:(fun (name, expr) ->
+      let pat = ppat_var ~loc name in
+      value_binding ~loc ~pat ~expr
+    ) elements
+  |> pstr_value ~loc Recursive
 
 let str_type_decls ~loc ~path:_ (_rec_flag, tydecls) driver flags =
   let driver = ident_of_module ~loc driver in
-  List.concat_map ~f:(str_type_decl ~loc ~driver ~flags) tydecls
+  let rec_func = {loc; txt="__protocol_recursive_function"}, [%expr fun () -> __protocol_recursive_function ()] in
+  pstr_value_of_funcs ~loc ( rec_func :: List.map ~f:(serialize_type_decl ~loc ~driver ~flags) tydecls ) ::
+  pstr_value_of_funcs ~loc ( rec_func :: List.map ~f:(deserialize_type_decl ~loc ~driver ~flags) tydecls ) :: []
 
 let sig_type_decl ~loc ~(driver:longident) tdecl : signature =
   let name = tdecl.ptype_name in

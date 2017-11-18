@@ -1,8 +1,7 @@
-Handle more types:
-  * adt's
-  * recursive types (and mutial recursive types)
-  * polymorphic variants
+Handle anonymous records
+Handle polymorphic variants
 
 Add driver for msgpack
-Split into multiple packages, so we dont require all to install
-   yojson, xml or msgpack
+Split drivers into multiple driver packages
+Add to_protocol and of_protocol to allow specification of either
+   serialization/deserialization

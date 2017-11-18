@@ -1,6 +1,7 @@
-open Base
-open Deriving_protocol_json
-open Deriving_protocol_xml
+open !Base
+open !Deriving_protocol_json
+open !Deriving_protocol_xml
+
 type a = string * int list [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
 type aopt = a option [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
 
@@ -17,7 +18,6 @@ type yb = {
   y_b: a;
   y_c_: aopt [@key "fugmann1"];
 } [@@deriving protocol ~driver:(module Xml_light)]
-
 
 type x = {
   foo: int;

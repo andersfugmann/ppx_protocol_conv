@@ -14,6 +14,14 @@ let rec element_to_map m = function
 
 let element name t = [ Xml.Element (name, [], t) ]
 
+let of_variant f t =
+  let (_s, _ts) = f t in
+  []
+
+let to_variant (f: (string * t list) -> 'a)  t =
+  ignore (f, t);
+  failwith "Not implemented"
+
 (* Records could be optimized by first creating a map of existing
    usable labels -> id's (at startup). Then map the input data to an
    array of lists (mutable). Then do the decoding. That would be O(n

@@ -1,6 +1,7 @@
 0.9:
 * Support int32 and int64
 * Don't require all drivers to accept a flags parameter
+* Add support for variants
 
 0.8:
 * Initial release
