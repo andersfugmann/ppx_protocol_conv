@@ -188,12 +188,6 @@ let serialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
       | None -> raise_errorf ~loc "Manifest is none"
     end
   | Ptype_variant constrs ->
-    (*
-       val: to_variant: (string * (t list -> 'a)) list -> t -> 'a
-       val: of_variant: string -> t list -> t
-    *)
-
-    (* construct | A (x, y) -> ... *)
     let mk_pattern core_types =
       List.mapi ~f:(fun i (core_type:core_type) ->
           ppat_var
@@ -203,7 +197,10 @@ let serialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
       |> ppat_tuple_opt ~loc
     in
     let mk_case = function
-      | { pcd_args = Pcstr_record _; pcd_loc; _ } -> raise_errorf ~loc:pcd_loc "Anonymous records not supported"
+      | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
+        (* Should create a constructor that converts this into a standard record.
+           But we dont have a name, and cannot use it outside the constr - so its hard... *)
+        raise_errorf ~loc:pcd_loc "Anonymous records not supported"
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } ->
         let lhs =
           ppat_construct
@@ -276,7 +273,8 @@ let deserialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
     end
   | Ptype_variant constrs ->
     let mk_case = function
-      | { pcd_args = Pcstr_record _; pcd_loc; _ } -> raise_errorf ~loc:pcd_loc "Anonymous records not supported"
+      | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
+        raise_errorf ~loc:pcd_loc "Anonymous records not supported"
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } ->
         (* val: to_variant: ((string * t list) -> 'a) -> t -> 'a *)
         let lhs =

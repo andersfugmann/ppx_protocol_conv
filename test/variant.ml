@@ -52,8 +52,11 @@ module Record = struct
          | U of { u1: string; u2: int }
   [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
 
-  let () =
+  let _ =
     let t = V { v1=5; v2="test" } in
+    Util.test_json "Variant.Record" t_to_json t_of_json t;
+    Util.test_xml "Variant.Record" t_to_xml_light t_of_xml_light t;
+    ()
 
 
 end
