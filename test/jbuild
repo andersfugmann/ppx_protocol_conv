@@ -2,6 +2,7 @@
 
 (executables
  ((names (example variant))
+  (modules (:standard util))
   (libraries (deriving_protocol deriving_protocol_json deriving_protocol_xml))
   (preprocess (pps (ppx_deriving_protocol ppx_driver.runner)))
 ))

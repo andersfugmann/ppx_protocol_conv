@@ -15,12 +15,13 @@ let rec element_to_map m = function
 let element name t = [ Xml.Element (name, [], t) ]
 
 let of_variant f t =
-  let (_s, _ts) = f t in
-  []
+  let (s, ts) = f t in
+  [ Xml.Element("variant", [], Xml.PCData s :: (List.concat ts)) ]
 
-let to_variant (f: (string * t list) -> 'a)  t =
-  ignore (f, t);
-  failwith "Not implemented"
+let to_variant (f: (string * t list) -> 'a) = function
+  | [ Xml.Element(_, _, Xml.PCData s :: es) ] ->
+    f (s, (List.map ~f:(fun e -> [e]) es))
+  | _ -> failwith "Wrong variant data"
 
 (* Records could be optimized by first creating a map of existing
    usable labels -> id's (at startup). Then map the input data to an
