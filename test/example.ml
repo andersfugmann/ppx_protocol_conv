@@ -1,7 +1,6 @@
 open Base
 open Protocol_conv_json
 
-
 type a = string * int list [@@deriving protocol ~driver:(module Json)]
 type aopt = a option [@@deriving protocol ~driver:(module Json)]
 

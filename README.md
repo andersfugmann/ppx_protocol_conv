@@ -71,6 +71,6 @@ See the drivers directory for examples on how to implemented new drivers.
 Submissions of useful drivers are welcome
 
 ## Limitations
-The json driver will currently serialize type `t option` as `t
+The json driver will currently serialize type `t option option` as `t
 option`. This means that `Some None` and `None` is both mapped to
-`Null`
+`Null`.
