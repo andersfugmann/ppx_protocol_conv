@@ -5,7 +5,7 @@
   (public_name ppx_deriving_protocol.json)
   (modules (Json))
   (libraries (deriving_protocol base yojson))
-  (synopsis "json (de)serialization driver for ppx_protocol_deriver")
+  (synopsis "json (de)serialization driver for ppx_deriving_protocol")
  )
 )
 
@@ -14,6 +14,15 @@
   (public_name ppx_deriving_protocol.xml)
   (modules (Xml_light))
   (libraries (deriving_protocol base xml-light))
-  (synopsis "xml-light (de)serialization driver for ppx_protocol_deriver")
+  (synopsis "xml-light (de)serialization driver for ppx_deriving_protocol")
+ )
+)
+
+(library
+ ((name deriving_protocol_msgpack)
+  (public_name ppx_deriving_protocol.msgpack)
+  (modules (msgpack))
+  (libraries (deriving_protocol base msgpck))
+  (synopsis "MessagePack (de)serialization driver for ppx_deriving_protocol")
  )
 )
