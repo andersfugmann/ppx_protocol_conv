@@ -83,6 +83,11 @@ let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun t ->
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
   List.concat_map ~f:(fun v -> of_value_fun v) vs
 
+let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun t -> Lazy.from_fun (fun () -> to_value_fun t)
+
+let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
+  Lazy.force v |> of_value_fun
+
 let of_value fmt = Base.Printf.ksprintf (fun s -> [ Xml.Element ("p", [], [ Xml.PCData s ]) ]) fmt
 
 let to_value fmt : t -> 'a = function

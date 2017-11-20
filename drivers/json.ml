@@ -87,6 +87,11 @@ let to_list: ?flags:flag -> (t -> 'a) -> t -> 'a list = fun ?flags:_ to_value_fu
 let of_list: ?flags:flag -> ('a -> t) -> 'a list -> t = fun ?flags:_ of_value_fun v ->
   `List (List.map ~f:of_value_fun v)
 
+let to_lazy_t: ?flags:flag -> (t -> 'a) -> t -> 'a lazy_t = fun ?flags:_ to_value_fun t -> Lazy.from_fun (fun () -> to_value_fun t)
+
+let of_lazy_t: ?flags:flag -> ('a -> t) -> 'a lazy_t -> t = fun ?flags:_ of_value_fun v ->
+  Lazy.force v |> of_value_fun
+
 let to_int ?flags:_ t = Yojson.Safe.Util.to_int t
 let of_int ?flags:_ (i:int) : t = `Int i
 

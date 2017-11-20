@@ -64,7 +64,7 @@ let is_primitive_type = function
 
 (** Test if the type is a type modifier *)
 let is_meta_type = function
-  | "option" | "array" | "list" -> true
+  | "option" | "array" | "list" | "lazy_t" -> true
   | _ -> false
 
 let module_name ?loc = function

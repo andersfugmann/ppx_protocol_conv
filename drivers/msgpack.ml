@@ -96,6 +96,11 @@ let to_list: ?flags:flag -> (t -> 'a) -> t -> 'a list =
 let of_list: ?flags:flag -> ('a -> t) -> 'a list -> t = fun ?flags:_ of_value_fun v ->
   Msgpck.List (List.map ~f:of_value_fun v)
 
+let to_lazy_t: ?flags:flag -> (t -> 'a) -> t -> 'a lazy_t = fun ?flags:_ to_value_fun t -> Lazy.from_fun (fun () -> to_value_fun t)
+
+let of_lazy_t: ?flags:flag -> ('a -> t) -> 'a lazy_t -> t = fun ?flags:_ of_value_fun v ->
+  Lazy.force v |> of_value_fun
+
 let to_int ?flags:_ = function Msgpck.Int i -> i
                              | _ -> failwith "Not an int"
 let of_int ?flags:_ i = Msgpck.Int i
