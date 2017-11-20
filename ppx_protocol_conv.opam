@@ -10,10 +10,10 @@ version: "0.9"
 depends: [
   "yojson"
   "xml-light"
+  "msgpck"
   "base"
-  "ppx_core" {build}
-  "ppx_type_conv" {build}
-  "ppx_driver" {build}
+  "ppx_type_conv"
+  "ppx_driver"
   "jbuilder" {build}
   "ppx_metaquot" {build}
 ]
