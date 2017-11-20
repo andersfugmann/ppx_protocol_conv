@@ -91,25 +91,27 @@ let to_value fmt : t -> 'a = function
   | Xml.PCData _ :: _ -> failwith "Primitive type not expected here"
   | [] -> failwith ("No element:" ^ Caml.string_of_format fmt)
 
-let to_int = to_value "%d"
-let of_int = of_value "%d"
-
-let to_string = to_value "%s"
-let of_string = of_value "%s"
-
-let to_float = to_value "%f"
-let of_float = of_value "%f"
-
 let to_bool = to_value "%b"
 let of_bool = of_value "%b"
 
-let to_unit = function [ Xml.PCData "" ] -> ()
-                              | _ -> failwith "unit expected"
-let of_unit () = [ Xml.PCData "" ]
-
+let to_int = to_value "%d"
+let of_int = of_value "%d"
 
 let to_int32 = to_value "%ld"
 let of_int32 = of_value "%ld"
 
 let to_int64 = to_value "%Ld"
 let of_int64 = of_value "%Ld"
+
+let to_float = to_value "%f"
+let of_float = of_value "%f"
+
+let to_string = to_value "%s"
+let of_string = of_value "%s"
+
+let to_unit = function [ Xml.PCData "" ] -> ()
+                              | _ -> failwith "unit expected"
+let of_unit () = [ Xml.PCData "" ]
+
+let t_of_xml_light t = t
+let t_to_xml_light t = t

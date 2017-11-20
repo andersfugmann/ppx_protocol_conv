@@ -25,6 +25,15 @@ let v = { foo=1;
               }
         }
 
+type u = {
+  a: Json.t;
+  b: Json.t;
+  c: int;
+} [@@deriving protocol ~driver:(module Json)]
+
+let u = { a = `Int 5; b = `String "B"; c = 3 }
+
 let _test_json : unit =
   Util.test_json Caml.__MODULE__ t_to_json t_of_json v;
+  Util.test_json Caml.__MODULE__ u_to_json u_of_json u;
   ()

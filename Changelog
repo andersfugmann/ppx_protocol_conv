@@ -3,9 +3,8 @@
 
 [ ] Split drivers into multiple driver packages
 [ ] Allow overriding Variant constructor names in serialization
-[ ] Add t_of_xml and t_to_xml to drivers.
+[x] Add t_of_xml and t_to_xml to drivers.
 
-0.9:
 [x] Support int32 and int64
 [x] Don't require all drivers to accept a flags parameter
 [x] Add support for variants

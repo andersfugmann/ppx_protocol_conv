@@ -123,3 +123,6 @@ let of_bool ?flags:_ b = Msgpck.Bool b
 
 let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
 let of_unit ?flags () = of_tuple ?flags []
+
+let t_to_msgpack t = t
+let t_of_msgpack t = t
