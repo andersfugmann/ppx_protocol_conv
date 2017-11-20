@@ -2,7 +2,7 @@
 [ ] Handle polymorphic variants
 
 [ ] Split drivers into multiple driver packages
-[ ] Allow overriding Variant constructor names in serialization
+[x] Allow overriding Variant constructor names in serialization
 [x] Add t_of_xml and t_to_xml to drivers.
 
 [x] Support int32 and int64
