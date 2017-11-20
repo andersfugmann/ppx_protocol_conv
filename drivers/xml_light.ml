@@ -16,7 +16,7 @@ let element name t = [ Xml.Element (name, [], t) ]
 
 let of_variant f t =
   let (s, ts) = f t in
-  [ Xml.Element("variant", [], Xml.PCData s :: (List.concat ts)) ]
+  [ Xml.Element("v", [], Xml.PCData s :: (List.concat ts)) ]
 
 let to_variant (f: (string * t list) -> 'a) = function
   | [ Xml.Element(_, _, Xml.PCData s :: es) ] ->
@@ -83,7 +83,7 @@ let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun t ->
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
   List.concat_map ~f:(fun v -> of_value_fun v) vs
 
-let of_value fmt = Base.Printf.ksprintf (fun s -> [ Xml.Element ("primitive", [], [ Xml.PCData s ]) ]) fmt
+let of_value fmt = Base.Printf.ksprintf (fun s -> [ Xml.Element ("p", [], [ Xml.PCData s ]) ]) fmt
 
 let to_value fmt : t -> 'a = function
   | Xml.Element(_, _, [PCData s]) :: []  -> Caml.Scanf.sscanf s fmt (fun i -> i)
@@ -113,10 +113,3 @@ let of_int32 = of_value "%ld"
 
 let to_int64 = to_value "%Ld"
 let of_int64 = of_value "%Ld"
-
-
-(* Variants without arguments should be encoded as a string.
-   Variant with arguments should be encoded as a list.
-
-
-*)
