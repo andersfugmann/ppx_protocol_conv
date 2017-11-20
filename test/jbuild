@@ -3,11 +3,11 @@
 (executables
  ((names (example variant from_to_protocol driver))
   (modules (:standard util))
-  (libraries (deriving_protocol
-              deriving_protocol_json
-              deriving_protocol_xml
-              deriving_protocol_msgpack))
-  (preprocess (pps (ppx_deriving_protocol ppx_driver.runner)))
+  (libraries (protocol_conv
+              protocol_conv_json
+              protocol_conv_xml
+              protocol_conv_msgpack))
+  (preprocess (pps (ppx_protocol_conv ppx_driver.runner)))
 ))
 
 (alias

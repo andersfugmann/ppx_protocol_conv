@@ -1,5 +1,5 @@
 open Base
-open Deriving_protocol
+open Protocol_conv
 type t = Yojson.Safe.json
 type flag = [ `Mangle of (string -> string) ]
 type 'a flags = ?flags:flag -> 'a

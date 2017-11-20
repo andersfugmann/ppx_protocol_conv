@@ -1,6 +1,6 @@
 (library
- ((name ppx_deriving_protocol)
-  (public_name  ppx_deriving_protocol)
+ ((name ppx_protocol_conv)
+  (public_name  ppx_protocol_conv)
   (synopsis "Ppx Protocol generator")
   (kind ppx_deriver)
   (libraries (ppx_core ppx_type_conv ppx_driver))

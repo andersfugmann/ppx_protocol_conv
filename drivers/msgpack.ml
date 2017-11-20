@@ -1,5 +1,5 @@
 open Base
-open Deriving_protocol
+open Protocol_conv
 
 type t = Msgpck.t
 type flag = [ `Mangle of (string -> string) ]

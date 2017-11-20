@@ -1,8 +1,8 @@
 (* Test all drivers *)
 open !Base
-open Deriving_protocol_json
-open Deriving_protocol_xml
-open Deriving_protocol_msgpack
+open Protocol_conv_json
+open Protocol_conv_xml
+open Protocol_conv_msgpack
 
 type v = A | B of int | C of string
 [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]

@@ -1,6 +1,0 @@
-Rename package to ppx_protocol_conv
-
-Handle anonymous records
-Handle polymorphic variants
-
-Split drivers into multiple driver packages

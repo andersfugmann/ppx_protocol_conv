@@ -1,6 +1,6 @@
 open !Base
-open !Deriving_protocol_json
-open !Deriving_protocol_xml
+open !Protocol_conv_json
+open !Protocol_conv_xml
 
 module Simple = struct
   type v = A | B of int | C of int * int | D of (int * int)

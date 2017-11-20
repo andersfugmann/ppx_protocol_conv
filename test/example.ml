@@ -1,22 +1,21 @@
-open !Base
-open !Deriving_protocol_json
-open !Deriving_protocol_xml
+open Base
+open Protocol_conv_json
 
 
-type a = string * int list [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
-type aopt = a option [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+type a = string * int list [@@deriving protocol ~driver:(module Json)]
+type aopt = a option [@@deriving protocol ~driver:(module Json)]
 
 type y = {
   y_a: int [@key "y_ya"];
   y_b: a;
   y_c_: aopt [@key "y_yc"];
-} [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+} [@@deriving protocol ~driver:(module Json)]
 
 type t = {
   foo: int;
   bar: string;
   baz: y;
-} [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+} [@@deriving protocol ~driver:(module Json)]
 
 let v = { foo=1;
           bar="one";

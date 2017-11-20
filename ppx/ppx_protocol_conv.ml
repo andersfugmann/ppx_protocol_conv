@@ -5,7 +5,7 @@ open Ast_builder.Default
 open !Printf
 
 (* In variants, dont encode as tuple.... *)
-let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_deriving_protocol: " ^^ fmt)
+let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^ fmt)
 
 let expr_of_ident ?(prefix="") ?(suffix="") { loc; txt } =
   let txt = match txt with
@@ -147,7 +147,7 @@ let rec deserialize_expr_of_type_descr ~loc ~(driver:longident) ~flags = functio
           ) ids
       in
       [%expr
-        let open Deriving_protocol.Runtime in
+        let open Protocol_conv.Runtime in
         let of_funcs = [%e spec_expr ~loc (List.mapi ~f:(fun i v -> estring ~loc (sprintf "t%d" i), v) to_ts) ] in
         let constructor = [%e constructor] in
         [%e driver_func ~loc ~driver ~flags "to_tuple"] of_funcs constructor
@@ -332,7 +332,7 @@ let deserialize_expr_of_tdecl ~loc ~driver ~flags tdecl =
     in
 
     [%expr
-      let open Deriving_protocol.Runtime in
+      let open Protocol_conv.Runtime in
       let of_funcs = [%e spec_expr ~loc (List.zip_exn field_names of_p)] in
       let constructor = [%e constructor] in
       [%e driver_func ~loc ~driver ~flags "to_record"] of_funcs constructor

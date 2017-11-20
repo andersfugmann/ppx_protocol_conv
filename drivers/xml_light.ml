@@ -1,6 +1,6 @@
-(* Xml driver for ppx_deriving_protocol *)
+(* Xml driver for ppx_protocol_conv *)
 open Base
-open Deriving_protocol.Runtime
+open Protocol_conv.Runtime
 type t = Xml.xml list
 type 'a flags = 'a no_flags
 
