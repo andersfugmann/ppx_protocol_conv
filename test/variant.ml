@@ -44,14 +44,12 @@ module Recursion = struct
     Util.test_xml "Variant.Recursion" v_to_xml_light v_of_xml_light t;
     ()
 end
-
-(* Not supported yet
+(*
 module Poly = struct
   type t = [ `A of int ]
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+  [@@deriving to_protocol ~driver:(module Json)]
 end
 *)
-
 (* Not supported yet
 module Record = struct
   type v = V of { v1: int; v2: string}
