@@ -65,25 +65,26 @@ module Lists : Util.Testable = struct
   type t = {
     a: int list list;
     b: (int list * int list);
+    c: int list;
     l: l list;
   }
   [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
   let t = {
     a = [
-      [ 1;2;3 ]; [4]
-(* []   [10; 20; 30; 40];
-      [100; 101]; *)
+      [ 1;2;3 ];
+      [];
+      [10; 20; 30; 40];
+      [100; 101];
     ];
 
     b = ([8;9], [10;20;30;40]);
+    c = [100; 101; 102; 103];
 
     l = [
-      (*
       A [1;2;3];
       B ([[1;2]; [3;4;5]; [2]], [3;1], 5);
       C ([1;2;3], [3;4;5]);
-      *)
     ]
   }
 
