@@ -106,8 +106,9 @@ let rec serialize_expr_of_type_descr t ~loc = function
         (ppat_tuple ~loc (List.map ~f:(fun id ->ppat_var ~loc (string_of_ident_loc id)) ids))
         (pexp_apply ~loc (driver_func t ~loc "of_tuple") [Nolabel, arg_list])
     end
-  | Ptyp_poly _ -> raise_errorf ~loc "Polymorphic variants not supported"
-  | Ptyp_variant _ -> raise_errorf ~loc "Variant type descr not supported"
+  | Ptyp_variant _ ->
+    raise_errorf ~loc "Serialization of Variants not supported!"
+  | Ptyp_poly _
   | Ptyp_any
   | Ptyp_var _
   | Ptyp_arrow _
