@@ -4,7 +4,7 @@ open Protocol_conv_json
 type a = string * int list [@@deriving protocol ~driver:(module Json)]
 type aopt = a option [@@deriving protocol ~driver:(module Json)]
 
-type v = Variant_one of int [@key "VARIANT_ONE"]
+type v = Variant_one of int [@key "Variant_two1"]
        | Variant_two of string
 [@@deriving protocol ~driver:(module Json)]
 
@@ -16,7 +16,6 @@ type y = {
 } [@@deriving protocol ~driver:(module Json)]
 
 type t = {
-
   foo: int;
   bar: string;
   baz: y;
@@ -38,6 +37,8 @@ type u = {
 } [@@deriving protocol ~driver:(module Json)]
 
 let u = { a = `Int 5; b = `String "B"; c = 3 }
+
+type x = int option option [@@deriving protocol ~driver:(module Json)]
 
 let _test_json : unit =
   Util.test_json Caml.__MODULE__ t_to_json t_of_json v;

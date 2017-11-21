@@ -4,7 +4,10 @@ open Protocol_conv_json
 open Protocol_conv_xml
 open Protocol_conv_msgpack
 
-type v = A | B of int | C of string
+type v = A | B of int list | C of string
+[@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+type t1 = { x: int; y: string }
 [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
 type t = {
@@ -18,6 +21,8 @@ type t = {
   io: int option;
   t: (int * string * bool);
   v: v list;
+  x: t1;
+
 }
 [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
@@ -31,7 +36,8 @@ let v = {
   il = [3; 4; 5];
   io = Some 100;
   t = (5, "protocol", false);
-  v = [ A; B 5; C "protocol"];
+  v = [ A; B [5; 6; 7]; C "protocol"];
+  x = { x = 5; y = "string" };
 }
 
 let () =
