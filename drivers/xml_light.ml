@@ -1,7 +1,7 @@
 (* Xml driver for ppx_protocol_conv *)
 open Base
 open Protocol_conv.Runtime
-type t = Xml.xml list
+type t = Xml.xml
 type 'a flags = 'a no_flags
 
 
@@ -14,13 +14,14 @@ let rec element_to_map m = function
 
 let element name t = [ Xml.Element (name, [], t) ]
 
-let of_variant f t =
-  let (s, ts) = f t in
-  [ Xml.Element("v", [], Xml.PCData s :: (List.concat ts)) ]
+let of_variant: (('a -> string * t list) -> 'a -> t) flags = fun destruct t ->
+  let (s, ts) = destruct t in
+  Xml.Element("v", [], Xml.PCData s :: (List.map ~f:(fun t -> Xml.Element("c", [], t)) ts) )
 
-let to_variant (f: (string * t list) -> 'a) = function
+let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> function
   | [ Xml.Element(_, _, Xml.PCData s :: es) ] ->
-    f (s, (List.map ~f:(fun e -> [e]) es))
+    constr (s, (List.map ~f:(function Xml.Element (_, [], t) -> t
+                                    | _ -> failwith "Element expected when decoding variant arguments") es))
   | _ -> failwith "Wrong variant data"
 
 (* Records could be optimized by first creating a map of existing
@@ -52,14 +53,15 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
       f constr (element_to_map m t)
     | _ -> failwith "Not a record superstruture"
 
+(* A : int list -> "a", Element("l" , [], Element list)  *)
 let of_record: (string * t) list -> t = fun assoc ->
   List.concat_map ~f:(
-    fun (name, es) -> List.map ~f:(
+    fun (name, t) -> List.map ~f:(
         function
         | Xml.Element (_name, attributes, data) ->
-          Xml.Element(name, attributes, data)
-        | Xml.PCData _ as e -> Xml.Element (name, [], [e])
-      ) es
+          Xml.Element (name, attributes, data)
+        | Xml.PCData _ -> failwith "Must be an element"
+      ) t
   ) assoc |> element "record"
 
 
@@ -77,46 +79,48 @@ let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
   | None -> []
   | Some x -> of_value_fun x
 
-let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun t ->
-  List.map ~f:(fun t -> to_value_fun [t]) t
+let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
+  | [ Xml.Element (_, _, t) ] -> List.map ~f:(fun t -> to_value_fun [t]) t
+  | _ -> failwith "Must be single element"
 
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
-  List.concat_map ~f:(fun v -> of_value_fun v) vs
+  [ Xml.Element("l", [], List.concat_map ~f:(fun v -> of_value_fun v) vs) ]
 
 let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun t -> Lazy.from_fun (fun () -> to_value_fun t)
 
 let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
   Lazy.force v |> of_value_fun
 
-let of_value fmt = Base.Printf.ksprintf (fun s -> [ Xml.Element ("p", [], [ Xml.PCData s ]) ]) fmt
 
-let to_value fmt : t -> 'a = function
-  | Xml.Element(_, _, [PCData s]) :: []  -> Caml.Scanf.sscanf s fmt (fun i -> i)
-  | Xml.Element(name, _, _) :: _ -> failwith ("Primitive value in node expected. " ^ name)
+let of_value to_string v = [ Xml.Element ("p", [], [ Xml.PCData (to_string v) ]) ]
+let to_value of_string = function
+  | Xml.Element(_, _, [PCData s]) :: []  -> of_string s
+  | Xml.Element(name, _, _) :: _ -> failwith ("Primitive value expected in in node: " ^ name)
   | Xml.PCData _ :: _ -> failwith "Primitive type not expected here"
-  | [] -> failwith ("No element:" ^ Caml.string_of_format fmt)
+  | [] -> failwith "No element"
 
-let to_bool = to_value "%b"
-let of_bool = of_value "%b"
+let to_bool = to_value Bool.of_string
+let of_bool = of_value Bool.to_string
 
-let to_int = to_value "%d"
-let of_int = of_value "%d"
+let to_int = to_value Int.of_string
+let of_int = of_value Int.to_string
 
-let to_int32 = to_value "%ld"
-let of_int32 = of_value "%ld"
+let to_int32 = to_value Int32.of_string
+let of_int32 = of_value Int32.to_string
 
-let to_int64 = to_value "%Ld"
-let of_int64 = of_value "%Ld"
+let to_int64 = to_value Int64.of_string
+let of_int64 = of_value Int64.to_string
 
-let to_float = to_value "%f"
-let of_float = of_value "%f"
+let to_float = to_value Float.of_string
+let of_float = of_value Float.to_string
 
-let to_string = to_value "%s"
-let of_string = of_value "%s"
+let to_string = to_value String.of_string
+let of_string = of_value String.to_string
 
-let to_unit = function [ Xml.PCData "" ] -> ()
-                              | _ -> failwith "unit expected"
-let of_unit () = [ Xml.PCData "" ]
+let to_unit = function [ Xml.Element (_, _, []) ]
+                     | [ Xml.Element (_, _, [ PCData "" ]) ] -> ()
+                     | _ -> failwith "Unit must be an empty element"
+let of_unit () = [ Xml.Element ("u", [], []) ] (* Hmm. *)
 
 let t_of_xml_light t = t
 let t_to_xml_light t = t

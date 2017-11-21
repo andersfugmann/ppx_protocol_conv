@@ -1,49 +1,45 @@
 open !Base
-open !Protocol_conv_json
-open !Protocol_conv_xml
+open Protocol_conv_json
+open Protocol_conv_xml
+open Protocol_conv_msgpack
 
-module Simple = struct
+module Simple : Util.Testable = struct
+  let name = "Simple"
+
   type v = A | B of int | C of int * int | D of (int * int)
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
-  type vs = v list
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+  type t = v list
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
-  let () =
-    let t = [ A; B 5; C (6,7); D (8,9) ] in
-    Util.test_json "Variant.Simple" vs_to_json vs_of_json  t;
-    Util.test_xml "Variant.Simple" vs_to_xml_light vs_of_xml_light t;
-    ()
+  let t = [ A; B 5; C (6,7); D (8,9) ]
 end
+let () = Util.test (module Simple)
 
 module Tree = struct
-  type tree =
-    | Node of tree * int * tree
+  let name = "Tree"
+  type t =
+    | Node of t * int * t
     | Leaf
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
-  let () =
-    let t = Node ( Node (Leaf, 3, Leaf), 10, Leaf) in
-    Util.test_json "Variant.Tree" tree_to_json tree_of_json  t;
-    Util.test_xml "Variant.Simple" tree_to_xml_light tree_of_xml_light t;
-    ()
+  let t = Node ( Node (Leaf, 3, Leaf), 10, Leaf)
 end
+let () = Util.test (module Tree)
 
-module Recursion = struct
+module MutualRecursion : Util.Testable = struct
+  let name = "MutualRecursion"
   type v = V1 of v
          | V0 of int
-         | U of u
-  and u = | U1 of u
-          | U2 of int
+         | T of t
+  and t = | T1 of t
+          | T2 of int
           | V of v
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
-  let () =
-    let t = U (V (U (V (V1 (V0 5))))) in
-    Util.test_json "Variant.Recursion" v_to_json v_of_json  t;
-    Util.test_xml "Variant.Recursion" v_to_xml_light v_of_xml_light t;
-    ()
+  let t = T1 (V (T (V (V1 (V1 (V1 (V0 5)))))))
 end
+let () = Util.test (module MutualRecursion)
 (*
 module Poly = struct
   type t = [ `A of int ]
@@ -54,7 +50,7 @@ end
 module Record = struct
   type v = V of { v1: int; v2: string}
          | U of { u1: string; u2: int }
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light)]
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
   let _ =
     let t = V { v1=5; v2="test" } in

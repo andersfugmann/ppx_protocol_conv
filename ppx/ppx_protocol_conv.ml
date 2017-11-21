@@ -301,10 +301,9 @@ let serialize_expr_of_tdecl t ~loc tdecl =
   | Ptype_open -> raise_errorf ~loc "open types not supported"
 
 let default_case ~loc =
-  let efail = pexp_apply ~loc (pexp_ident ~loc { loc; txt=Lident "failwith" })
-      [ Nolabel, estring ~loc "Unknown variant or arity error" ]
-  in
-  case ~lhs:(ppat_any ~loc) ~guard:None ~rhs:efail
+  case ~lhs:[%pat? (s, _)]
+    ~guard:None
+    ~rhs:[%expr failwith ("Unknown variant or arity error: " ^ s)]
 
 let deserialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
