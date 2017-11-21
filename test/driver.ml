@@ -17,33 +17,32 @@ module Record : Util.Testable = struct
   let v = B ([5; 6; 7], [10;11;12]);
 
   type t = {
-    b: bool;
-    i: int;
-    i32: int32;
-    i64: int64;
-    f: float;
-    s: string;
-    il: int list;
-    io: int option;
-    t: (int * string * bool);
-    v: v list;
-    x: t1;
-
+    bool: bool;
+    int: int;
+    int32: int32;
+    int64: int64;
+    float: float;
+    string: string;
+    intlist: int list;
+    intoption: int option;
+    tuple: (int * string * bool);
+    vlist: v list;
+    record: t1;
   }
   [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
   let t = {
-    b = true;
-    i = 2;
-    i32 = Int32.of_int_exn 5;
-    i64 = Int64.of_int_exn 10;
-    f = 3.14;
-    s = "string";
-    il = [3; 4; 5];
-    io = Some 100;
-    t = (5, "protocol", false);
-    v = [ v; v; v; ];
-    x = { x = 5; y = "string" };
+    bool = true;
+    int = 2;
+    int32 = Int32.of_int_exn 5;
+    int64 = Int64.of_int_exn 10;
+    float = 3.14;
+    string = "string";
+    intlist = [3; 4; 5];
+    intoption = Some 100;
+    tuple = (5, "protocol", false);
+    vlist = [ v; v; v; ];
+    record = { x = 5; y = "string" };
   }
 end
 let () = Util.test (module Record)
