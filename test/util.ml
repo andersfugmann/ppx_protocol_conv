@@ -1,26 +1,40 @@
+open Base
 open Protocol_conv_json
 open Protocol_conv_xml
 open Protocol_conv_msgpack
 
-let test_json name to_json of_json t =
-  Printf.printf "json %s: %!" name;
-  let json = to_json t in
-  Printf.printf "%s%!" (Yojson.Safe.to_string json);
-  assert (Base.Poly.equal t (of_json json));
-  Printf.printf " - Ok\n"
+open Caml.Printf
 
-let test_xml name to_xml of_xml t =
-  Printf.printf "xml: %s: %!" name;
-  let xml = to_xml t in
-  Printf.printf "%s%!" (Xml.to_string xml);
-  assert (Base.Poly.equal t (of_xml xml));
-  Printf.printf " - Ok\n"
+let () = Caml.at_exit (fun () -> printf "\n")
 
-let test_msgpack name to_msgpack of_msgpack t =
-  Printf.printf "msgpack: %s: %!" name;
-  let msgpack = to_msgpack t in
-  assert (Base.Poly.equal t (of_msgpack msgpack));
-  Printf.printf " - Ok\n"
+let verbose = (Array.length Caml.Sys.argv) > 1 &&
+              String.equal Caml.Sys.argv.(1) "-v"
+
+let test name ?printer to_p of_p t =
+  if verbose then printf "json %s: %!" name;
+  let p = try to_p t with e ->
+    printf "\n%s: Unable to serialize.\n" name;
+    raise e
+  in
+  let t' =
+    try of_p p with
+    | e ->
+      printf "\n%s: Unable to de-serialize.\n" name;
+      Option.iter printer ~f:(fun printer -> printf "data: %s\n" (printer p));
+      raise e
+  in
+  match (Poly.equal t t', verbose) with
+  | true, false -> Caml.print_string "."
+  | true, true ->
+    Option.iter printer ~f:(fun printer -> printf "OK: %s\n" (printer p));
+  | false, _ ->
+    printf "Error - Not equal";
+    Option.iter printer ~f:(fun printer -> printf "data was: %s\n" (printer p));
+    failwith "Not equal"
+
+let test_json name = test ("Json: " ^ name) ~printer:Yojson.Safe.to_string
+let test_xml name = test ("Xml: " ^ name) ~printer:Xml.to_string
+let test_msgpack name = test ("Msgpack: " ^ name) ~printer:Msgpck.show
 
 module type Testable = sig
   type t
@@ -38,3 +52,6 @@ let test (module T : Testable) =
   test_json T.name T.t_to_json T.t_of_json T.t;
   test_xml T.name T.t_to_xml_light T.t_of_xml_light T.t;
   test_msgpack T.name T.t_to_msgpack T.t_of_msgpack T.t;
+  ()
+
+let () = printf "Test %s:" Caml.Sys.argv.(0)

@@ -1,4 +1,3 @@
-open !Base
 open Protocol_conv_json
 open Protocol_conv_xml
 open Protocol_conv_msgpack

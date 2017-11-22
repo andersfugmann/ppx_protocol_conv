@@ -1,46 +1,35 @@
-open Base
 open Protocol_conv_json
+open Protocol_conv_xml
+open Protocol_conv_msgpack
 
-type a = string * int list [@@deriving protocol ~driver:(module Json)]
-type aopt = a option [@@deriving protocol ~driver:(module Json)]
+module T : Util.Testable = struct
+  let name = "Test.T"
 
-type v = Variant_one of int [@key "Variant_two1"]
-       | Variant_two of string
-[@@deriving protocol ~driver:(module Json)]
+  type a = string * int list
+  and aopt = a option
+  and  v = Variant_one of int [@key "Variant_two1"]
+         | Variant_two of string
+  and y = {
+    y_a: int [@key "y_a"];
+    y_b: a;
+    y_c_: aopt [@key "y_yc"];
+    y_d_: v [@key "y_yd"];
+  }
+  and  t = {
+    foo: int;
+    bar: string;
+    baz: y;
+  }
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
-type y = {
-  y_a: int [@key "y_a"];
-  y_b: a;
-  y_c_: aopt [@key "y_yc"];
-  y_d_: v [@key "y_yd"];
-} [@@deriving protocol ~driver:(module Json)]
+  let t = { foo=1;
+            bar="one";
+            baz={ y_a=2;
+                  y_b=("two", [10; 20; 30]);
+                  y_c_=Some ("three", [100; 200; 300]);
+                  y_d_=Variant_one 1
+                }
+          }
 
-type t = {
-  foo: int;
-  bar: string;
-  baz: y;
-} [@@deriving protocol ~driver:(module Json)]
-
-let v = { foo=1;
-          bar="one";
-          baz={ y_a=2;
-                y_b=("two", [10; 20; 30]);
-                y_c_=Some ("three", [100; 200; 300]);
-                y_d_=Variant_one 1
-              }
-        }
-
-type u = {
-  a: Json.t;
-  b: Json.t;
-  c: int;
-} [@@deriving protocol ~driver:(module Json)]
-
-let u = { a = `Int 5; b = `String "B"; c = 3 }
-
-type x = int option option [@@deriving protocol ~driver:(module Json)]
-
-let _test_json : unit =
-  Util.test_json Caml.__MODULE__ t_to_json t_of_json v;
-  Util.test_json Caml.__MODULE__ u_to_json u_of_json u;
-  ()
+end
+let () = Util.test (module T)

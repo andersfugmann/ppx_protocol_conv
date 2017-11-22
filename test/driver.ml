@@ -4,11 +4,24 @@ open Protocol_conv_json
 open Protocol_conv_xml
 open Protocol_conv_msgpack
 
+module Tuple : Util.Testable = struct
+  let name = "Tuple"
+
+  type t = (int * int list * string list * (int * int) list) list
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+  let t = [
+    (10, [20;30;40], ["s50"; "s60"; "s70"], [100, 200; 300, 400; 500, 600]);
+    (11, [21;31;41], ["s51"; "s61"; "s71"], [101, 201; 301, 401; 501, 601]);
+    (12, [22;32;42], ["s52"; "s62"; "s72"], [102, 202; 302, 402; 502, 602]);
+    (13, [23;33;43], ["s53"; "s63"; "s73"], [103, 203; 303, 403; 503, 603]);
+  ]
+end
+let () = Util.test (module Tuple)
 
 
-
-module Record : Util.Testable = struct
-  let name = "record"
+module Any : Util.Testable = struct
+  let name = "Any"
   type t1 = { x: int; y: string }
   [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
   type v = A | B of int list * int list | C of string
@@ -45,7 +58,63 @@ module Record : Util.Testable = struct
     record = { x = 5; y = "string" };
   }
 end
+(* let () = Util.test (module Any) *)
+
+module Record : Util.Testable = struct
+  let name = "Record"
+  type a = {
+    a_int: int;
+    a_string: string;
+  }
+  and b = {
+    b_int: int;
+    b_string: string;
+    b_a: a;
+    b_al: a list;
+  }
+  and t = {
+    t_a: a;
+    t_al: a list;
+    t_b: b;
+    t_bl: b list;
+    t_i: int;
+    t_t: (int * int * string list);
+    t_tl: (int * int * string list) list;
+    t_il: int list;
+  }
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+  let t = {
+    t_a = { a_int = 1; a_string = "s1"; };
+    t_al = [
+      { a_int = 2; a_string = "s2"; };
+      { a_int = 3; a_string = "s3"; };
+      { a_int = 4; a_string = "s4"; };
+    ];
+    t_b = { b_int = 5;
+            b_string = "s5";
+            b_a = { a_int = 6; a_string = "s6"; };
+            b_al = [
+              { a_int = 7; a_string = "s7"; };
+              { a_int = 8; a_string = "s8"; };
+              { a_int = 9; a_string = "s9"; };
+            ];
+          };
+    t_bl = [];
+    t_i = 1000;
+    t_t = (100, 101, ["s100"; "s101"]);
+    t_tl = [
+      (100, 101, ["s100"; "s101"]);
+      (110, 111, ["s110"; "s111"]);
+      (120, 121, ["s120"; "s121"]);
+      (130, 131, ["s130"; "s131"]);
+      (140, 141, ["s140"; "s141"]);
+    ];
+    t_il = [1000; 1001; 1002]
+  }
+end
 let () = Util.test (module Record)
+
 
 module List : Util.Testable = struct
   let name = "list"
@@ -87,6 +156,5 @@ module Lists : Util.Testable = struct
       C ([1;2;3], [3;4;5]);
     ]
   }
-
 end
 let () = Util.test (module Lists)
