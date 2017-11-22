@@ -4,6 +4,14 @@ type t = Yojson.Safe.json
 type flag = [ `Mangle of (string -> string) ]
 type 'a flags = ?flags:flag -> 'a
 
+exception Protocol_error of string * t
+(* Register exception printer *)
+let () = Caml.Printexc.register_printer
+    (function Protocol_error (s, t) -> Some (s ^ ", " ^ (Yojson.Safe.to_string t))
+            | _ -> None)
+
+let raise_errorf t fmt =
+  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
 (* Convert a_bcd_e_ to aBcdE *)
 let mangle (s : string) =
@@ -24,7 +32,7 @@ let to_variant ?flags:_ constr (t : t) =
   match t with
   | `String name -> constr (name, [])
   | `List (`String name :: ts) -> constr (name, ts)
-  | _ -> failwith "Variant type not found"
+  | e -> raise_errorf e "Variant type not found"
 
 
 (* Get all the strings, and create a mapping from string to id? *)

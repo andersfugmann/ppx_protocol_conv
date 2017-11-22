@@ -4,15 +4,14 @@ open Protocol_conv.Runtime
 type t = Xml.xml
 type 'a flags = 'a no_flags
 
-exception Decode_error of string * t
+exception Protocol_error of string * t
 (* Register exception printer *)
 let () = Caml.Printexc.register_printer
-    (function Decode_error (s, t) -> Some (s ^ ", " ^ (Xml.to_string t))
+    (function Protocol_error (s, t) -> Some (s ^ ", " ^ (Xml.to_string t))
             | _ -> None)
 
-
 let raise_errorf t fmt =
-  Caml.Printf.kprintf (fun s -> raise (Decode_error (s, t))) fmt
+  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
 (* We are actually able to determine if we should inline by looking at the node name.
    Alternativly, we need to wrap records into yet another level *)

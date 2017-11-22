@@ -9,6 +9,8 @@ type 'a no_flags = 'a
 module type Driver = sig
   type t
   type 'a flags
+  exception Protocol_error of string * t
+
   val to_variant: ((string * t list -> 'a) -> t -> 'a) flags
   val of_variant: (('a -> string * t list) -> 'a -> t) flags
   val to_record:  ((t, 'a, 'b) structure -> 'a -> t -> 'b) flags
