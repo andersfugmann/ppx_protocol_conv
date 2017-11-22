@@ -322,7 +322,7 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
         (* val: to_variant: ((string * t list) -> 'a) -> t -> 'a *)
         let lhs =
           let constr_name = match Attribute.get t.constr_attrib constr with
-            | Some key -> printf "Key found\n"; key
+            | Some key -> key
             | None -> pcd_name.txt
           in
           let pcstr s pat = ppat_construct ~loc { loc; txt=Lident s } pat in
