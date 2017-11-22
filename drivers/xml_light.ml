@@ -4,6 +4,16 @@ open Protocol_conv.Runtime
 type t = Xml.xml
 type 'a flags = 'a no_flags
 
+exception Decode_error of string * t
+(* Register exception printer *)
+let () = Caml.Printexc.register_printer
+    (function Decode_error (s, t) -> Some (s ^ ", " ^ (Xml.to_string t))
+            | _ -> None)
+
+
+let raise_errorf t fmt =
+  Caml.Printf.kprintf (fun s -> raise (Decode_error (s, t))) fmt
+
 (* We are actually able to determine if we should inline by looking at the node name.
    Alternativly, we need to wrap records into yet another level *)
 let rec element_to_map m = function
@@ -17,12 +27,12 @@ let element name t = Xml.Element (name, [], t)
 
 let of_variant: (('a -> string * t list) -> 'a -> t) flags = fun destruct t ->
   let (s, ts) = destruct t in
-  Xml.Element("v", [], Xml.PCData s :: ts)
+  Xml.Element("variant", [], Xml.PCData s :: ts)
 
 let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> function
   | Xml.Element(_, _, Xml.PCData s :: es) ->
     constr (s, es)
-  | _ -> failwith "Wrong variant data"
+  | d -> raise_errorf d "Wrong variant data"
 
 (* Records could be optimized by first creating a map of existing
    usable labels -> id's (at startup). Then map the input data to an
@@ -57,19 +67,20 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
     | Xml.Element (_, _, t) ->
       let m = Map.Using_comparator.empty ~comparator:String.comparator in
       f constr (element_to_map m t)
-    | _ -> failwith "Not a record superstruture"
+    | e -> raise_errorf e "Not a record superstruture"
 
 (* A : int list -> "a", Element("l" , [], Element list)  *)
 let of_record: (string * t) list -> t = fun assoc ->
   List.concat_map ~f:(
     function
     | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+    | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
     | (field, Xml.Element (_, _, xs)) ->
       List.map ~f:(function
-          | Xml.Element(_, attrs, x) -> Xml.Element(field, attrs, x)
+          | Xml.Element(_, attrs, xs) -> Xml.Element(field, attrs, xs)
           | x -> Xml.Element(field, [], [x])
         ) xs
-    | _ -> failwith "Must be an element"
+    | (field, e) -> raise_errorf e "Must be an element: %s" field
   ) assoc |> element "record"
 
 
@@ -88,7 +99,7 @@ let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
 
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
   | Xml.Element (_, _, ts) -> List.map ~f:(fun t -> to_value_fun t) ts
-  | _ -> failwith "Must be single element"
+  | e -> raise_errorf e "Must be single element"
 
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
   Xml.Element("l", [], List.map ~f:(fun v -> of_value_fun v) vs)
@@ -102,8 +113,8 @@ let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
 let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
 let to_value of_string = function
   | Xml.Element(_, _, [PCData s]) -> of_string s
-  | Xml.Element(name, _, _) -> failwith ("Primitive value expected in in node: " ^ name)
-  | Xml.PCData _ -> failwith "Primitive type not expected here"
+  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in in node: %s" name
+  | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here"
 
 let to_bool = to_value Bool.of_string
 let of_bool = of_value Bool.to_string
@@ -125,7 +136,7 @@ let of_string = of_value String.to_string
 
 let to_unit = function Xml.Element (_, _, [])
                      | Xml.Element (_, _, [ PCData "" ]) -> ()
-                     | _ -> failwith "Unit must be an empty element"
+                     | e -> raise_errorf e "Unit must be an empty element"
 let of_unit () = Xml.Element ("u", [], [])
 
 let t_of_xml_light t = t
