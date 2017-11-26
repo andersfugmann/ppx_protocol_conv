@@ -1,6 +1,7 @@
 [ ] Handle anonymous records
 [ ] Handle polymorphic variants
 [ ] Split drivers into multiple driver packages
+[x] Suport for nonrecursive types
 
 0.9.0
 [x] Handle lazy types.

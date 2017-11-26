@@ -1,7 +1,7 @@
 (jbuild_version 1)
 
 (executables
- ((names (test driver from_to_protocol types variant))
+ ((names (test driver from_to_protocol types variant nonrec))
   (modules (:standard util))
   (libraries (protocol_conv
               protocol_conv_json
@@ -33,4 +33,8 @@
 (alias
   ((name   runtest)
    (action (run ${exe:variant.exe}))
+))
+(alias
+  ((name   runtest)
+   (action (run ${exe:nonrec.exe}))
 ))
