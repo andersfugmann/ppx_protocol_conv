@@ -396,17 +396,21 @@ let serialize_function_name ~loc ~driver name =
 let deserialize_function_name ~loc ~driver name =
   sprintf "%s_of_%s" name.txt (module_name ~loc driver) |> Located.mk ~loc
 
-let pstr_value_of_funcs ~loc elements =
+let pstr_value_of_funcs ~loc rec_flag elements =
   List.map ~f:(fun (name, expr) ->
       let pat = ppat_var ~loc name in
       value_binding ~loc ~pat ~expr
     ) elements
-  |> pstr_value ~loc Recursive
+  |> pstr_value ~loc rec_flag
 
 let rec_func ~loc = {loc; txt="__protocol_recursive_function"}, [%expr fun () -> __protocol_recursive_function ()]
+let string_of_rec_flag = function
+  | Nonrecursive -> "Nonrecursive"
+  | Recursive -> "Recursive"
 
-let to_protocol_str_type_decls t ~loc tydecls =
-  [ pstr_value_of_funcs ~loc
+let to_protocol_str_type_decls t rec_flag ~loc tydecls =
+  printf "Recflag: %s\n" (string_of_rec_flag rec_flag);
+  [ pstr_value_of_funcs ~loc rec_flag
       ( rec_func ~loc :: List.map
           ~f:(fun tdecl ->
               let name = tdecl.ptype_name in
@@ -417,8 +421,8 @@ let to_protocol_str_type_decls t ~loc tydecls =
       )
   ]
 
-let of_protocol_str_type_decls t ~loc tydecls =
-  [ pstr_value_of_funcs ~loc
+let of_protocol_str_type_decls t rec_flag ~loc tydecls =
+  [ pstr_value_of_funcs ~loc rec_flag
       ( rec_func ~loc :: List.map
           ~f:(fun tdecl ->
               let name = tdecl.ptype_name in
@@ -429,9 +433,9 @@ let of_protocol_str_type_decls t ~loc tydecls =
       )
   ]
 
-let protocol_str_type_decls t ~loc tydecls =
-  to_protocol_str_type_decls t ~loc tydecls @
-  of_protocol_str_type_decls t ~loc tydecls
+let protocol_str_type_decls t rec_flag ~loc tydecls =
+  to_protocol_str_type_decls t rec_flag ~loc tydecls @
+  of_protocol_str_type_decls t rec_flag ~loc tydecls
 
 let mk_typ ~loc name =
   ptyp_constr ~loc (Located.mk ~loc (Longident.parse name)) []
@@ -463,7 +467,7 @@ let protocol_sig_type_decls ~loc ~path (rec_flag, tydecls) (driver:module_expr o
 let mk_str_type_decl =
   (* Cache to avoid creating the same attributes twice. *)
   let attrib_table = Hashtbl.Poly.create () in
-  fun f ~loc ~path:_ (_rec_flag, tydecls) driver flags ->
+  fun f ~loc ~path:_ (recflag, tydecls) driver flags ->
     (* Create T and pass on to f *)
     let driver = ident_of_module ~loc driver in
     let attrib_name name = sprintf "%s.%s" (module_name driver) name in
@@ -485,7 +489,7 @@ let mk_str_type_decl =
       label_attrib;
       constr_attrib;
     } in
-    f t ~loc tydecls
+    f t recflag ~loc tydecls
 
 let () =
   let driver = Type_conv.Args.(arg "driver" (pexp_pack __)) in
