@@ -43,18 +43,18 @@ let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t ->
     | None -> x
     | Some (`Mangle f) -> f x
   in
-  let rec inner: type a b. (t, a, b) Runtime.structure -> a -> 'c -> b =
+  let rec inner: type a b. (t, a, b) Runtime.structure -> a -> 'c -> t -> b =
     function
     | Cons ((field, to_value_func), xs) ->
       let field_name = field_func field in
       let cont = inner xs in
-      fun constr t ->
-        let v = match Map.find t field_name with
+      fun constr m t ->
+        let v = match Map.find m field_name with
           | Some v -> to_value_func v
-          | None -> raise_errorf Msgpck.Nil "Could not key: %s" field_name
+          | None -> raise_errorf t "Could not key: %s" field_name
         in
-        cont (constr v) t
-    | Nil -> fun a _t -> a
+        cont (constr v) m t
+    | Nil -> fun a _m _t -> a
   in
   let f = inner spec constr in
   fun t ->
@@ -68,7 +68,7 @@ let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t ->
           m
       | e -> raise_errorf e "map expected"
     in
-    f values
+    f values t
 
 let of_record: ?flags:flag -> (string * t) list -> t = fun ?flags assoc ->
   let assoc = match flags with
