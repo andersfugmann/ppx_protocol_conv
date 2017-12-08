@@ -2,6 +2,8 @@
 [ ] Handle polymorphic variants
 [ ] Split drivers into multiple driver packages
 [x] Suport for nonrecursive types
+[ ] Improve desrilization error messages
+[ ] Remove prefix 't_' for types named 't' to mimic deriving_yojson behaviour
 
 0.9.0
 [x] Handle lazy types.
