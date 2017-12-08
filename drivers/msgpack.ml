@@ -49,7 +49,10 @@ let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t ->
       let field_name = field_func field in
       let cont = inner xs in
       fun constr t ->
-        let v = Map.find_exn t field_name |> to_value_func in
+        let v = match Map.find t field_name with
+          | Some v -> to_value_func v
+          | None -> raise_errorf Msgpck.Nil "Could not key: %s" field_name
+        in
         cont (constr v) t
     | Nil -> fun a _t -> a
   in
