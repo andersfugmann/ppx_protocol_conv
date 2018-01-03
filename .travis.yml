@@ -7,10 +7,10 @@ env:
   - OCAML_VERSION=4.04
   - OCAML_VERSION=4.05
   - OCAML_VERSION=4.06
+
+  global:
+  - PRE_INSTALL_HOOK="opam update"
+
 os:
   - linux
   - osx
-
-cache:
-  directories:
-    - $HOME/.opam
