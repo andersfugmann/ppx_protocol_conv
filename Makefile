@@ -6,6 +6,7 @@ clean:
 	jbuilder clean
 
 install:
+	jbuilder build @install
 	jbuilder install
 
 uninstall:
@@ -13,5 +14,5 @@ uninstall:
 
 reinstall: uninstall install
 
-test:
+test: build
 	jbuilder runtest --dev
