@@ -40,18 +40,18 @@ module type Testable = sig
   type t
   val t: t
   val name: string
-  val t_of_json: Json.t -> t
-  val t_to_json: t -> Json.t
-  val t_of_xml_light: Xml_light.t -> t
-  val t_to_xml_light: t -> Xml_light.t
-  val t_of_msgpack: Msgpack.t -> t
-  val t_to_msgpack: t -> Msgpack.t
+  val of_json: Json.t -> t
+  val to_json: t -> Json.t
+  val of_xml_light: Xml_light.t -> t
+  val to_xml_light: t -> Xml_light.t
+  val of_msgpack: Msgpack.t -> t
+  val to_msgpack: t -> Msgpack.t
 end
 
 let test (module T : Testable) =
-  test_json T.name T.t_to_json T.t_of_json T.t;
-  test_xml T.name T.t_to_xml_light T.t_of_xml_light T.t;
-  test_msgpack T.name T.t_to_msgpack T.t_of_msgpack T.t;
+  test_json T.name T.to_json T.of_json T.t;
+  test_xml T.name T.to_xml_light T.of_xml_light T.t;
+  test_msgpack T.name T.to_msgpack T.of_msgpack T.t;
   ()
 
 let () = printf "Test %s:" Caml.Sys.argv.(0)

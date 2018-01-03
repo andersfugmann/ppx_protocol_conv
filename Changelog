@@ -1,9 +1,11 @@
 [ ] Handle anonymous records
 [ ] Handle polymorphic variants
 [ ] Split drivers into multiple driver packages
+[ ] Improve deserialization error messages
+
+0.10.0
 [x] Suport for nonrecursive types
-[ ] Improve desrilization error messages
-[ ] Remove prefix 't_' for types named 't' to mimic deriving_yojson behaviour
+[x] Add alias to allow use without 't_' for types named 't' to mimic deriving_yojson behaviour
 
 0.9.0
 [x] Handle lazy types.

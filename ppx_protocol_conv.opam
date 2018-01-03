@@ -6,7 +6,7 @@ dev-repo: "git+https://github.com/andersfugmann/ppx-deriving-protocol"
 bug-reports: "https://github.com/andersfugmann/ppx-deriving-protocol/issues"
 build: ["jbuilder" "build" "-p" name "-j" jobs]
 build-test: ["jbuilder" "runtest" "-p" name "-j" jobs]
-version: "0.9.0"
+version: "0.10.0"
 depends: [
   "yojson"
   "xml-light"

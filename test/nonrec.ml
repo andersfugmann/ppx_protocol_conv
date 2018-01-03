@@ -9,12 +9,11 @@ module Recursive = struct
          | Nil
   [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
 
-  module Nonrec : Util.Testable= struct
+  module Nonrec : Util.Testable = struct
     let name = "Nonrec"
     type nonrec t = A of t
     [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
     let t = A (Cons (4, Cons (3, Nil)))
-
   end
 
 
