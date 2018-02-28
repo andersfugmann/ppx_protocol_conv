@@ -39,6 +39,21 @@ module MutualRecursion : Util.Testable = struct
   let t = T1 (V (T (V (V1 (V1 (V1 (V0 5)))))))
 end
 let () = Util.test (module MutualRecursion)
+
+module InsideRec : Util.Testable = struct
+  let name = "InsideRec"
+  type v = V0 [@key "A"]
+         | V1 [@key "B"]
+
+  and t = { a : string;
+            b : v; [@key "V"]
+            c : string;
+          }
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+  let t = { a= "a"; b = V0; c = "c" }
+end
+let () = Util.test (module InsideRec)
 (*
 module Poly = struct
   type t = [ `A of int ]

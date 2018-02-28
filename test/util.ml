@@ -11,7 +11,7 @@ let verbose = (Array.length Caml.Sys.argv) > 1 &&
               String.equal Caml.Sys.argv.(1) "-v"
 
 let test name ?printer to_p of_p t =
-  if verbose then printf "json %s: %!" name;
+  if verbose then printf "%s: %!" name;
   let p = try to_p t with e ->
     printf "\n%s: Unable to serialize.\n" name;
     raise e

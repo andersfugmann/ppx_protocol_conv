@@ -7,7 +7,7 @@ type 'a flags = 'a no_flags
 exception Protocol_error of string * t
 (* Register exception printer *)
 let () = Caml.Printexc.register_printer
-    (function Protocol_error (s, t) -> Some (s ^ ", " ^ (Xml.to_string t))
+    (function Protocol_error (s, t) -> Some (s ^ ": " ^ (Xml.to_string t))
             | _ -> None)
 
 let raise_errorf t fmt =
@@ -29,8 +29,7 @@ let of_variant: (('a -> string * t list) -> 'a -> t) flags = fun destruct t ->
   Xml.Element("variant", [], Xml.PCData s :: ts)
 
 let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> function
-  | Xml.Element(_, _, Xml.PCData s :: es) ->
-    constr (s, es)
+  | Xml.Element(_, _, Xml.PCData s :: es) -> constr (s, es)
   | d -> raise_errorf d "Wrong variant data"
 
 (* Records could be optimized by first creating a map of existing
@@ -97,6 +96,7 @@ let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
   | Some x -> of_value_fun x
 
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
+  | Xml.Element (_, _, [ _ ]) as elm -> [ to_value_fun elm ] (* Single list elements are unwrapped when in a record *)
   | Xml.Element (_, _, ts) -> List.map ~f:(fun t -> to_value_fun t) ts
   | e -> raise_errorf e "Must be single element"
 
@@ -110,27 +110,28 @@ let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
 
 
 let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
-let to_value of_string = function
+let rec to_value type_name of_string = function
   | Xml.Element(_, _, [PCData s]) -> of_string s
-  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in in node: %s" name
-  | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here"
+  | Xml.Element(_, _, [ Xml.Element _ as elm ]) -> to_value type_name of_string elm
+  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in node: %s" name
+  | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here: %s" type_name
 
-let to_bool = to_value Bool.of_string
+let to_bool = to_value "bool" Bool.of_string
 let of_bool = of_value Bool.to_string
 
-let to_int = to_value Int.of_string
+let to_int = to_value "int" Int.of_string
 let of_int = of_value Int.to_string
 
-let to_int32 = to_value Int32.of_string
+let to_int32 = to_value "int32" Int32.of_string
 let of_int32 = of_value Int32.to_string
 
-let to_int64 = to_value Int64.of_string
+let to_int64 = to_value "int64" Int64.of_string
 let of_int64 = of_value Int64.to_string
 
-let to_float = to_value Float.of_string
+let to_float = to_value "float" Float.of_string
 let of_float = of_value Float.to_string
 
-let to_string = to_value String.of_string
+let to_string = to_value "string" String.of_string
 let of_string = of_value String.to_string
 
 let to_unit = function Xml.Element (_, _, [])

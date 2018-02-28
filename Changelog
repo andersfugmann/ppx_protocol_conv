@@ -3,6 +3,8 @@
 [ ] Split drivers into multiple driver packages
 [ ] Improve deserialization error messages
 
+[x] Xml driver: Error when deserializing singleton lists in records
+
 0.10.0
 [x] Suport for nonrecursive types
 [x] Add alias to allow use without 't_' for types named 't' to mimic deriving_yojson behaviour

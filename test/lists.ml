@@ -69,3 +69,22 @@ module MultiInsideRec : Util.Testable = struct
   let t = { a= "a"; b = [4; 2; 3; 1]; c = "c" }
 end
 let () = Util.test (module SingleInsideRec)
+
+module ListOfLists : Util.Testable = struct
+  let name = "ListOfLists"
+  type v = int list
+  and t = { a : v list; }
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+  let t = { a = [ [2;3]; [4;5] ] }
+end
+let () = Util.test (module ListOfLists)
+
+module ListOfLists2 : Util.Testable = struct
+  let name = "ListOfLists2"
+  type t = int list list list
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+  let t = [ []; [ []; [2]; [3;4]; ]; [ [] ]; [ [2] ]; ]
+end
+let () = Util.test (module ListOfLists)
