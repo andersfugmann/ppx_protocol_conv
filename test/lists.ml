@@ -2,6 +2,33 @@ open Protocol_conv_json
 open Protocol_conv_xml
 open Protocol_conv_msgpack
 
+module S3 : Util.Testable = struct
+  let name = "S3"
+  type storage_class = Standard [@key "STANDARD"]
+                     | Standard_ia [@key "STANDARD_IA"]
+                     | Reduced_redundancy [@key "REDUCED_REDUNDANCY"]
+                     | Glacier [@key "GLACIER"]
+
+
+  and content = {
+    storage_class: storage_class [@key "StorageClass"];
+    etag: string [@key "ETag"];
+  }
+  and result = {
+    prefix: string option [@key "Prefix"];
+    contents: content list [@key "Contents"];
+  }
+  and t = result
+  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
+
+  let t = { prefix = Some "prefix";
+            contents = [ { storage_class = Standard; etag = "Etag" } ]
+          }
+end
+let () = Util.test (module S3)
+
+
+
 module EmptyList : Util.Testable = struct
   let name = "SingleElem"
   type t = int list

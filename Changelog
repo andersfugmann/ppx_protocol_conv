@@ -3,6 +3,7 @@
 [ ] Split drivers into multiple driver packages
 [ ] Improve deserialization error messages
 
+1.0.0
 [x] Xml driver: Error when deserializing singleton lists in records
 
 0.10.0

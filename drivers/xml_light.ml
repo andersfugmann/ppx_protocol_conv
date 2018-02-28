@@ -30,6 +30,7 @@ let of_variant: (('a -> string * t list) -> 'a -> t) flags = fun destruct t ->
 
 let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> function
   | Xml.Element(_, _, Xml.PCData s :: es) -> constr (s, es)
+  | Xml.Element(name, _, []) as d -> raise_errorf d "No contents for variant type: %s" name
   | d -> raise_errorf d "Wrong variant data"
 
 (* Records could be optimized by first creating a map of existing
@@ -40,7 +41,6 @@ let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> funct
    of fields in the input data. There is hardly anypoint to
    that. Although it would be fun to create.
 *)
-
 let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
   let rec inner: type a b. (t, a, b) structure -> a -> 't -> b = function
     | Cons ((field, to_value_func), xs) ->
@@ -52,7 +52,8 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
           |> List.rev
         in
         let arg = match values with
-          | [ x ] -> x
+          | [ Xml.Element (name, _, xs) ] -> Xml.Element (name, ["record", "unwrapped"], xs)
+          | [ Xml.PCData _ as d ] -> d
           | xs -> Xml.Element (field, [], xs)
         in
         let v = to_value_func arg
@@ -95,10 +96,14 @@ let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
   | None -> Xml.Element ("o", [], [])
   | Some x -> of_value_fun x
 
+(** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
-  | Xml.Element (_, _, [ _ ]) as elm -> [ to_value_fun elm ] (* Single list elements are unwrapped when in a record *)
-  | Xml.Element (_, _, ts) -> List.map ~f:(fun t -> to_value_fun t) ts
-  | e -> raise_errorf e "Must be single element"
+  | Xml.Element (_, [_, "unwrapped"], _) as elm ->
+    (* If the given list has been unwrapped since its part of a record, we "rewrap it". *)
+    [ to_value_fun elm ]
+  | Xml.Element (_, _, ts) ->
+    List.map ~f:(fun t -> to_value_fun t) ts
+  | e -> raise_errorf e "Must be an element type"
 
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
   Xml.Element("l", [], List.map ~f:(fun v -> of_value_fun v) vs)
@@ -110,11 +115,10 @@ let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
 
 
 let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
-let rec to_value type_name of_string = function
+let to_value type_name of_string = function
   | Xml.Element(_, _, [PCData s]) -> of_string s
-  | Xml.Element(_, _, [ Xml.Element _ as elm ]) -> to_value type_name of_string elm
-  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in node: %s" name
-  | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here: %s" type_name
+  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in in node: %s for %s" name type_name
+  | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here when deserializing %s" type_name
 
 let to_bool = to_value "bool" Bool.of_string
 let of_bool = of_value Bool.to_string
