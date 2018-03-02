@@ -12,9 +12,11 @@ let verbose = (Array.length Caml.Sys.argv) > 1 &&
 
 let test name ?printer to_p of_p t =
   if verbose then printf "%s: %!" name;
-  let p = try to_p t with e ->
-    printf "\n%s: Unable to serialize.\n" name;
-    raise e
+  let p =
+    try to_p t with
+    | e ->
+      printf "\n%s: Unable to serialize.\n" name;
+      raise e
   in
   let t' =
     try of_p p with
@@ -55,3 +57,6 @@ let test (module T : Testable) =
   ()
 
 let () = printf "Test %s:" Caml.Sys.argv.(0)
+let () = match verbose with
+  | true -> printf "\n"
+  | false -> ()

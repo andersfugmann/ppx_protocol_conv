@@ -1,7 +1,7 @@
 (jbuild_version 1)
 
 (executables
- ((names (test driver from_to_protocol types variant nonrec lists))
+ ((names (test driver from_to_protocol types variant nonrec lists record))
   (modules (:standard util))
   (libraries (protocol_conv
               protocol_conv_json
@@ -41,4 +41,9 @@
 (alias
   ((name   runtest)
    (action (run ${exe:lists.exe}))
+))
+
+(alias
+  ((name   runtest)
+   (action (run ${exe:record.exe}))
 ))
