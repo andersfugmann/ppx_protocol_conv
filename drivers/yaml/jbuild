@@ -1,0 +1,19 @@
+(jbuild_version 1)
+
+(library
+ ((name global)
+  (modules (global))
+  (libraries (yaml))
+  (wrapped false)
+))
+
+
+(library
+ ((name protocol_conv_yaml)
+  (modules (:standard \ Global))
+  (public_name ppx_protocol_conv_yaml)
+  (flags (:standard -w -3))
+  (libraries (ppx_protocol_conv ppx_protocol_conv.runtime base global yaml))
+  (synopsis "yaml (de)serialization driver for ppx_protocol_conv")
+ )
+)
