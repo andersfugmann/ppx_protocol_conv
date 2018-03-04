@@ -20,3 +20,4 @@ test: build
 bump_version:
 	@if [ -z "$(VERSION)" ]; then echo "need to set VERSION"; exit 1; fi
 	@sed -i 's/^version: .*/version: "$(VERSION)"/' *.opam
+	@sed -i 's/^\( *\)"ppx_protocol_conv" { >= ".*" }/\1"ppx_protocol_conv" { >= "$(VERSION)" }/' ppx_protocol_conv_*.opam
