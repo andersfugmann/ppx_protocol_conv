@@ -1,7 +1,12 @@
+-*- mode: fundamental -*-
 [ ] Handle anonymous records
 [ ] Handle polymorphic variants
-[ ] Split drivers into multiple driver packages
 [ ] Improve deserialization error messages
+
+1.1.0
+[ ] Split drivers into multiple driver packages
+[ ] Implement yaml driver
+
 
 1.0.0
 [x] Xml driver: Error when deserializing singleton lists in records

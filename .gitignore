@@ -1,4 +1,3 @@
 _build
 .merlin
-ppx_protocol_conv.install
-ppx_protocol_conv.[0-9]*
+ppx_protocol_conv*.install

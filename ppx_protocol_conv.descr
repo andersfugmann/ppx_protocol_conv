@@ -1,0 +1,11 @@
+Ppx for generating serialization and de-serialization of ocaml types.
+
+Ppx_protocol_conv generates code to serialize and de-serialize
+types. The ppx itself does not contain any protocol specific code,
+but relies on 'drivers' that defines serialization and
+de-serialisation of basic types and structures.
+
+Pre-defined drivers are available in seperate packages:
+ppx_protocol_conf_json (Yojson.Safe.json)
+ppx_protocol_conf_msgpack (Xml.xml)
+ppx_protocol_conf_xml-light (Msgpck.t)

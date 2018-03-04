@@ -5,16 +5,12 @@ homepage: "https://github.com/andersfugmann/ppx-deriving-protocol"
 dev-repo: "git+https://github.com/andersfugmann/ppx-deriving-protocol"
 bug-reports: "https://github.com/andersfugmann/ppx-deriving-protocol/issues"
 build: ["jbuilder" "build" "-p" name "-j" jobs]
-version: "1.0.0"
+build-test: ["jbuilder" "runtest" "-p" name "-j" jobs]
+version: "0.10.0"
 depends: [
+  "ppx_protocol_conv" { > "0.10.0" }
   "base"
-  "ppx_type_conv"
-  "ppx_driver"
-  "jbuilder" { build }
-  "ppx_metaquot" { build }
-  "msgpck" { test }
-  "yojson" { test }
-  "yaml" { test }
-  "xml-light" { test }
+  "xml-light"
+  "jbuilder" {build}
 ]
-available: [ ocaml-version >= "4.04" ]
+available: [ ocaml-version >= "4.03.0" ]

@@ -1,0 +1,13 @@
+(jbuild_version 1)
+
+(executable
+ ((name       unittest)
+  (modules    (unittest))
+  (libraries  (test protocol_conv_xml))
+))
+
+(alias
+ ((name   runtest)
+  (package ppx_protocol_conv)
+  (action (run ${exe:unittest.exe}))
+))

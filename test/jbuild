@@ -1,49 +1,9 @@
 (jbuild_version 1)
 
-(executables
- ((names (test driver from_to_protocol types variant nonrec lists record))
-  (modules (:standard util))
-  (libraries (protocol_conv
-              protocol_conv_json
-              protocol_conv_xml
-              protocol_conv_msgpack))
+(library
+ ((name        test)
+  (libraries (oUnit protocol_conv))
+  (modules (unittest testable
+            test_types test_variant test_nonrec test_lists test_record test_driver))
   (preprocess (pps (ppx_protocol_conv ppx_driver.runner)))
-))
-
-(alias
-  ((name   runtest)
-   (action (run ${exe:driver.exe}))
-))
-
-(alias
-  ((name   runtest)
-   (action (run ${exe:test.exe}))
-))
-
-(alias
-  ((name   runtest)
-   (action (run ${exe:from_to_protocol.exe}))
-))
-
-(alias
-  ((name   runtest)
-   (action (run ${exe:types.exe}))
-))
-
-(alias
-  ((name   runtest)
-   (action (run ${exe:variant.exe}))
-))
-(alias
-  ((name   runtest)
-   (action (run ${exe:nonrec.exe}))
-))
-(alias
-  ((name   runtest)
-   (action (run ${exe:lists.exe}))
-))
-
-(alias
-  ((name   runtest)
-   (action (run ${exe:record.exe}))
 ))
