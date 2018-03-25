@@ -56,9 +56,7 @@ let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t ->
   fun t ->
     let values =
       Yojson.Safe.Util.to_assoc t
-      |> List.fold_left
-        ~init:(Map.Using_comparator.empty ~comparator:String.comparator)
-        ~f:(fun m (key, data) -> Map.add ~key ~data m)
+      |> Map.Using_comparator.of_alist_exn ~comparator:String.comparator
     in
     f values
 

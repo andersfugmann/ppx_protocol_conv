@@ -2,6 +2,7 @@
 
 (library
  ((name global)
+  (public_name ppx_protocol_conv_yaml.lib)
   (modules (global))
   (libraries (yaml))
   (wrapped false)
@@ -12,7 +13,6 @@
  ((name protocol_conv_yaml)
   (modules (:standard \ Global))
   (public_name ppx_protocol_conv_yaml)
-  (flags (:standard -w -3))
   (libraries (ppx_protocol_conv ppx_protocol_conv.runtime base global yaml))
   (synopsis "yaml (de)serialization driver for ppx_protocol_conv")
  )

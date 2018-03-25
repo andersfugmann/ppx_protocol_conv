@@ -60,12 +60,10 @@ let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t ->
   fun t ->
     let values = match t with
       | Msgpck.Map m ->
-        List.fold_left
-          ~init:(Map.Using_comparator.empty ~comparator:String.comparator)
-          ~f:(fun m ->
-              function | (Msgpck.String key, data) -> Map.add ~key ~data m
-                       | (e, _) -> raise_errorf e "string expected")
-          m
+        m
+        |> List.map ~f:(function | (Msgpck.String key, data) -> (key, data)
+                                 | (e, _) -> raise_errorf e "string expected")
+        |> Map.Using_comparator.of_alist_exn ~comparator:String.comparator
       | e -> raise_errorf e "map expected"
     in
     f values t

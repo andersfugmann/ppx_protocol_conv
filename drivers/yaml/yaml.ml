@@ -71,9 +71,10 @@ let to_record: type a b. (t, a, b) Runtime.structure -> a -> t -> b = fun spec c
   fun t ->
     let values =
       Util.to_assoc t
-      |> List.fold_left
+      |> Map.Using_comparator.of_alist_exn ~comparator:String.comparator
+        (*List.fold_left
         ~init:(Map.Using_comparator.empty ~comparator:String.comparator)
-        ~f:(fun m (key, data) -> Map.add ~key ~data m)
+          ~f:(fun m (key, data) -> Map.add_exn ~key ~data m)*)
     in
     f values
 
