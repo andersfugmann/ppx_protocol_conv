@@ -11,6 +11,7 @@ depends: [
   "base"
   "ppx_type_conv"
   "ppx_driver"
+  "ppx_core"
   "jbuilder" { build }
   "ppx_metaquot" { build }
   "msgpck" { test }
