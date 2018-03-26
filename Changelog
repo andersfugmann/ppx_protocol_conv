@@ -3,7 +3,7 @@
 [ ] Handle polymorphic variants
 [ ] Improve deserialization error messages
 
-1.1.0
+2.0.0
 [x] Split drivers into multiple driver packages
 [x] Implement yaml driver
 
