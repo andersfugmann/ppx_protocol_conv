@@ -9,7 +9,7 @@ version: "1.1.0"
 depends: [
   "ppx_protocol_conv" { >= "1.1.0" }
   "base"
-  "yojson"
+  "yaml"
   "jbuilder" {build}
 ]
 available: [ ocaml-version >= "4.04.0" ]
