@@ -1,17 +1,15 @@
 #!/bin/sh
-VERSION=$(cat Changelog | grep -E '^[0-9]' | head -n 1)
+VERSION="$1"
 REMOTE=$(git config remote.origin.url | sed 's/git@github.com:\(.*\).git/\1/')
 URL=https://github.com/${REMOTE}/archive/${VERSION}.tar.gz
-CHECKSUM=$(curl -q -L ${URL} | md5sum | cut -f1 -d' ')
+CHECKSUM=$(curl -s -L ${URL} | md5sum | cut -f1 -d' ')
 BASE="/home/afu/git/opam-repository/packages"
+BASENAME=$(basename $PWD)
 
-
-for f in *.opam; do
+for f in ${BASENAME}*.opam; do
     NAME=$(basename -s .opam $f)
+    echo "Relase package $NAME.$VERSION"
     DIR=${BASE}/${NAME}/${NAME}.${VERSION}
-    echo Create: $NAME $DIR
-
-    echo mkdir -p ${DIR}
     mkdir -p ${DIR}
 
     grep -Ev '^version:' ${NAME}.opam > ${DIR}/opam
