@@ -14,7 +14,7 @@ for f in *.opam; do
     echo mkdir -p ${DIR}
     mkdir -p ${DIR}
 
-    cp ${NAME}.opam ${DIR}/opam
+    grep -Ev '^version:' ${NAME}.opam > ${DIR}/opam
     cp ${NAME}.descr ${DIR}/descr
     echo "http: \"$URL\"" > ${DIR}/url
     echo "checksum: \"${CHECKSUM}\"" >> ${DIR}/url
