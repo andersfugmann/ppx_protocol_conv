@@ -14,5 +14,6 @@ depends: [
   "ppx_core"
   "jbuilder" {build}
   "ppx_metaquot" {build}
+  "ounit" {test}
 ]
 available: [ ocaml-version >= "4.04" ]
