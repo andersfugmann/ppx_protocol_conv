@@ -11,5 +11,6 @@ depends: [
   "base"
   "msgpck"
   "jbuilder" {build}
+  "msgpck" {test}
 ]
 available: [ ocaml-version >= "4.04.0" ]

@@ -11,5 +11,6 @@ depends: [
   "base"
   "xml-light"
   "jbuilder" {build}
+  "xml-light" {test}
 ]
 available: [ ocaml-version >= "4.04.0" ]

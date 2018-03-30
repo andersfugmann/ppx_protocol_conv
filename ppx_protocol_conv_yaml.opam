@@ -11,5 +11,6 @@ depends: [
   "base"
   "yaml"
   "jbuilder" {build}
+  "yaml" {test}
 ]
 available: [ ocaml-version >= "4.04.0" ]

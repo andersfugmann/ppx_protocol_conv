@@ -3,6 +3,9 @@
 [ ] Handle polymorphic variants
 [ ] Improve deserialization error messages
 
+2.0.1
+[x] Move tests to own packages
+
 2.0.0
 [x] Split drivers into multiple driver packages
 [x] Implement yaml driver
