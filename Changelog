@@ -3,6 +3,8 @@
 [ ] Handle polymorphic variants
 [ ] Improve deserialization error messages
 
+[x] Only emit <of|to>_protocol for types named t
+
 2.0.1
 [x] Move tests to own packages
 

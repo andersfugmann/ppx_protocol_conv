@@ -131,5 +131,5 @@ let to_unit t = to_tuple Runtime.Nil () t
 let of_unit () = of_tuple []
 
 (* Allow referencing Yaml.value in structures. *)
-let t_of_yaml t = t
-let t_to_yaml t = t
+let of_yaml t = t
+let to_yaml t = t

@@ -15,14 +15,6 @@ type t = {
 (* In variants, dont encode as tuple.... *)
 let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^ fmt)
 
-let expr_of_ident ?(prefix="") ?(suffix="") { loc; txt } =
-  let txt = match txt with
-    | Lident s -> Lident (prefix ^ s ^ suffix)
-    | Ldot (l, s) -> Ldot (l, prefix ^ s ^ suffix)
-    | Lapply _  -> raise_errorf ~loc "lapply???"
-  in
-  pexp_ident ~loc { loc; txt }
-
 let string_of_ident_loc { loc; txt } =
   let rec inner = function
     | Lident s -> s
@@ -37,9 +29,6 @@ let rec string_of_ident = function
   | Lapply _  -> raise_errorf "lapply???"
 
 let ident_of_string_loc { loc; txt} = { loc; txt=Lident txt }
-
-let expr_of_string_loc sl =
-  ident_of_string_loc sl |> expr_of_ident
 
 let driver_func t ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
@@ -75,6 +64,18 @@ let module_name ?loc = function
   | Ldot (_, s) -> String.uncapitalize s
   | Lapply _ -> raise_errorf ?loc "lapply???"
 
+let protocol_ident dir driver { loc; txt } =
+  (* Match the name of the type *)
+  let driver_name = module_name ~loc driver in
+  let txt = match txt with
+    | Lident "t" -> Lident (sprintf "%s_%s" dir driver_name)
+    | Lident name -> Lident (sprintf "%s_%s_%s" name dir driver_name)
+    | Ldot (l, "t") -> Ldot (l, sprintf "%s_%s" dir driver_name)
+    | Ldot (l, name) -> Ldot (l, sprintf "%s_%s_%s" name dir driver_name)
+    | Lapply _  -> raise_errorf ~loc "lapply???"
+  in
+  pexp_ident ~loc { loc; txt }
+
 (** Serialization expression for a given type *)
 let rec serialize_expr_of_type_descr t ~loc = function
   | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
@@ -88,8 +89,7 @@ let rec serialize_expr_of_type_descr t ~loc = function
     driver_func t ~loc ("of_" ^ s)
 
   | Ptyp_constr (ident, _) ->
-    let driver = module_name ~loc t.driver in
-    expr_of_ident ~suffix:("_to_" ^ driver) ident
+    protocol_ident "to" t.driver ident
 
   | Ptyp_tuple cts -> begin
       let to_ps = List.map ~f:
@@ -110,7 +110,7 @@ let rec serialize_expr_of_type_descr t ~loc = function
         (pexp_apply ~loc (driver_func t ~loc "of_tuple") [Nolabel, arg_list])
     end
   | Ptyp_variant _ ->
-    raise_errorf ~loc "Serialization of Variants not supported!"
+    raise_errorf ~loc "Serialization of Variants not supported!" (* We really need this *)
   | Ptyp_poly _
   | Ptyp_any
   | Ptyp_var _
@@ -135,8 +135,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
     driver_func t ~loc ("to_" ^ s)
 
   | Ptyp_constr (ident, _) ->
-    let driver = module_name ~loc t.driver in
-    expr_of_ident ~suffix:("_of_" ^ driver) ident
+    protocol_ident "of" t.driver ident
 
   | Ptyp_tuple cts -> begin
       let to_ts = List.map ~f:
@@ -394,16 +393,20 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
   | Ptype_open -> raise_errorf ~loc "open types not supported"
 
 let serialize_function_name ~loc ~driver name =
-  sprintf "%s_to_%s" name.txt (module_name ~loc driver) |> Located.mk ~loc,
-  match name.txt with
-  | "t" -> sprintf "to_%s" (module_name ~loc driver) |> Located.mk ~loc |> Option.some
-  | _ -> None
+  let prefix = match name.txt with
+    | "t" -> ""
+    | name -> name ^ "_"
+  in
+  sprintf "%sto_%s" prefix (module_name ~loc driver) |> Located.mk ~loc
 
 let deserialize_function_name ~loc ~driver name =
-  sprintf "%s_of_%s" name.txt (module_name ~loc driver) |> Located.mk ~loc,
-  match name.txt with
-  | "t" -> sprintf "of_%s" (module_name ~loc driver) |> Located.mk ~loc |> Option.some
-  | _ -> None
+  let prefix = match name.txt with
+    | "t" -> ""
+    | name -> name ^ "_"
+  in
+  sprintf "%sof_%s" prefix (module_name ~loc driver) |> Located.mk ~loc
+
+
 
 let pstr_value_of_funcs ~loc rec_flag elements =
   List.map ~f:(fun (name, expr) ->
@@ -421,37 +424,20 @@ let to_protocol_str_type_decls t rec_flag ~loc tydecls =
     ( rec_func ~loc :: List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
-            let (to_p, _) = serialize_function_name ~loc ~driver:t.driver name in
+            let to_p = serialize_function_name ~loc ~driver:t.driver name in
             (to_p, [%expr fun t -> [%e serialize_expr_of_tdecl t ~loc tdecl] t])
           ) tydecls
-    ) :: List.filter_map ~f:(fun tdecl ->
-      let name = tdecl.ptype_name in
-      match serialize_function_name ~loc ~driver:t.driver name with
-      | to_p, Some alt ->
-        let pat = ppat_var ~loc alt in
-        let value_binding = value_binding ~loc ~pat ~expr:(expr_of_string_loc to_p) in
-        pstr_value ~loc Nonrecursive [value_binding] |> Option.some
-      | _, None -> None
-    ) tydecls
-
+    ) :: []
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
   pstr_value_of_funcs ~loc rec_flag
     ( rec_func ~loc :: List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
-            let of_p, _ = deserialize_function_name ~loc ~driver:t.driver name in
+            let of_p = deserialize_function_name ~loc ~driver:t.driver name in
             (of_p, [%expr fun t -> [%e deserialize_expr_of_tdecl t ~loc tdecl] t])
           ) tydecls
-    ) :: List.filter_map ~f:(fun tdecl ->
-      let name = tdecl.ptype_name in
-      match deserialize_function_name ~loc ~driver:t.driver name with
-      | of_p, Some alt ->
-        let pat = ppat_var ~loc alt in
-        let value_binding = value_binding ~loc ~pat ~expr:(expr_of_string_loc of_p) in
-        pstr_value ~loc Nonrecursive [value_binding] |> Option.some
-      | _, None -> None
-    ) tydecls
+    ) :: []
 
 let protocol_str_type_decls t rec_flag ~loc tydecls =
   to_protocol_str_type_decls t rec_flag ~loc tydecls @
@@ -465,11 +451,9 @@ let to_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_
   List.concat_map ~f:(fun tydecl ->
       let name = tydecl.ptype_name in
       let result = string_of_ident (Ldot (driver, "t")) in
-      let (to_p, to_p_alt) = serialize_function_name ~loc ~driver name  in
+      let to_p = serialize_function_name ~loc ~driver name  in
       let to_type = [%type: [%t mk_typ ~loc name.txt] -> [%t mk_typ ~loc result]] in
-      psig_value ~loc (value_description ~loc ~name:to_p ~type_:to_type ~prim:[]) ::
-      Option.value_map to_p_alt ~default:[] ~f:(fun name ->
-            [psig_value ~loc (value_description ~loc ~name ~type_:to_type ~prim:[])])
+      psig_value ~loc (value_description ~loc ~name:to_p ~type_:to_type ~prim:[]) :: []
     ) tydecls
 
 let of_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_expr option) =
@@ -477,11 +461,9 @@ let of_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_
   List.concat_map ~f:(fun tydecl ->
       let name = tydecl.ptype_name in
       let result = string_of_ident (Ldot (driver, "t")) in
-      let (of_p, of_p_alt) = deserialize_function_name ~loc ~driver name  in
+      let of_p = deserialize_function_name ~loc ~driver name  in
       let of_type = [%type: [%t mk_typ ~loc result] -> [%t mk_typ ~loc name.txt]] in
-      psig_value ~loc (value_description ~loc ~name:of_p ~type_:of_type ~prim:[]) ::
-      Option.value_map of_p_alt ~default:[] ~f:(fun name ->
-          [psig_value ~loc (value_description ~loc ~name ~type_:of_type ~prim:[])])
+      psig_value ~loc (value_description ~loc ~name:of_p ~type_:of_type ~prim:[]) :: []
     ) tydecls
 
 let protocol_sig_type_decls ~loc ~path (rec_flag, tydecls) (driver:module_expr option) =
@@ -521,7 +503,7 @@ let () =
   Type_conv.add "protocol"
     ~str_type_decl:(Type_conv.Generator.make
                       Type_conv.Args.(empty +> driver +> flags)
-                      (mk_str_type_decl  protocol_str_type_decls))
+                      (mk_str_type_decl protocol_str_type_decls))
     ~sig_type_decl:(Type_conv.Generator.make Type_conv.Args.(empty +> driver) protocol_sig_type_decls)
   |> Type_conv.ignore;
 

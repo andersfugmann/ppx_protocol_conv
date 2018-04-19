@@ -120,5 +120,5 @@ let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
 let of_unit ?flags () = of_tuple ?flags []
 
 (* Allow referencing Json.t in structures. *)
-let t_of_json t = t
-let t_to_json t = t
+let of_json t = t
+let to_json t = t

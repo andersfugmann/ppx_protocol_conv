@@ -143,5 +143,5 @@ let to_unit = function Xml.Element (_, _, [])
                      | e -> raise_errorf e "Unit must be an empty element"
 let of_unit () = Xml.Element ("u", [], [])
 
-let t_of_xml_light t = t
-let t_to_xml_light t = t
+let of_xml_light t = t
+let to_xml_light t = t
