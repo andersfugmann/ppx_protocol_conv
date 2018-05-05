@@ -69,8 +69,9 @@ type example = {
 }
 
 #### Msgpack
-Msgpack defines extra type. The table below list
-ocaml type conversions.
+To allow more finegrained control over generated type, the
+msgpack module defines some extra types, as listed in the
+table below:
 
 
 | Ocaml type      | Generates | Accepts                           |
@@ -80,11 +81,12 @@ ocaml type conversions.
 | int32           | Int32     | Int32                             |
 | int64           | Int64     | Int64                             |
 | float           | Float64   | Float64, Float32                  |
-| bool            | Bool      | Bool                              |
+| unit            | Nil       | Nil                               |
 | Msgpack.uint32  | Uint32    | Uint32                            |
 | Msgpack.uint64  | Uint64    | Uint64                            |
 | Msgpack.bytes   | Bytes     | Bytes, String                     |
 | Msgpack.float32 | Float32   | Float32                           |
+| Msgpack.t       | MsgPck.t  | MsgPck.t                          |
 
 
 ## Custom drivers
