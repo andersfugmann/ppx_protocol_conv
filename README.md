@@ -2,6 +2,9 @@
 Ppx protocol conv (de)serialisers using deriving, which allows for
 plugable (de)serialisers.
 
+[![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
+
+
 ## Example Usage
 ```ocaml
 open Protocol_conv
