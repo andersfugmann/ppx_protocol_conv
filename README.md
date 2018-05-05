@@ -59,16 +59,43 @@ The protocol deriver implements:
  * `Json` which serializes to `Yojson.Safe.t`
  * `Xml_light` which serializes to `Xml.xml list`
  * `Msgpack` which serializes to `Msgpck.t`
+ * `Yaml` which serialized to Yaml.t
 
-### Custom drivers
-It should be easy to provide custom drivers by implementing the signature:
+### Notes on type mappings
+All included driver allow for the identity mapping by using the
+<driver>.t type, i.e.:
+type example = {
+  json: Json.t; (* This has type Yojson.t *)
+}
+
+#### Msgpack
+Msgpack defines extra type. The table below list
+ocaml type conversions.
+
+
+| Ocaml type      | Generates | Accepts                           |
+|-----------------|-----------|-----------------------------------|
+| string          | String    | String, Bytes                     |
+| int             | Int       | Int, Int32, Int64, Uint32, Uint64 |
+| int32           | Int32     | Int32                             |
+| int64           | Int64     | Int64                             |
+| float           | Float64   | Float64, Float32                  |
+| bool            | Bool      | Bool                              |
+| Msgpack.uint32  | Uint32    | Uint32                            |
+| Msgpack.uint64  | Uint64    | Uint64                            |
+| Msgpack.bytes   | Bytes     | Bytes, String                     |
+| Msgpack.float32 | Float32   | Float32                           |
+
+
+## Custom drivers
+It is easy to provide custom drivers by implementing the signature:
 
 ```ocaml
 include Lib.Driver with type t = ... and type flags = ...
 ```
 
 See the drivers directory for examples on how to implemented new drivers.
-Submissions of useful drivers are welcome
+Submissions of new drivers are welcome.
 
 ## Limitations
 The json driver will currently serialize type `t option option` as `t

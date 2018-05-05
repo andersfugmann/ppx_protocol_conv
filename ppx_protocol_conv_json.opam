@@ -12,6 +12,5 @@ depends: [
   "base"
   "yojson"
   "jbuilder" { build }
-  "yojson" {test}
 ]
 available: [ ocaml-version >= "4.04" ]
