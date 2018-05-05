@@ -137,12 +137,13 @@ let to_string ?flags:_ = function Msgpck.String s -> s
                                 | e -> raise_errorf e "string or bytes expected"
 let of_string ?flags:_ s = Msgpck.String s
 
-let to_bool ?flags:_ = function | Msgpck.Bool b -> b
-                                | e -> raise_errorf e "bool expected"
+let to_bool ?flags:_ = function Msgpck.Bool b -> b
+                              | e -> raise_errorf e "bool expected"
 let of_bool ?flags:_ b = Msgpck.Bool b
 
-let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
-let of_unit ?flags () = of_tuple ?flags []
+let to_unit ?flags:_ = function Msgpck.Nil -> ()
+                              | e -> raise_errorf e "nil expected"
+let of_unit ?flags:_ () = Msgpck.Nil
 
 type bytes = string
 let bytes_of_msgpack s = to_string s
