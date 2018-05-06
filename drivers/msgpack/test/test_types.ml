@@ -10,6 +10,7 @@ type t = {
   uint32: Msgpack.uint32;
   uint64: Msgpack.uint64;
   bytes: Msgpack.bytes;
+  t: Msgpack.t;
 }
 [@@deriving protocol ~driver:(module Msgpack)]
 
@@ -25,6 +26,7 @@ let () =
     uint32 = 0;
     uint64 = 0;
     bytes = "asd";
+    t = Msgpck.Nil;
   }
   in
   let m = to_msgpack t in

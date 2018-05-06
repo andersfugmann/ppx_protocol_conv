@@ -42,10 +42,10 @@ type. `of_protocol` deriver generates de-serilization of the type,
 while `protocol` deriver will generate both serilizarion and de-serilization functions.
 
 Flags can be specified using the driver argument ~flags. For the json
-module, the `mangle` function transforms record label names to be
+and msgpack drivers, the `mangle` function transforms record label names to be
 lower camelcase: a_bc_de -> aBcDe and a_bc_de_ -> aBcDe. Beware that
 this may cause name collisions, which can only be determined at
-compile time.
+runtime.
 
 ## Attributes
 Record label names can be changed using `[@key <string>]`
