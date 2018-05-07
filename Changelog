@@ -3,6 +3,8 @@
 [ ] Handle polymorphic variants
 [ ] Improve deserialization error messages
 
+[ ] Fix Some () and None types, and Some Some t
+
 3.0.0
 [x] Yaml: Map unit to Null
 [x] Json: Map unit to Null
