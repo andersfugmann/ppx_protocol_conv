@@ -6,7 +6,7 @@ dev-repo: "git+https://github.com/andersfugmann/ppx_protocol_conv"
 bug-reports: "https://github.com/andersfugmann/ppx_protocol_conv/issues"
 build: ["jbuilder" "build" "-p" name "-j" jobs]
 build-test: ["jbuilder" "runtest" "-p" name "-j" jobs]
-version: "2.0.0"
+version: "3.0.0"
 depends: [
   "base"
   "ppx_type_conv"
