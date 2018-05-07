@@ -127,8 +127,9 @@ let of_float s = `Float s
 let to_bool t = Util.to_bool t
 let of_bool b = `Bool b
 
-let to_unit t = to_tuple Runtime.Nil () t
-let of_unit () = of_tuple []
+let to_unit = function | `Null -> ()
+                       | t -> raise_errorf t "Null expected"
+let of_unit () = `Null
 
 (* Allow referencing Yaml.value in structures. *)
 let of_yaml t = t

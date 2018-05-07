@@ -116,8 +116,9 @@ let of_float ?flags:_ s = `Float s
 let to_bool ?flags:_ t = Yojson.Safe.Util.to_bool t
 let of_bool ?flags:_ b = `Bool b
 
-let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
-let of_unit ?flags () = of_tuple ?flags []
+let to_unit ?flags:_ = function | `Null -> ()
+                                | t -> raise_errorf t "Null expected"
+let of_unit ?flags:_ () = `Null
 
 (* Allow referencing Json.t in structures. *)
 let of_json t = t

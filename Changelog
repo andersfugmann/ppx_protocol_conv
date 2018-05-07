@@ -4,6 +4,8 @@
 [ ] Improve deserialization error messages
 
 3.0.0
+[x] Yaml: Map unit to Null
+[x] Json: Map unit to Null
 [x] Msgpack: Map unit to Nil
 [x] Msgpack: Add fine grained control of serialized types
 [x] Only emit <of|to>_protocol for types named t
