@@ -111,7 +111,12 @@ let of_lazy_t: ?flags:flag -> ('a -> t) -> 'a lazy_t -> t = fun ?flags:_ of_valu
   Lazy.force v |> of_value_fun
 
 let to_int ?flags:_ = function Msgpck.Int i -> i
+                             | Msgpck.Int32 i -> Int32.to_int_exn i
+                             | Msgpck.Uint32 i -> Int32.to_int_exn i
+                             | Msgpck.Int64 i -> Int64.to_int_exn i
+                             | Msgpck.Uint64 i -> Int64.to_int_exn i
                              | e -> raise_errorf e "int expected"
+
 let of_int ?flags:_ i = Msgpck.Int i
 
 let to_int32 ?flags:_ = function Msgpck.Int32 i -> i
@@ -128,15 +133,36 @@ let to_float ?flags:_ = function Msgpck.Float f -> f
 let of_float ?flags:_ f = Msgpck.Float f
 
 let to_string ?flags:_ = function Msgpck.String s -> s
-                             | e -> raise_errorf e "string expected"
+                                | Msgpck.Bytes s -> s
+                                | e -> raise_errorf e "string or bytes expected"
 let of_string ?flags:_ s = Msgpck.String s
 
-let to_bool ?flags:_ = function | Msgpck.Bool b -> b
-                                | e -> raise_errorf e "bool expected"
+let to_bool ?flags:_ = function Msgpck.Bool b -> b
+                              | e -> raise_errorf e "bool expected"
 let of_bool ?flags:_ b = Msgpck.Bool b
 
-let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
-let of_unit ?flags () = of_tuple ?flags []
+let to_unit ?flags:_ = function Msgpck.Nil -> ()
+                              | e -> raise_errorf e "nil expected"
+let of_unit ?flags:_ () = Msgpck.Nil
+
+type bytes = string
+let bytes_of_msgpack s = to_string s
+let bytes_to_msgpack = Msgpck.of_bytes
+
+type uint32 = int
+let uint32_of_msgpack = function Msgpck.Uint32 v -> Int32.to_int_exn v
+                               | e -> raise_errorf e "uint32 expected"
+let uint32_to_msgpack v = Int32.of_int_exn v |> Msgpck.of_uint32
+
+type uint64 = int
+let uint64_of_msgpack = function Msgpck.Uint64 v -> Int64.to_int_exn v
+                               | e -> raise_errorf e "uint32 expected"
+let uint64_to_msgpack v = Int64.of_int_exn v |> Msgpck.of_uint64
+
+type float32 = float
+let float32_of_msgpack = function Msgpck.Float32 v -> Int32.float_of_bits v
+                               | e -> raise_errorf e "float32 expected"
+let float32_to_msgpack v = Int32.bits_of_float v |> Msgpck.of_float32
 
 let to_msgpack t = t
 let of_msgpack t = t

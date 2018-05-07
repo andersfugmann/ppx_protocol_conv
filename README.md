@@ -2,6 +2,9 @@
 Ppx protocol conv (de)serialisers using deriving, which allows for
 plugable (de)serialisers.
 
+[![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
+
+
 ## Example Usage
 ```ocaml
 open Protocol_conv
@@ -39,10 +42,10 @@ type. `of_protocol` deriver generates de-serilization of the type,
 while `protocol` deriver will generate both serilizarion and de-serilization functions.
 
 Flags can be specified using the driver argument ~flags. For the json
-module, the `mangle` function transforms record label names to be
+and msgpack drivers, the `mangle` function transforms record label names to be
 lower camelcase: a_bc_de -> aBcDe and a_bc_de_ -> aBcDe. Beware that
 this may cause name collisions, which can only be determined at
-compile time.
+runtime.
 
 ## Attributes
 Record label names can be changed using `[@key <string>]`
@@ -59,16 +62,45 @@ The protocol deriver implements:
  * `Json` which serializes to `Yojson.Safe.t`
  * `Xml_light` which serializes to `Xml.xml list`
  * `Msgpack` which serializes to `Msgpck.t`
+ * `Yaml` which serialized to Yaml.t
 
-### Custom drivers
-It should be easy to provide custom drivers by implementing the signature:
+### Notes on type mappings
+All included driver allow for the identity mapping by using the
+<driver>.t type, i.e.:
+type example = {
+  json: Json.t; (* This has type Yojson.t *)
+}
+
+#### Msgpack
+To allow more finegrained control over generated type, the
+msgpack module defines some extra types, as listed in the
+table below:
+
+
+| Ocaml type      | Generates | Accepts                           |
+|-----------------|-----------|-----------------------------------|
+| string          | String    | String, Bytes                     |
+| int             | Int       | Int, Int32, Int64, Uint32, Uint64 |
+| int32           | Int32     | Int32                             |
+| int64           | Int64     | Int64                             |
+| float           | Float64   | Float64, Float32                  |
+| unit            | Nil       | Nil                               |
+| Msgpack.uint32  | Uint32    | Uint32                            |
+| Msgpack.uint64  | Uint64    | Uint64                            |
+| Msgpack.bytes   | Bytes     | Bytes, String                     |
+| Msgpack.float32 | Float32   | Float32                           |
+| Msgpack.t       | MsgPck.t  | MsgPck.t                          |
+
+
+## Custom drivers
+It is easy to provide custom drivers by implementing the signature:
 
 ```ocaml
 include Lib.Driver with type t = ... and type flags = ...
 ```
 
 See the drivers directory for examples on how to implemented new drivers.
-Submissions of useful drivers are welcome
+Submissions of new drivers are welcome.
 
 ## Limitations
 The json driver will currently serialize type `t option option` as `t

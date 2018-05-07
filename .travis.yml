@@ -7,7 +7,7 @@ script:
 env:
   global:
   - TESTS=true
-  - PINS="ppx_protocol_conv:. ppx_protocol_conv_json:. ppx_protocol_conv_msgpack:. ppx_protocol_conv_xml_light:. yaml"
+  - PINS="yaml ppx_protocol_conv:. ppx_protocol_conv_json:. ppx_protocol_conv_msgpack:. ppx_protocol_conv_xml_light:."
   matrix:
 
   - PACKAGE="ppx_protocol_conv" OCAML_VERSION=4.04
