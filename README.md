@@ -77,22 +77,24 @@ Maps to and from Msgpck.t
 
 ##### Options
 the Msgpack driver accepts the following options:
-| Option      | Description | Example
-| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle]`
-| | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
+
+| Option      | Description | Example |
+|-------------|-------------|---------|
+| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle]` |
+| | | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
 
 ##### Types
 
-| Ocaml type      | Generates | Accepts                           |
-|-----------------|-----------|-----------------------------------|
-| string          | \`String  | \`String                          |
-| bytes           | \`String  | \`String                          |
-| int             | \`Int     | \`Int                             |
-| int32           | \`Int     | \`Int                             |
-| int64           | \`Int     | \`Int                             |
-| float           | \`Float   | \`Float                           |
-| unit            | \`Null    | \`Null                            |
-| Json.t          | Yojson.t  | Yojson.t                          |
+| Ocaml type      | Generates | Accepts   |
+|-----------------|-----------|-----------|
+| string          | \`String  | \`String  |
+| bytes           | \`String  | \`String  |
+| int             | \`Int     | \`Int     |
+| int32           | \`Int     | \`Int     |
+| int64           | \`Int     | \`Int     |
+| float           | \`Float   | \`Float   |
+| unit            | \`Null    | \`Null    |
+| Json.t          | Yojson.t  | Yojson.t  |
 
 ##### Limitations
 The json driver will currently serialize type `t option option` as `t
@@ -110,9 +112,11 @@ table below:
 
 ##### Options
 the Msgpack driver accepts the following options:
-| Option      | Description | Example
-| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Msgpack) ~flags:(`Mangle Msgpack.mangle]`
-| | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
+
+| Option      | Description | Example |
+|-------------|-------------|---------|
+| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle]` |
+| | | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
 
 
 ##### Types
@@ -136,23 +140,25 @@ Converts to and from Yaml.t
 
 ##### Types
 
-| Ocaml type      | Generates | Accepts                           |
-|-----------------|-----------|-----------------------------------|
-| string          | \`String  | \`String                          |
-| bytes           | \`String  | \`String                          |
-| int             | \`Int     | \`Int                             |
-| int32           | \`Int     | \`Int                             |
-| int64           | \`Int     | \`Int                             |
-| float           | \`Float   | \`Float                           |
-| unit            | \`Null    | \`Null                            |
-| Yaml.t          | Yaml.t    | Yaml.t                            |
+| Ocaml type      | Generates | Accepts   |
+|-----------------|-----------|-----------|
+| string          | \`String  | \`String  |
+| bytes           | \`String  | \`String  |
+| int             | \`Int     | \`Int     |
+| int32           | \`Int     | \`Int     |
+| int64           | \`Int     | \`Int     |
+| float           | \`Float   | \`Float   |
+| unit            | \`Null    | \`Null    |
+| Yaml.t          | Yaml.t    | Yaml.t    |
 
 
 ## Custom drivers
 It is easy to provide custom drivers by implementing the signature:
 
 ```ocaml
-include Lib.Driver with type t = ... and type flags = ...
+include Protocol_conv.Runtime.Driver with
+  type t = ... and
+  type 'a flags = ...
 ```
 
 See the drivers directory for examples on how to implemented new drivers.
