@@ -94,6 +94,15 @@ the Msgpack driver accepts the following options:
 | unit            | \`Null    | \`Null                            |
 | Json.t          | Yojson.t  | Yojson.t                          |
 
+##### Limitations
+The json driver will currently serialize type `t option option` as `t
+option`. This means that `Some None` and `None` is both mapped to
+`Null`.
+
+Also unit is mapped to \`Null, so option unit will be mapped to \`Null,
+which means that `Some ()` and `None` is both mapped to `Null.
+
+
 #### Msgpack
 To allow more finegrained control over generated type, the
 msgpack module defines some extra types, as listed in the
@@ -148,8 +157,3 @@ include Lib.Driver with type t = ... and type flags = ...
 
 See the drivers directory for examples on how to implemented new drivers.
 Submissions of new drivers are welcome.
-
-## Limitations
-The json driver will currently serialize type `t option option` as `t
-option`. This means that `Some None` and `None` is both mapped to
-`Null`.
