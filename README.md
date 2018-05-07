@@ -66,16 +66,47 @@ The protocol deriver implements:
 
 ### Notes on type mappings
 All included driver allow for the identity mapping by using the
-<driver>.t type, i.e.:
+`<driver>.t` type, i.e.:
+```ocaml
 type example = {
   json: Json.t; (* This has type Yojson.t *)
 }
+```
+#### Json
+Maps to and from Msgpck.t
+
+##### Options
+the Msgpack driver accepts the following options:
+| Option      | Description | Example
+| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle]`
+| | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
+
+##### Types
+
+| Ocaml type      | Generates | Accepts                           |
+|-----------------|-----------|-----------------------------------|
+| string          | \`String  | \`String                          |
+| bytes           | \`String  | \`String                          |
+| int             | \`Int     | \`Int                             |
+| int32           | \`Int     | \`Int                             |
+| int64           | \`Int     | \`Int                             |
+| float           | \`Float   | \`Float                           |
+| unit            | \`Null    | \`Null                            |
+| Json.t          | Yojson.t  | Yojson.t                          |
 
 #### Msgpack
 To allow more finegrained control over generated type, the
 msgpack module defines some extra types, as listed in the
 table below:
 
+##### Options
+the Msgpack driver accepts the following options:
+| Option      | Description | Example
+| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Msgpack) ~flags:(`Mangle Msgpack.mangle]`
+| | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
+
+
+##### Types
 
 | Ocaml type      | Generates | Accepts                           |
 |-----------------|-----------|-----------------------------------|
@@ -90,6 +121,22 @@ table below:
 | Msgpack.bytes   | Bytes     | Bytes, String                     |
 | Msgpack.float32 | Float32   | Float32                           |
 | Msgpack.t       | MsgPck.t  | MsgPck.t                          |
+
+#### Yaml
+Converts to and from Yaml.t
+
+##### Types
+
+| Ocaml type      | Generates | Accepts                           |
+|-----------------|-----------|-----------------------------------|
+| string          | \`String  | \`String                          |
+| bytes           | \`String  | \`String                          |
+| int             | \`Int     | \`Int                             |
+| int32           | \`Int     | \`Int                             |
+| int64           | \`Int     | \`Int                             |
+| float           | \`Float   | \`Float                           |
+| unit            | \`Null    | \`Null                            |
+| Yaml.t          | Yaml.t    | Yaml.t                            |
 
 
 ## Custom drivers
