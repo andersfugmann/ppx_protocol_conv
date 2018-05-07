@@ -45,6 +45,8 @@ module Make(Driver: Testable.Driver) = struct
       foo: int;
       bar: string;
       baz: y;
+      unit: unit;
+      unit_option: unit option;
     }
     [@@deriving protocol ~driver:(module Driver)]
 
@@ -54,7 +56,9 @@ module Make(Driver: Testable.Driver) = struct
                     y_b=("two", [10; 20; 30]);
                   y_c_=Some ("three", [100; 200; 300]);
                   y_d_=Variant_one 1
-                }
+                  };
+              unit = ();
+              unit_option = None;
             }
   end
   let unittest ~printer = __MODULE__ >: test_list [
