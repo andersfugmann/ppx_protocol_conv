@@ -98,27 +98,30 @@ let to_lazy_t: ?flags:flag -> (t -> 'a) -> t -> 'a lazy_t = fun ?flags:_ to_valu
 let of_lazy_t: ?flags:flag -> ('a -> t) -> 'a lazy_t -> t = fun ?flags:_ of_value_fun v ->
   Lazy.force v |> of_value_fun
 
-let to_int ?flags:_ t = Yojson.Safe.Util.to_int t
-let of_int ?flags:_ (i:int) : t = `Int i
+let to_int ?flags:_ = function `Int i -> i
+                             | t -> raise_errorf t "int expected"
+let of_int ?flags:_ (i:int) = `Int i
 
-let to_int32 ?flags:_ t = Yojson.Safe.Util.to_int t |> Int32.of_int_exn
-let of_int32 ?flags:_ i : t = `Int (Int32.to_int_exn i)
+let to_int32 ?flags t = to_int ?flags t |> Int32.of_int_exn
+let of_int32 ?flags:_ i = `Int (Int32.to_int_exn i)
 
-let to_int64 ?flags:_ t = Yojson.Safe.Util.to_int t |> Int64.of_int_exn
+let to_int64 ?flags t = to_int ?flags t |> Int64.of_int_exn
 let of_int64 ?flags:_ i : t = `Int (Int64.to_int_exn i)
 
-let to_string ?flags:_ t = Yojson.Safe.Util.to_string t
+let to_string ?flags:_ = function `String s -> s
+                                | t -> raise_errorf t "string expected"
 let of_string ?flags:_ s = `String s
 
-let to_float ?flags:_ t = Yojson.Safe.Util.to_float t
+let to_float ?flags:_ = function `Float f -> f
+                               | t -> raise_errorf t "float expected"
 let of_float ?flags:_ s = `Float s
 
-let to_bool ?flags:_ t = Yojson.Safe.Util.to_bool t
+let to_bool ?flags:_ = function `Bool b -> b
+                              | t -> raise_errorf t "bool expected"
 let of_bool ?flags:_ b = `Bool b
 
-let to_unit ?flags:_ = function | `Null -> ()
-                                | t -> raise_errorf t "Null expected"
-let of_unit ?flags:_ () = `Null
+let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
+let of_unit ?flags () = of_tuple ?flags []
 
 (* Allow referencing Json.t in structures. *)
 let of_json t = t

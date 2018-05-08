@@ -6,9 +6,7 @@
 [ ] Fix Some () and None types, and Some Some t
 
 3.0.0
-[x] Yaml: Map unit to Null
-[x] Json: Map unit to Null
-[x] Msgpack: Map unit to Nil
+[x] Fix error when emitting code for types declared nonrec
 [x] Msgpack: Add fine grained control of serialized types
 [x] Only emit <of|to>_protocol for types named t
 

@@ -11,7 +11,6 @@ let string_of_t value =
   | Ok s -> s
   | Error (`Msg msg) -> failwith msg
 
-
 (* Register exception printer *)
 let () = Caml.Printexc.register_printer
     (function Protocol_error (s, t) -> Some (s ^ ", " ^ (string_of_t t))
@@ -127,9 +126,8 @@ let of_float s = `Float s
 let to_bool t = Util.to_bool t
 let of_bool b = `Bool b
 
-let to_unit = function | `Null -> ()
-                       | t -> raise_errorf t "Null expected"
-let of_unit () = `Null
+let to_unit t = to_tuple Runtime.Nil () t
+let of_unit () = of_tuple []
 
 (* Allow referencing Yaml.value in structures. *)
 let of_yaml t = t

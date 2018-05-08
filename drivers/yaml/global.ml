@@ -1,1 +1,0 @@
-module Yaml = Yaml
