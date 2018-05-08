@@ -137,10 +137,14 @@ let of_float = of_value Float.to_string
 
 let to_string = to_value "string" String.of_string
 let of_string = of_value String.to_string
-
+(*
+let to_unit t = to_tuple Nil () t
+let of_unit () = of_tuple []
+*)
 let to_unit = function Xml.Element (_, _, [])
                      | Xml.Element (_, _, [ PCData "" ]) -> ()
                      | e -> raise_errorf e "Unit must be an empty element"
+
 let of_unit () = Xml.Element ("u", [], [])
 
 let of_xml_light t = t
