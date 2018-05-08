@@ -406,38 +406,37 @@ let deserialize_function_name ~loc ~driver name =
   in
   sprintf "%sof_%s" prefix (module_name ~loc driver) |> Located.mk ~loc
 
-
-
+(* This needs the disabling of warnings *)
 let pstr_value_of_funcs ~loc rec_flag elements =
   List.map ~f:(fun (name, expr) ->
       let pat = ppat_var ~loc name in
-      value_binding ~loc ~pat ~expr
+      Ast_helper.Vb.mk
+        ~attrs:[{ loc; txt="ocaml.warning" }, PStr [%str "-39"]]
+        ~loc pat expr
     ) elements
   |> pstr_value ~loc rec_flag
 
-let rec_func ~loc =
-  ({loc; txt="__protocol_recursive_function"},
-  [%expr fun () -> __protocol_recursive_function ()])
-
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   pstr_value_of_funcs ~loc rec_flag
-    ( rec_func ~loc :: List.map
+    ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
             let to_p = serialize_function_name ~loc ~driver:t.driver name in
             (to_p, [%expr fun t -> [%e serialize_expr_of_tdecl t ~loc tdecl] t])
           ) tydecls
-    ) :: []
+    )
+  :: []
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
   pstr_value_of_funcs ~loc rec_flag
-    ( rec_func ~loc :: List.map
+    ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
             let of_p = deserialize_function_name ~loc ~driver:t.driver name in
             (of_p, [%expr fun t -> [%e deserialize_expr_of_tdecl t ~loc tdecl] t])
           ) tydecls
-    ) :: []
+    )
+  :: []
 
 let protocol_str_type_decls t rec_flag ~loc tydecls =
   to_protocol_str_type_decls t rec_flag ~loc tydecls @
