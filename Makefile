@@ -1,4 +1,4 @@
-.PHONY: build clean install uninstall reinstall test update-version release
+.PHONY: build clean install uninstall reinstall test update-version release doc
 build:
 	jbuilder build @install --dev
 
@@ -26,3 +26,18 @@ update-version:
 release: VERSION=$(shell cat Changelog | grep -E '^[0-9]' | head -n 1)
 release:
 	@./release.sh $(VERSION)
+
+doc:
+	jbuilder build @doc
+
+gh-pages: doc
+	git clone `git config --get remote.origin.url` .gh-pages --reference .
+	git -C .gh-pages checkout --orphan gh-pages
+	git -C .gh-pages reset
+	git -C .gh-pages clean -dxf
+	cp  -r _build/default/_doc/* .gh-pages
+	git -C .gh-pages add .
+	git -C .gh-pages config user.email 'docs@ppx_protocol_conv'
+	git -C .gh-pages commit -m "Update Pages"
+	git -C .gh-pages push origin gh-pages -f
+	rm -rf .gh-pages

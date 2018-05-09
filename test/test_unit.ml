@@ -58,7 +58,7 @@ module Make(Driver: Testable.Driver) = struct
     end
   let unittest ~printer = __MODULE__ >: test_list [
       M.test (module T1) ~printer;
-      (* M.test (module T2) ~printer; *)
+      M.test (module T2) ~printer;
       (* M.test (module T3) ~printer; *)
       (* M.test (module T4) ~printer; *)
     ]

@@ -93,16 +93,8 @@ the Msgpack driver accepts the following options:
 | int32           | \`Int     | \`Int     |
 | int64           | \`Int     | \`Int     |
 | float           | \`Float   | \`Float   |
-| unit            | \`Null    | \`Null    |
+| unit            | \`List [] | \`List [] |
 | Json.t          | Yojson.t  | Yojson.t  |
-
-##### Limitations
-The json driver will currently serialize type `t option option` as `t
-option`. This means that `Some None` and `None` is both mapped to
-`Null`.
-
-Also unit is mapped to \`Null, so option unit will be mapped to \`Null,
-which means that `Some ()` and `None` is both mapped to `Null.
 
 
 #### Msgpack
@@ -128,7 +120,7 @@ the Msgpack driver accepts the following options:
 | int32           | Int32     | Int32                             |
 | int64           | Int64     | Int64                             |
 | float           | Float64   | Float64, Float32                  |
-| unit            | Nil       | Nil                               |
+| unit            | List []   | List []                           |
 | Msgpack.uint32  | Uint32    | Uint32                            |
 | Msgpack.uint64  | Uint64    | Uint64                            |
 | Msgpack.bytes   | Bytes     | Bytes, String                     |
@@ -136,7 +128,7 @@ the Msgpack driver accepts the following options:
 | Msgpack.t       | MsgPck.t  | MsgPck.t                          |
 
 #### Yaml
-Converts to and from Yaml.t
+Converts to and from Yaml.value
 
 ##### Types
 
@@ -148,7 +140,7 @@ Converts to and from Yaml.t
 | int32           | \`Int     | \`Int     |
 | int64           | \`Int     | \`Int     |
 | float           | \`Float   | \`Float   |
-| unit            | \`Null    | \`Null    |
+| unit            | \`List [] | \`List [] |
 | Yaml.t          | Yaml.t    | Yaml.t    |
 
 
@@ -163,3 +155,13 @@ include Protocol_conv.Runtime.Driver with
 
 See the drivers directory for examples on how to implemented new drivers.
 Submissions of new drivers are welcome.
+
+## Limitations
+The drivers currently serializes type `t option option` as `t
+option`. This means that `Some None` and `None` is both mapped to
+the the same value.
+
+## Not supported
+* Anonymous records
+* Polymorphic variants
+* GADT's

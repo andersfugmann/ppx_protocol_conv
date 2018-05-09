@@ -94,7 +94,12 @@ let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
 
 let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
   | None -> Xml.Element ("o", [], [])
-  | Some x -> of_value_fun x
+  | Some x -> begin
+      match of_value_fun x with
+      | Xml.Element ("o", [], []) ->
+        Xml.Element ("o", [], [ Xml.Element ("o", [], []) ])
+      | t -> t
+    end
 
 (** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function

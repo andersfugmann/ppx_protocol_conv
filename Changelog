@@ -3,7 +3,7 @@
 [ ] Handle polymorphic variants
 [ ] Improve deserialization error messages
 
-[ ] Fix Some () and None types, and Some Some t
+[ ] Make `None` and `Some None` map to disinct values
 
 3.0.0
 [x] Fix error when emitting code for types declared nonrec
