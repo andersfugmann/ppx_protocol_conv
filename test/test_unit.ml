@@ -69,9 +69,16 @@ module Make(Driver: Testable.Driver) = struct
     let name = "None"
     type t = u
     [@@deriving protocol ~driver:(module Driver), sexp]
+
     let t = { a = None }
   end
 
+  module T9 : M.Testable = struct
+    let name = "unit option option list option option"
+    type t = unit option option list option option
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = Some (Some ([Some (Some ()); Some None; None]))
+  end
 
   let unittest = __MODULE__ >: test_list [
       M.test (module T1);
@@ -82,6 +89,6 @@ module Make(Driver: Testable.Driver) = struct
       M.test (module T6);
       M.test (module T7);
       M.test (module T8);
-
+      M.test (module T9);
     ]
 end

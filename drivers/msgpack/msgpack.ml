@@ -93,11 +93,17 @@ let of_tuple ?flags:_ t = Msgpck.List (List.map ~f:snd t)
 
 let to_option: ?flags:flag -> (t -> 'a) -> t -> 'a option = fun ?flags:_ to_value_fun -> function
   | Msgpck.Nil -> None
+  | Msgpck.Map [(Msgpck.String "__option", t)] -> Some (to_value_fun t)
   | x -> Some (to_value_fun x)
-
 let of_option: ?flags:flag -> ('a -> t) -> 'a option -> t = fun ?flags:_ of_value_fun -> function
   | None -> Msgpck.Nil
-  | Some x -> of_value_fun x
+  | Some x -> begin
+      match of_value_fun x with
+      | (Msgpck.Nil as t)
+      | (Msgpck.Map [Msgpck.String "__option", _ ] as t) ->
+        Msgpck.Map [Msgpck.String "__option", t ]
+      | x -> x
+    end
 
 let to_list: ?flags:flag -> (t -> 'a) -> t -> 'a list =
   fun ?flags:_ to_value_fun ->
