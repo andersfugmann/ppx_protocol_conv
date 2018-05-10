@@ -1,65 +1,87 @@
 open OUnit2
+open Sexplib0.Sexp_conv
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
-    type t = {
-      unit: unit;
-      unit_option: unit option;
-      unit_option_option: unit option option;
-      bool: bool;
-      bool_option: bool option;
-      bool_option_option: bool option option;
-    }
-      [@@deriving protocol ~driver:(module Driver)]
+  type t = bool option option option
+  [@@deriving protocol ~driver:(module Driver), sexp]
 
-    module T1 : M.Testable = struct
-      let name = "Unit1"
+  module T1 : M.Testable = struct
+    let name = "Some Some Some true"
+    type nonrec t = t
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
-      type nonrec t = t
-      [@@deriving protocol ~driver:(module Driver)]
-      let t =
-        { unit = (); unit_option = None; unit_option_option = None;
-          bool = false;
-          bool_option = None; bool_option_option = None }
-    end
+    let t = Some (Some (Some true))
+  end
 
-    module T2 : M.Testable = struct
-      let name = "Unit2"
+  module T2 : M.Testable = struct
+    let name = "Some Some None"
+    type nonrec t = t
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
-      type nonrec t = t
-      [@@deriving protocol ~driver:(module Driver)]
-      let t =
-        { unit = (); unit_option = Some (); unit_option_option = Some None;
-          bool = true;
-          bool_option = Some false; bool_option_option = None }
-    end
+    let t = Some (Some None)
+  end
 
-    module T3 : M.Testable = struct
-      let name = "Unit3"
+  module T3 : M.Testable = struct
+    let name = "Some None"
+    type nonrec t = t
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
-      type nonrec t = t
-      [@@deriving protocol ~driver:(module Driver)]
-      let t =
-        { unit = (); unit_option = Some (); unit_option_option = Some (Some ());
-          bool = true;
-          bool_option = Some true; bool_option_option = Some (Some false) }
-    end
+    let t = Some None
+  end
 
-    module T4 : M.Testable = struct
-      let name = "Unit4"
+  module T4 : M.Testable = struct
+    let name = "None"
+    type nonrec t = t
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = None
+  end
 
-      type nonrec t = t
-      [@@deriving protocol ~driver:(module Driver)]
-      let t =
-        { unit = (); unit_option = Some (); unit_option_option = Some (Some ());
-          bool = true;
-          bool_option = Some true; bool_option_option = Some (Some true) }
-    end
-  let unittest ~printer = __MODULE__ >: test_list [
-      M.test (module T1) ~printer;
-      M.test (module T2) ~printer;
-      (* M.test (module T3) ~printer; *)
-      (* M.test (module T4) ~printer; *)
+  type u = { a: t }
+    [@@deriving protocol ~driver:(module Driver), sexp]
+
+  module T5 : M.Testable = struct
+    let name = "Some Some Some true"
+    type t = u
+    [@@deriving protocol ~driver:(module Driver), sexp]
+
+    let t = { a = Some (Some (Some true)) }
+  end
+
+  module T6 : M.Testable = struct
+    let name = "Some Some None"
+    type t = u
+    [@@deriving protocol ~driver:(module Driver), sexp]
+
+    let t = { a = Some (Some None) }
+  end
+
+  module T7 : M.Testable = struct
+    let name = "Some None"
+    type t = u
+    [@@deriving protocol ~driver:(module Driver), sexp]
+
+    let t = { a = Some None }
+  end
+
+  module T8 : M.Testable = struct
+    let name = "None"
+    type t = u
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = { a = None }
+  end
+
+
+  let unittest = __MODULE__ >: test_list [
+      M.test (module T1);
+      M.test (module T2);
+      M.test (module T3);
+      M.test (module T4);
+      M.test (module T5);
+      M.test (module T6);
+      M.test (module T7);
+      M.test (module T8);
+
     ]
 end

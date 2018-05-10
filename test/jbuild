@@ -2,6 +2,6 @@
 
 (library
  ((name      test)
-  (libraries (oUnit ppx_protocol_conv.runtime))
-  (preprocess (pps (ppx_protocol_conv ppx_driver.runner)))
+  (libraries (oUnit ppx_protocol_conv.runtime ppx_sexp_conv))
+  (preprocess (pps (ppx_protocol_conv ppx_sexp_conv ppx_driver.runner)))
 ))

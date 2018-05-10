@@ -32,4 +32,4 @@ module JsonTestDriver = struct
 end
 
 module Unittest = Test.Unittest.Make (JsonTestDriver)
-let () = Unittest.run ~printer:(Yojson.Safe.pretty_to_string)
+let () = Unittest.run ~name:"json"

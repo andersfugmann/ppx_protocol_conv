@@ -93,10 +93,17 @@ let of_tuple t = `A (List.map ~f:snd t)
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
   | `Null -> None
-  | x -> Some (to_value_fun x)
+  | `O [("__option", t)]
+  | t -> Some (to_value_fun t)
+
 let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
   | None -> `Null
-  | Some x -> of_value_fun x
+  | Some x -> begin
+      match of_value_fun x with
+      | (`Null as t)
+      | (`O [("__option", _)] as t) -> `O [("__option", t)]
+      | t -> t
+    end
 
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun t ->
   List.map ~f:to_value_fun (Util.to_list t)

@@ -1,4 +1,5 @@
 open OUnit2
+open Sexplib0.Sexp_conv
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
@@ -12,7 +13,7 @@ module Make(Driver: Testable.Driver) = struct
       request_id: string [@key "RequestId"];
       host_id: string [@key "HostId"];
     }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { code = "Error";
               message = "Message";
@@ -28,13 +29,13 @@ module Make(Driver: Testable.Driver) = struct
 
     type objekt = { key: int }
     and t = { objects : objekt list }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { objects = [ { key = 1 }; { key = 2 } ] }
   end
 
-  let unittest ~printer = __MODULE__ >: test_list [
-      M.test (module RecordList) ~printer;
-      M.test (module SimpleRecord) ~printer;
+  let unittest = __MODULE__ >: test_list [
+      M.test (module RecordList);
+      M.test (module SimpleRecord);
     ]
 end

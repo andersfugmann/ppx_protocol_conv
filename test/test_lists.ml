@@ -1,11 +1,12 @@
 open OUnit2
+open Sexplib0.Sexp_conv
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module EmptyList : M.Testable = struct
     let name = "SingleElem"
     type t = int list
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = []
   end
@@ -13,7 +14,7 @@ module Make(Driver: Testable.Driver) = struct
   module Singleton : M.Testable = struct
     let name = "SingleElem"
     type t = int list
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = [2]
   end
@@ -21,7 +22,7 @@ module Make(Driver: Testable.Driver) = struct
   module LongList : M.Testable = struct
     let name = "Longlist"
     type t = int list
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = [4; 2; 3; 1]
   end
@@ -33,7 +34,7 @@ module Make(Driver: Testable.Driver) = struct
               b : v list; [@key "V"]
                 c : string;
             }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { a= "a"; b = []; c = "c" }
   end
@@ -45,7 +46,7 @@ module Make(Driver: Testable.Driver) = struct
               b : v list; [@key "V"]
                 c : string;
             }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { a= "a"; b = [2]; c = "c" }
   end
@@ -57,7 +58,7 @@ module Make(Driver: Testable.Driver) = struct
               b : v list; [@key "V"]
                 c : string;
             }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { a= "a"; b = [4; 2; 3; 1]; c = "c" }
   end
@@ -66,7 +67,7 @@ module Make(Driver: Testable.Driver) = struct
     let name = "ListOfLists"
     type v = int list
     and t = { a : v list; }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { a = [ [2;3]; [4;5] ] }
   end
@@ -74,19 +75,19 @@ module Make(Driver: Testable.Driver) = struct
   module ListOfLists2 : M.Testable = struct
     let name = "ListOfLists2"
     type t = int list list list
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = [ []; [ []; [2]; [3;4]; ]; [ [] ]; [ [2] ]; ]
   end
 
-  let unittest ~printer = __MODULE__ >: test_list [
-      M.test (module EmptyList) ~printer;
-      M.test (module Singleton) ~printer;
-      M.test (module LongList) ~printer;
-      M.test (module EmptyInsideRec) ~printer;
-      M.test (module SingleInsideRec) ~printer;
-      M.test (module MultiInsideRec) ~printer;
-      M.test (module ListOfLists) ~printer;
-      M.test (module ListOfLists2) ~printer;
+  let unittest = __MODULE__ >: test_list [
+      M.test (module EmptyList);
+      M.test (module Singleton);
+      M.test (module LongList);
+      M.test (module EmptyInsideRec);
+      M.test (module SingleInsideRec);
+      M.test (module MultiInsideRec);
+      M.test (module ListOfLists);
+      M.test (module ListOfLists2);
     ]
 end

@@ -11,12 +11,13 @@ module Make (Driver: Driver) = struct
     type t [@@deriving protocol ~driver:(module Driver)]
     val t: t
     val name: string
+    val sexp_of_t: t -> Sexplib0.Sexp.t
   end
 
-  let test (module T : Testable) ~(printer:(Driver.t -> string)) =
+  let test (module T : Testable) =
     let f _ =
       let t' = T.to_driver T.t |> T.of_driver in
-      let printer t = T.to_driver t |> printer in
+      let printer t = Ppx_sexp_conv_lib.Sexp.to_string_hum (T.sexp_of_t t) in
       assert_equal ~printer ~msg:T.name T.t t';
       ()
     in

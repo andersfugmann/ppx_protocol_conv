@@ -1,5 +1,7 @@
 open Base
 open OUnit2
+open Sexplib0.Sexp_conv
+
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
@@ -7,7 +9,7 @@ module Make(Driver: Testable.Driver) = struct
     let name = "Tuple"
 
     type t = (int * int list * string list * (int * int) list) list
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = [
       (10, [20;30;40], ["s50"; "s60"; "s70"], [100, 200; 300, 400; 500, 600]);
@@ -35,7 +37,7 @@ module Make(Driver: Testable.Driver) = struct
       vlist: v list;
       record: t1;
     }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let v = B ([5; 6; 7], [10;11;12])
 
@@ -76,7 +78,7 @@ module Make(Driver: Testable.Driver) = struct
       t_tl: (int * int * string list) list;
       t_il: int list;
     }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = {
       t_a = { a_int = 1; a_string = "s1"; };
@@ -111,7 +113,7 @@ module Make(Driver: Testable.Driver) = struct
   module List : M.Testable = struct
     let name = "list"
     type t = { a: int list }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { a = [1; 2; 3] }
 
@@ -127,7 +129,7 @@ module Make(Driver: Testable.Driver) = struct
       c: int list;
       l: l list;
     }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = {
       a = [
@@ -147,12 +149,12 @@ module Make(Driver: Testable.Driver) = struct
       ]
     }
   end
-  let unittest ~printer = Caml.__MODULE__ >: test_list [
-      M.test (module Tuple) ~printer;
-      M.test (module Any) ~printer;
-      M.test (module Record) ~printer;
-      M.test (module List) ~printer;
-      M.test (module Lists) ~printer;
+  let unittest = Caml.__MODULE__ >: test_list [
+      M.test (module Tuple);
+      M.test (module Any);
+      M.test (module Record);
+      M.test (module List);
+      M.test (module Lists);
     ]
 
 end

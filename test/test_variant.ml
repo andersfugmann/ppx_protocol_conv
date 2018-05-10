@@ -1,4 +1,5 @@
 open OUnit2
+open Sexplib0.Sexp_conv
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
@@ -7,7 +8,7 @@ module Make(Driver: Testable.Driver) = struct
 
     type v = A | B of int | C of int * int | D of (int * int)
     and t = v list
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = [ A; B 5; C (6,7); D (8,9) ]
   end
@@ -18,7 +19,7 @@ module Make(Driver: Testable.Driver) = struct
     type t =
       | Node of t * int * t
       | Leaf
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = Node ( Node (Leaf, 3, Leaf), 10, Leaf)
   end
@@ -31,7 +32,7 @@ module Make(Driver: Testable.Driver) = struct
     and t = | T1 of t
             | T2 of int
             | V of v
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = T1 (V (T (V (V1 (V1 (V1 (V0 5)))))))
   end
@@ -45,7 +46,7 @@ module Make(Driver: Testable.Driver) = struct
               b : v; [@key "V"]
                 c : string;
             }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { a= "a"; b = V0; c = "c" }
   end
@@ -70,10 +71,10 @@ module Record = struct
 
 end
 *)
-  let unittest ~printer = __MODULE__ >: test_list [
-      M.test (module Simple) ~printer;
-      M.test (module Tree) ~printer;
-      M.test (module MutualRecursion) ~printer;
-      M.test (module InsideRec) ~printer;
+  let unittest = __MODULE__ >: test_list [
+      M.test (module Simple);
+      M.test (module Tree);
+      M.test (module MutualRecursion);
+      M.test (module InsideRec);
     ]
 end

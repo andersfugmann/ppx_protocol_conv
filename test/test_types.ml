@@ -1,4 +1,5 @@
 open OUnit2
+open Sexplib0.Sexp_conv
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
@@ -20,7 +21,7 @@ module Make(Driver: Testable.Driver) = struct
       contents: content list [@key "Contents"];
     }
     and t = result
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { prefix = Some "prefix";
               contents = [ { storage_class = Standard; etag = "Etag" } ]
@@ -46,7 +47,7 @@ module Make(Driver: Testable.Driver) = struct
       bar: string;
       baz: y;
     }
-    [@@deriving protocol ~driver:(module Driver)]
+    [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { foo=1;
               bar="one";
@@ -57,8 +58,8 @@ module Make(Driver: Testable.Driver) = struct
                   };
             }
   end
-  let unittest ~printer = __MODULE__ >: test_list [
-      M.test (module S3) ~printer;
-      M.test (module T) ~printer
+  let unittest = __MODULE__ >: test_list [
+      M.test (module S3);
+      M.test (module T);
     ]
 end
