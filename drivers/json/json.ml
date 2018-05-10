@@ -84,14 +84,15 @@ let of_tuple ?flags:_ t = `List (List.map ~f:snd t)
 (* If the type is an empty list, thats also null. *)
 let to_option: ?flags:flag -> (t -> 'a) -> t -> 'a option = fun ?flags:_ to_value_fun -> function
   | `Null -> None
-  | `List [`Null] -> Some (to_value_fun `Null)
+  | `Assoc [("__option", t)] -> Some (to_value_fun t)
   | x -> Some (to_value_fun x)
 
 let of_option: ?flags:flag -> ('a -> t) -> 'a option -> t = fun ?flags:_ of_value_fun -> function
   | None -> `Null
   | Some x -> begin
       match of_value_fun x with
-      | `Null -> `List [`Null]
+      | (`Null as t)
+      | (`Assoc [ "__option", _ ] as t) -> `Assoc [ "__option", t ]
       | x -> x
     end
 

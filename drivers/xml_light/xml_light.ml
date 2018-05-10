@@ -4,6 +4,9 @@ open Protocol_conv.Runtime
 type t = Xml.xml
 type 'a flags = 'a no_flags
 
+let _log fmt = Caml.Printf.eprintf (fmt ^^ "\n%!")
+
+
 exception Protocol_error of string * t
 (* Register exception printer *)
 let () = Caml.Printexc.register_printer
@@ -74,11 +77,13 @@ let of_record: (string * t) list -> t = fun assoc ->
     function
     | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
     | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+    | (field, Xml.Element ("option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
     | (field, Xml.Element (_, _, xs)) ->
       List.map ~f:(function
-          | Xml.Element(_, attrs, xs) -> Xml.Element(field, attrs, xs)
-          | x -> Xml.Element(field, [], [x])
-        ) xs
+          | Xml.Element(_, attrs, xs) ->
+            Xml.Element(field, attrs, xs)
+          | PCData _ as p -> Xml.Element(field, [], [p])
+        ) xs (* why xs here. Or do we need to extend the option one level *)
     | (field, e) -> raise_errorf e "Must be an element: %s" field
   ) assoc |> element "record"
 
@@ -87,19 +92,37 @@ let to_tuple = to_record
 
 let of_tuple = of_record
 
-let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
+let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
+  (* Not allowed to throw out the unwrap. *)
+  match t with
+  | Xml.Element (_, [_, "unwrapped"], [])
   | Xml.Element (_, _, [])
-  | Xml.Element (_, _, [PCData ""]) -> None
-  | t -> Some (to_value_fun t)
+  | Xml.Element (_, _, [ PCData ""] ) ->
+    None
+  | Xml.Element (_, [_, "unwrapped"], [ (Element ("option", _, _) as t)])
+  (*  | Xml.Element (_, [_, "unwrapped"], [ t ]) *)
+  | Xml.Element ("option", _, [t])
+  | t ->
+    Some (to_value_fun t)
 
-let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
-  | None -> Xml.Element ("o", [], [])
-  | Some x -> begin
+(* Some Some None ->
+   Some Some Some v -> v
+*)
+
+let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun v ->
+  let t = match v with
+    | None ->
+      Xml.Element ("option", [], [])
+    | Some x -> begin
       match of_value_fun x with
-      | Xml.Element ("o", [], []) ->
-        Xml.Element ("o", [], [ Xml.Element ("o", [], []) ])
-      | t -> t
+        | (Xml.Element ("option", _, _) as t) ->
+          Xml.Element ("option", [], [t])
+        | t ->
+          t
     end
+  in
+  t
+
 
 (** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
@@ -142,15 +165,19 @@ let of_float = of_value Float.to_string
 
 let to_string = to_value "string" String.of_string
 let of_string = of_value String.to_string
+
+let to_unit = to_value "unit" (Unit.of_string)
+let of_unit = of_value Unit.to_string
+
 (*
 let to_unit t = to_tuple Nil () t
 let of_unit () = of_tuple []
 *)
-let to_unit = function Xml.Element (_, _, [])
-                     | Xml.Element (_, _, [ PCData "" ]) -> ()
-                     | e -> raise_errorf e "Unit must be an empty element"
+    (*
+let to_unit = function Xml.Element (_, _, [ PCData "unit" ]) -> ()
+                     | e -> raise_errorf e "Unit must be 'unit'"
 
-let of_unit () = Xml.Element ("u", [], [])
-
+let of_unit () = Xml.Element ("u", [], [ PCData "unit" ])
+*)
 let of_xml_light t = t
 let to_xml_light t = t
