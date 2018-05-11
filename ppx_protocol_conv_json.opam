@@ -12,5 +12,7 @@ depends: [
   "base"
   "yojson"
   "jbuilder" { build }
+  "ppx_sexp_conv" { test }
+  "ounit" { test }
 ]
 available: [ ocaml-version >= "4.04" ]

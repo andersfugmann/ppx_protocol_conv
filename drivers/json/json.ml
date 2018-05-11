@@ -86,7 +86,6 @@ let to_option: ?flags:flag -> (t -> 'a) -> t -> 'a option = fun ?flags:_ to_valu
   | `Null -> None
   | `Assoc [("__option", t)] -> Some (to_value_fun t)
   | x -> Some (to_value_fun x)
-
 let of_option: ?flags:flag -> ('a -> t) -> 'a option -> t = fun ?flags:_ of_value_fun -> function
   | None -> `Null
   | Some x -> begin

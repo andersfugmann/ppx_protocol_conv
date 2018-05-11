@@ -109,18 +109,16 @@ let rec serialize_expr_of_type_descr t ~loc = function
         (ppat_tuple ~loc (List.map ~f:(fun id ->ppat_var ~loc (string_of_ident_loc id)) ids))
         (pexp_apply ~loc (driver_func t ~loc "of_tuple") [Nolabel, arg_list])
     end
-  | Ptyp_variant _ ->
-    raise_errorf ~loc "Serialization of Variants not supported!" (* We really need this *)
-  | Ptyp_poly _
+  | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
+  | Ptyp_variant _   -> raise_errorf ~loc "Variant type descr not supported"
+  | Ptyp_var _       -> raise_errorf ~loc "Parameterised types not spported"
   | Ptyp_any
-  | Ptyp_var _
   | Ptyp_arrow _
   | Ptyp_object _
   | Ptyp_class _
   | Ptyp_alias _
   | Ptyp_package _
   | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
-
 
 (** Deserialization expression for a given type *)
 let rec deserialize_expr_of_type_descr t ~loc = function
@@ -157,10 +155,10 @@ let rec deserialize_expr_of_type_descr t ~loc = function
         [%e driver_func t ~loc "to_tuple"] of_funcs constructor
       ]
     end
-  | Ptyp_poly _ -> raise_errorf ~loc "Polymorphic variants not supported"
-  | Ptyp_variant _ -> raise_errorf ~loc "Variant type descr not supported"
+  | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
+  | Ptyp_variant _   -> raise_errorf ~loc "Variant type descr not supported"
+  | Ptyp_var _       -> raise_errorf ~loc "Parameterised types not spported"
   | Ptyp_any
-  | Ptyp_var _
   | Ptyp_arrow _
   | Ptyp_object _
   | Ptyp_class _

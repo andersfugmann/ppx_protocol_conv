@@ -77,7 +77,7 @@ let of_record: (string * t) list -> t = fun assoc ->
     function
     | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
     | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-    | (field, Xml.Element ("option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+    | (field, Xml.Element ("__option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
     | (field, Xml.Element (_, _, xs)) ->
       List.map ~f:(function
           | Xml.Element(_, attrs, xs) ->
@@ -99,9 +99,9 @@ let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   | Xml.Element (_, _, [])
   | Xml.Element (_, _, [ PCData ""] ) ->
     None
-  | Xml.Element (_, [_, "unwrapped"], [ (Element ("option", _, _) as t)])
+  | Xml.Element (_, [_, "unwrapped"], [ (Element ("__option", _, _) as t)])
   (*  | Xml.Element (_, [_, "unwrapped"], [ t ]) *)
-  | Xml.Element ("option", _, [t])
+  | Xml.Element ("__option", _, [t])
   | t ->
     Some (to_value_fun t)
 
@@ -112,11 +112,11 @@ let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
 let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun v ->
   let t = match v with
     | None ->
-      Xml.Element ("option", [], [])
+      Xml.Element ("__option", [], [])
     | Some x -> begin
       match of_value_fun x with
-        | (Xml.Element ("option", _, _) as t) ->
-          Xml.Element ("option", [], [t])
+        | (Xml.Element ("__option", _, _) as t) ->
+          Xml.Element ("__option", [], [t])
         | t ->
           t
     end

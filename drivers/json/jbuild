@@ -5,6 +5,6 @@
   (public_name ppx_protocol_conv_json)
   (libraries (ppx_protocol_conv ppx_protocol_conv.runtime base yojson))
   (flags (:standard -w -3))
-  (synopsis "json (de)serialization driver for ppx_protocol_conv")
+  (synopsis "yojson (de)serialization driver for ppx_protocol_conv")
  )
 )

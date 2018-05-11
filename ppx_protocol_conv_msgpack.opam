@@ -12,6 +12,7 @@ depends: [
   "base"
   "msgpck"
   "jbuilder" {build}
-  "msgpck" {test}
+  "ppx_sexp_conv" { test }
+  "ounit" { test }
 ]
 available: [ ocaml-version >= "4.04.0" ]

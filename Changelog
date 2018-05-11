@@ -1,11 +1,11 @@
 -*- mode: fundamental -*-
 [ ] Handle anonymous records
 [ ] Handle polymorphic variants
-[ ] Improve deserialization error messages
-
-[ ] Make `None` and `Some None` map to disinct values
+[ ] Handle parameterised types
 
 3.0.0
+[x] Improve deserialization error messages
+[x] Make `None` and `Some None` map to disinct values
 [x] Fix error when emitting code for types declared nonrec
 [x] Msgpack: Add fine grained control of serialized types
 [x] Only emit <of|to>_protocol for types named t

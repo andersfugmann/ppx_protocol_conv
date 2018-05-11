@@ -80,6 +80,15 @@ module Make(Driver: Testable.Driver) = struct
     let t = Some (Some ([Some (Some ()); Some None; None]))
   end
 
+  module T10 : M.Testable = struct
+    let name = "confuse deserialization by using reserved word"
+    type v = { option: bool option option }
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    type t = { o: v }
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = { o = { option = Some (Some true) } }
+  end
+
   let unittest = __MODULE__ >: test_list [
       M.test (module T1);
       M.test (module T2);
@@ -90,5 +99,6 @@ module Make(Driver: Testable.Driver) = struct
       M.test (module T7);
       M.test (module T8);
       M.test (module T9);
+      M.test (module T10);
     ]
 end
