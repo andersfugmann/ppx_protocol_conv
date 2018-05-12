@@ -72,11 +72,6 @@ The ppx also handles signature, but disallows
 `[@key ...]` and `~flags:...` as these does not impact signatures.
 
 ## Drivers
-The protocol deriver implements:
- * `Json` which serializes to `Yojson.Safe.t`
- * `Xml_light` which serializes to `Xml.xml list`
- * `Msgpack` which serializes to `Msgpck.t`
- * `Yaml` which serialized to Yaml.t
 
 ### Notes on type mappings
 All included driver allow for the identity mapping by using the
@@ -172,7 +167,7 @@ Submissions of new drivers are welcome.
 
 ## Not supported
 * Inline records
-* Generalized algrbraic datatypes
+* Generalised algebraic datatypes
 * Extensible types
-* Extensilbe polymophiv variants
+* Extensible polymorphic variants
 * nativeint
