@@ -4,6 +4,20 @@ plugable (de)serialisers.
 
 [![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
 
+## Features
+The ppx supports the following features:
+ * records
+ * recursive and non-recursive types
+ * variants
+ * polymophic variants
+ * All primitive types (except nativeint)
+
+The following drivers exists
+ * `Json` which serializes to `Yojson.Safe.t`
+ * `Xml_light` which serializes to `Xml.xml list`
+ * `Msgpack` which serializes to `Msgpck.t`
+ * `Yaml` which serialized to Yaml.t
+k
 
 ## Example Usage
 ```ocaml
@@ -156,12 +170,9 @@ include Protocol_conv.Runtime.Driver with
 See the drivers directory for examples on how to implemented new drivers.
 Submissions of new drivers are welcome.
 
-## Limitations
-The drivers currently serializes type `t option option` as `t
-option`. This means that `Some None` and `None` is both mapped to
-the the same value.
-
 ## Not supported
-* Anonymous records
-* Polymorphic variants
-* GADT's
+* Inline records
+* Generalized algrbraic datatypes
+* Extensible types
+* Extensilbe polymophiv variants
+* nativeint

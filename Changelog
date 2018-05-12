@@ -1,9 +1,13 @@
 -*- mode: fundamental -*-
-[ ] Handle anonymous records
+[ ] Support anonymous records
+[ ] Support exceptions
+[ ] Support extensible polymorphic variants
+[ ] Add jsonm/ezjson driver
 
 3.0.0
-[x] Handle polymorphic variants
-[x] Handle parameterised types
+[x] Improve error messages on usupported type constructs
+[x] Support polymorphic variants
+[x] Support parameterised types
 [x] Improve deserialization error messages
 [x] Make `None` and `Some None` map to disinct values
 [x] Fix error when emitting code for types declared nonrec
