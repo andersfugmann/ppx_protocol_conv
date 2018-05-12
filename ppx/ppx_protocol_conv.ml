@@ -449,7 +449,6 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
       | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
         raise_errorf ~loc:pcd_loc "Anonymous records not supported"
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
-        (* val: to_variant: ((string * t list) -> 'a) -> t -> 'a *)
         let lhs =
           let constr_name = match Attribute.get t.constr_attrib constr with
             | Some key -> key
