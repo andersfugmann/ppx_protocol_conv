@@ -34,7 +34,7 @@ let driver_func t ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
   match t.flags with
   | None ->[%expr (fun t -> [%e func] t)]
-  | Some flag -> [%expr [%e func] ~flags:[%e flag] ]
+  | Some flag -> [%expr (fun t -> [%e func] ~flags:[%e flag] t)]
 
 (** Concatinate the list of expressions into a single expression using
    list concatination *)
@@ -59,6 +59,9 @@ let is_meta_type = function
   | "option" | "array" | "list" | "lazy_t" -> true
   | _ -> false
 
+let type_param_name ~prefix var =
+  sprintf "__param_%s_'%s" prefix var
+
 let module_name ?loc = function
   | Lident s -> String.uncapitalize s
   | Ldot (_, s) -> String.uncapitalize s
@@ -82,14 +85,21 @@ let rec serialize_expr_of_type_descr t ~loc = function
     let to_p = serialize_expr_of_type_descr t ~loc ct.ptyp_desc in
     pexp_apply ~loc (driver_func ~loc t ("of_" ^ ident)) [Nolabel, to_p]
 
-  | Ptyp_constr ({ txt=Lident ident; _ }, _) when is_meta_type ident ->
+  | Ptyp_constr ({ txt=Lident ident; loc=_ }, _) when is_meta_type ident ->
     raise_errorf ~loc "Unsupported type descr containing list of sub-types"
 
   | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
     driver_func t ~loc ("of_" ^ s)
 
-  | Ptyp_constr (ident, _) ->
-    protocol_ident "to" t.driver ident
+  | Ptyp_constr (ident, cts) ->
+    (* Call recursivly to for app type parameters *)
+    let args =
+      List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
+          serialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
+      |> List.map ~f:(fun expr -> (Nolabel, expr))
+    in
+    let func = protocol_ident "to" t.driver ident in
+    pexp_apply ~loc func args
 
   | Ptyp_tuple cts -> begin
       let to_ps = List.map ~f:
@@ -111,7 +121,7 @@ let rec serialize_expr_of_type_descr t ~loc = function
     end
   | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
   | Ptyp_variant _   -> raise_errorf ~loc "Variant type descr not supported"
-  | Ptyp_var _       -> raise_errorf ~loc "Parameterised types not spported"
+  | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( type_param_name ~prefix:"to" core_type) }
   | Ptyp_any
   | Ptyp_arrow _
   | Ptyp_object _
@@ -132,8 +142,16 @@ let rec deserialize_expr_of_type_descr t ~loc = function
   | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
     driver_func t ~loc ("to_" ^ s)
 
-  | Ptyp_constr (ident, _) ->
-    protocol_ident "of" t.driver ident
+  | Ptyp_constr (ident, cts) ->
+    (* Construct all arguments to of ... *)
+    (* It should be an apply, called recursivly *)
+    let args =
+      List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
+          deserialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
+      |> List.map ~f:(fun expr -> (Nolabel, expr))
+    in
+    let func = protocol_ident "of" t.driver ident in
+    pexp_apply ~loc func args
 
   | Ptyp_tuple cts -> begin
       let to_ts = List.map ~f:
@@ -157,7 +175,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
     end
   | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
   | Ptyp_variant _   -> raise_errorf ~loc "Variant type descr not supported"
-  | Ptyp_var _       -> raise_errorf ~loc "Parameterised types not spported"
+  | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( type_param_name ~prefix:"of" core_type) }
   | Ptyp_any
   | Ptyp_arrow _
   | Ptyp_object _
@@ -414,13 +432,28 @@ let pstr_value_of_funcs ~loc rec_flag elements =
     ) elements
   |> pstr_value ~loc rec_flag
 
+let name_of_core_type ~prefix = function
+  | { ptyp_desc = Ptyp_var var; ptyp_loc; _ } ->
+    { loc = ptyp_loc; txt = type_param_name ~prefix var }
+  | _ -> failwith "Cannot only create names from vars"
+
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   pstr_value_of_funcs ~loc rec_flag
     ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
             let to_p = serialize_function_name ~loc ~driver:t.driver name in
-            (to_p, [%expr fun t -> [%e serialize_expr_of_tdecl t ~loc tdecl] t])
+            let expr =
+              [%expr fun t -> [%e serialize_expr_of_tdecl t ~loc tdecl] t]
+            in
+            let expr_param =
+              List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
+                  let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"to" ct) in
+                  [%expr fun [%p patt] -> [%e expr] ])
+                tdecl.ptype_params
+            in
+
+            (to_p, expr_param)
           ) tydecls
     )
   :: []
@@ -431,7 +464,17 @@ let of_protocol_str_type_decls t rec_flag ~loc tydecls =
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
             let of_p = deserialize_function_name ~loc ~driver:t.driver name in
-            (of_p, [%expr fun t -> [%e deserialize_expr_of_tdecl t ~loc tdecl] t])
+
+            let expr =
+              [%expr fun t -> [%e deserialize_expr_of_tdecl t ~loc tdecl] t]
+            in
+            let expr_param =
+              List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
+                let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"of" ct) in
+                [%expr fun [%p patt] -> [%e expr] ])
+                tdecl.ptype_params
+            in
+            (of_p, expr_param)
           ) tydecls
     )
   :: []

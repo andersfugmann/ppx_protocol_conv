@@ -11,6 +11,7 @@ module Make(Driver : Testable.Driver) = struct
     let module Nonrec = Test_nonrec.Make(Driver) in
     let module Lists = Test_lists.Make(Driver) in
     let module Record = Test_record.Make(Driver) in
+    let module Param_types = Test_param_types.Make(Driver) in
     let module Driver = Test_driver.Make(Driver) in
 
     let suite = name >::: [
@@ -20,8 +21,9 @@ module Make(Driver : Testable.Driver) = struct
         Nonrec.unittest;
         Lists.unittest;
         Record.unittest;
+        Param_types.unittest;
         Driver.unittest;
-    ]
+      ]
     in
   run_test_tt_main suite
 end
