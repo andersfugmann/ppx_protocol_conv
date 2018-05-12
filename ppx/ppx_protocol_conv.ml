@@ -222,9 +222,9 @@ let rec serialize_expr_of_type_descr t ~loc = function
         [%e pexp_function ~loc (List.map ~f:mk_case rows) ]
     ]
   | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( type_param_name ~prefix:"to" core_type) }
+  | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
   | Ptyp_variant _
   | Ptyp_any
-  | Ptyp_arrow _
   | Ptyp_object _
   | Ptyp_class _
   | Ptyp_alias _
@@ -325,8 +325,8 @@ let rec deserialize_expr_of_type_descr t ~loc = function
 
 
   | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( type_param_name ~prefix:"of" core_type) }
+  | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
   | Ptyp_any
-  | Ptyp_arrow _
   | Ptyp_object _
   | Ptyp_class _
   | Ptyp_alias _
@@ -373,7 +373,7 @@ let serialize_expr_of_tdecl t ~loc tdecl =
       | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
         (* Should create a constructor that converts this into a standard record.
            But we dont have a name, and cannot use it outside the constr - so its hard... *)
-        raise_errorf ~loc:pcd_loc "Anonymous records not supported"
+        raise_errorf ~loc:pcd_loc "Inline records not supported"
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
         let lhs =
           ppat_construct
@@ -433,7 +433,7 @@ let serialize_expr_of_tdecl t ~loc tdecl =
          Closed)
       body
 
-  | Ptype_open -> raise_errorf ~loc "open types not supported"
+  | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
 
 let deserialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
@@ -447,7 +447,7 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
     test_constructor_mapping t constrs;
     let mk_case = function
       | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
-        raise_errorf ~loc:pcd_loc "Anonymous records not supported"
+        raise_errorf ~loc:pcd_loc "Inline records not supported"
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
         let lhs =
           let constr_name = match Attribute.get t.constr_attrib constr with
@@ -517,7 +517,7 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
       [%e driver_func t ~loc "to_record"] of_funcs constructor
     ]
 
-  | Ptype_open -> raise_errorf ~loc "open types not supported"
+  | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
 
 let serialize_function_name ~loc ~driver name =
   let prefix = match name.txt with
@@ -546,7 +546,18 @@ let pstr_value_of_funcs ~loc rec_flag elements =
 let name_of_core_type ~prefix = function
   | { ptyp_desc = Ptyp_var var; ptyp_loc; _ } ->
     { loc = ptyp_loc; txt = type_param_name ~prefix var }
-  | _ -> failwith "Cannot only create names from vars"
+  | { ptyp_desc = Ptyp_any; ptyp_loc; _ } ->
+    raise_errorf ~loc:ptyp_loc "Generalized algebraic datatypes not supported"
+  | { ptyp_desc = Ptyp_arrow (_, _, _); _} -> failwith "Ptyp_arrow "
+  | { ptyp_desc = Ptyp_tuple _; _} -> failwith "Ptyp_tuple "
+  | { ptyp_desc = Ptyp_constr (_, _); _} -> failwith "Ptyp_constr "
+  | { ptyp_desc = Ptyp_object (_, _); _} -> failwith "Ptyp_object "
+  | { ptyp_desc = Ptyp_class (_, _); _} -> failwith "Ptyp_class "
+  | { ptyp_desc = Ptyp_alias (_, _); _} -> failwith "Ptyp_alias "
+  | { ptyp_desc = Ptyp_variant (_, _, _); _} -> failwith "Ptyp_variant "
+  | { ptyp_desc = Ptyp_poly (_, _); _} -> failwith "Ptyp_poly "
+  | { ptyp_desc = Ptyp_package _; _} -> failwith "Ptyp_package "
+  | { ptyp_desc = Ptyp_extension _; _} -> failwith "Ptyp_extension "
 
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   pstr_value_of_funcs ~loc rec_flag
