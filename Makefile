@@ -41,3 +41,7 @@ gh-pages: doc
 	git -C .gh-pages commit -m "Update Pages"
 	git -C .gh-pages push origin gh-pages -f
 	rm -rf .gh-pages
+
+debug:
+	dumpast type.ml
+	_build/default/.ppx/ppx_protocol_conv+ppx_sexp_conv+ppx_driver.runner/ppx.exe type.ml

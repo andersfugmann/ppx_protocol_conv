@@ -10,6 +10,8 @@ type t = {
     (label_declaration, string) Attribute.t;
   constr_attrib:
     (constructor_declaration, string) Attribute.t;
+  row_attrib:
+    (row_field, string) Attribute.t;
 }
 
 (* In variants, dont encode as tuple.... *)
@@ -67,6 +69,11 @@ let module_name ?loc = function
   | Ldot (_, s) -> String.uncapitalize s
   | Lapply _ -> raise_errorf ?loc "lapply???"
 
+let default_case ~loc =
+  case ~lhs:[%pat? (s, _)]
+    ~guard:None
+    ~rhs:[%expr failwith ("Unknown variant or arity error: " ^ s)]
+
 let protocol_ident dir driver { loc; txt } =
   (* Match the name of the type *)
   let driver_name = module_name ~loc driver in
@@ -78,6 +85,61 @@ let protocol_ident dir driver { loc; txt } =
     | Lapply _  -> raise_errorf ~loc "lapply???"
   in
   pexp_ident ~loc { loc; txt }
+
+(** Test that all label names are distict after mapping
+    This function will raise an error is a conflict is found
+*)
+let location_of_attrib t name (attribs:attributes) =
+  let prefix = module_name t.driver in
+  let has_name s = String.equal s name || String.equal s (sprintf "%s.%s" prefix name) in
+  List.find_map_exn
+    ~f:(function ({ loc=_; txt}, Parsetree.PStr [{pstr_loc; _}]) when has_name txt -> Some pstr_loc
+               | _ -> None
+      ) attribs
+
+(** Test that all constructor names are distict after mapping
+    This function will raise an error is a conflict is found
+*)
+let test_constructor_mapping t constrs =
+  let base, mapped = List.partition_map ~f:(fun constr ->
+      match Attribute.get t.constr_attrib constr with
+      | Some name when String.equal constr.pcd_name.txt name -> `Fst name
+      | Some name -> `Snd (name, constr.pcd_attributes)
+      | None -> `Fst constr.pcd_name.txt
+    ) constrs
+  in
+  let _: string list = List.fold_left ~init:base
+      ~f:(fun acc -> function
+          | (name, attrs) when List.mem ~equal:String.equal acc name ->
+            let loc = location_of_attrib t "key" attrs in (* Should use the name of the attribute *)
+            raise_errorf ~loc "Mapped constructor name already in use: %s" name
+          | (name, _) -> name :: acc
+        ) mapped
+  in
+  ()
+
+let test_row_mapping t rows =
+  let base, mapped = List.partition_map ~f:(fun row ->
+      let (row_name, attrs) = match row with
+        | Rinherit _ -> raise_errorf "Inherited polymorphic variant types not supported"
+        | Rtag (name, attrs, _, _) -> name, attrs
+      in
+      match Attribute.get t.row_attrib row with
+      | Some name when String.equal row_name name -> `Fst name
+      | Some name -> `Snd (name, attrs)
+      | None -> `Fst row_name
+    ) rows
+  in
+  let _: string list = List.fold_left ~init:base
+      ~f:(fun acc -> function
+          | (name, attrs) when List.mem ~equal:String.equal acc name ->
+            let loc = location_of_attrib t "key" attrs in (* Should use the name of the attribute *)
+            raise_errorf ~loc "Mapped constructor name already in use: %s" name
+          | (name, _) -> name :: acc
+        ) mapped
+  in
+  ()
+
 
 (** Serialization expression for a given type *)
 let rec serialize_expr_of_type_descr t ~loc = function
@@ -120,8 +182,47 @@ let rec serialize_expr_of_type_descr t ~loc = function
         (pexp_apply ~loc (driver_func t ~loc "of_tuple") [Nolabel, arg_list])
     end
   | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
-  | Ptyp_variant _   -> raise_errorf ~loc "Variant type descr not supported"
+  | Ptyp_variant (rows, _closed, None) ->
+    test_row_mapping t rows;
+    let mk_pattern core_types =
+      List.mapi ~f:(fun i (core_type:core_type) ->
+          ppat_var
+            ~loc:core_type.ptyp_loc
+            { loc = core_type.ptyp_loc; txt = sprintf "c%d" i }
+        ) core_types
+      |> ppat_tuple_opt ~loc
+    in
+    let mk_case = function
+      | Rinherit _ ->
+        raise_errorf ~loc "Inherited types not supported"
+      | Rtag (name, _attributes, _bool, core_types) as row ->
+        let lhs =
+          ppat_variant ~loc name (mk_pattern core_types)
+        in
+        let args =
+          List.mapi ~f:(
+            fun i core_type ->
+              pexp_apply ~loc
+                (serialize_expr_of_type_descr t ~loc core_type.ptyp_desc)
+                [Nolabel, pexp_ident ~loc { loc; txt=Lident (sprintf "c%d" i) }]
+          ) core_types
+        in
+        let rhs =
+          let constr_name = match Attribute.get t.row_attrib row with
+            | Some key -> key
+            | None -> name
+          in
+          [%expr ( [%e estring ~loc constr_name ],
+                   [%e args |> list_expr ~loc] )]
+        in
+        case ~lhs ~guard:None ~rhs
+    in
+    [%expr
+      [%e driver_func t ~loc "of_variant" ]
+        [%e pexp_function ~loc (List.map ~f:mk_case rows) ]
+    ]
   | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( type_param_name ~prefix:"to" core_type) }
+  | Ptyp_variant _
   | Ptyp_any
   | Ptyp_arrow _
   | Ptyp_object _
@@ -144,7 +245,6 @@ let rec deserialize_expr_of_type_descr t ~loc = function
 
   | Ptyp_constr (ident, cts) ->
     (* Construct all arguments to of ... *)
-    (* It should be an apply, called recursivly *)
     let args =
       List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
           deserialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
@@ -173,8 +273,57 @@ let rec deserialize_expr_of_type_descr t ~loc = function
         [%e driver_func t ~loc "to_tuple"] of_funcs constructor
       ]
     end
-  | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
-  | Ptyp_variant _   -> raise_errorf ~loc "Variant type descr not supported"
+  | Ptyp_poly _      ->
+    raise_errorf ~loc "Polymorphic variants not supported"
+  | Ptyp_variant (_rows, _closed, Some _) ->
+    raise_errorf ~loc "Variant with some"
+
+  | Ptyp_variant (rows, _closed, None) ->
+    test_row_mapping t rows;
+    let mk_case = function
+      | Rinherit _ ->
+        raise_errorf ~loc "Inherited types not supported"
+      | Rtag (name, _attributes, _bool, core_types) as row ->
+        (* val: to_variant: ((string * t list) -> 'a) -> t -> 'a *)
+        let lhs =
+          let constr_name = match Attribute.get t.row_attrib row with
+            | Some key -> key
+            | None -> name
+          in
+          let pcstr s pat = ppat_construct ~loc { loc; txt=Lident s } pat in
+          core_types
+          |> List.rev_mapi ~f:(fun i _ -> sprintf "c%d" i)
+          |> List.map ~f:(fun s -> { loc; txt=s })
+          |> List.fold_left ~init:(pcstr "[]" None)
+            ~f:(fun acc var ->
+                pcstr "::" (Some (ppat_tuple ~loc
+                                    [ppat_var ~loc var; acc]))
+              )
+          |> fun p -> ppat_tuple ~loc [ ppat_constant ~loc (Pconst_string (constr_name, None)); p ]
+        in
+        let rhs =
+          (* A function c1 c2 c3 -> A (to_t c1, to_t c2, to_t c3) *)
+          let of_p var core_type =
+            let e = deserialize_expr_of_type_descr t ~loc core_type in
+            pexp_apply ~loc e [Nolabel, pexp_ident ~loc { loc; txt=Lident var }]
+          in
+
+          let args = match core_types with
+            | [] -> None
+            | cts -> List.mapi ~f:(fun i ct -> of_p (sprintf "c%d" i) ct.ptyp_desc ) cts
+                    |> pexp_tuple ~loc
+                    |> Option.some
+          in
+          pexp_variant ~loc name args
+        in
+        case ~lhs ~guard:None ~rhs
+    in
+    [%expr
+      [%e driver_func t ~loc "to_variant" ]
+        [%e pexp_function ~loc (List.map ~f:mk_case rows |> fun ps -> ps @ [default_case ~loc]) ]
+    ]
+
+
   | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( type_param_name ~prefix:"of" core_type) }
   | Ptyp_any
   | Ptyp_arrow _
@@ -183,17 +332,6 @@ let rec deserialize_expr_of_type_descr t ~loc = function
   | Ptyp_alias _
   | Ptyp_package _
   | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
-
-(** Test that all label names are distict after mapping
-    This function will raise an error is a conflict is found
-*)
-let location_of_attrib t name (attribs:attributes) =
-  let prefix = module_name t.driver in
-  let has_name s = String.equal s name || String.equal s (sprintf "%s.%s" prefix name) in
-  List.find_map_exn
-    ~f:(function ({ loc=_; txt}, Parsetree.PStr [{pstr_loc; _}]) when has_name txt -> Some pstr_loc
-               | _ -> None
-      ) attribs
 
 let test_label_mapping t labels =
   let base, mapped = List.partition_map ~f:(fun label ->
@@ -208,27 +346,6 @@ let test_label_mapping t labels =
           | (name, attribs) when List.mem ~equal:String.equal acc name ->
             let loc = location_of_attrib t "key" attribs in (* Should use the name of the attribute *)
             raise_errorf ~loc "Mapped label name in use: %s" name
-          | (name, _) -> name :: acc
-        ) mapped
-  in
-  ()
-
-(** Test that all constructor names are distict after mapping
-    This function will raise an error is a conflict is found
-*)
-let test_constructor_mapping t constrs =
-  let base, mapped = List.partition_map ~f:(fun constr ->
-      match Attribute.get t.constr_attrib constr with
-      | Some name when String.equal constr.pcd_name.txt name -> `Fst name
-      | Some name -> `Snd (name, constr.pcd_attributes)
-      | None -> `Fst constr.pcd_name.txt
-    ) constrs
-  in
-  let _: string list = List.fold_left ~init:base
-      ~f:(fun acc -> function
-          | (name, attrs) when List.mem ~equal:String.equal acc name ->
-            let loc = location_of_attrib t "key" attrs in (* Should use the name of the attribute *)
-            raise_errorf ~loc "Mapped constructor name already in use: %s" name
           | (name, _) -> name :: acc
         ) mapped
   in
@@ -317,11 +434,6 @@ let serialize_expr_of_tdecl t ~loc tdecl =
       body
 
   | Ptype_open -> raise_errorf ~loc "open types not supported"
-
-let default_case ~loc =
-  case ~lhs:[%pat? (s, _)]
-    ~guard:None
-    ~rhs:[%expr failwith ("Unknown variant or arity error: " ^ s)]
 
 let deserialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
@@ -517,7 +629,7 @@ let mk_str_type_decl =
     (* Create T and pass on to f *)
     let driver = ident_of_module ~loc driver in
     let attrib_name name = sprintf "%s.%s" (module_name driver) name in
-    let label_attrib, constr_attrib =
+    let label_attrib, constr_attrib, row_attrib =
       let create () =
         let open Attribute in
         declare (attrib_name "key")
@@ -525,6 +637,9 @@ let mk_str_type_decl =
           Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
         declare (attrib_name "key")
           Context.constructor_declaration
+          Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
+        declare (attrib_name "key")
+          Context.rtag
           Ast_pattern.(single_expr_payload (estring __)) (fun x -> x)
       in
       Hashtbl.find_or_add attrib_table driver ~default:create
@@ -534,6 +649,7 @@ let mk_str_type_decl =
       flags;
       label_attrib;
       constr_attrib;
+      row_attrib;
     } in
     f t recflag ~loc tydecls
 

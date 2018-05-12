@@ -1,8 +1,8 @@
 -*- mode: fundamental -*-
 [ ] Handle anonymous records
-[ ] Handle polymorphic variants
 
 3.0.0
+[x] Handle polymorphic variants
 [x] Handle parameterised types
 [x] Improve deserialization error messages
 [x] Make `None` and `Some None` map to disinct values
