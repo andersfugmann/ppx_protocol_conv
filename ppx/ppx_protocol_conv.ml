@@ -1,3 +1,4 @@
+open Base
 open !Ppx_type_conv.Std
 open Ppx_core
 open Ast_builder.Default
@@ -15,6 +16,7 @@ type t = {
 }
 
 (* In variants, dont encode as tuple.... *)
+let (^^) = Caml.(^^)
 let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^ fmt)
 
 let string_of_ident_loc { loc; txt } =
@@ -41,10 +43,10 @@ let driver_func t ~loc name =
 (** Concatinate the list of expressions into a single expression using
    list concatination *)
 let list_expr ~loc l =
-  List.fold_left ~init:[%expr []] ~f:(fun tl hd -> [%expr [%e hd] :: [%e tl]]) (List.rev l)
+  List.fold_right ~init:[%expr []] ~f:(fun hd tl -> [%expr [%e hd] :: [%e tl]]) l
 
 let spec_expr ~loc l =
-  List.fold_left ~init:[%expr Nil] ~f:(fun tl (e1, e2) -> [%expr ([%e e1], [%e e2]) ^:: [%e tl]]) (List.rev l)
+  List.fold_right ~init:[%expr Nil] ~f:(fun (e1, e2) tl -> [%expr ([%e e1], [%e e2]) ^:: [%e tl]]) l
 
 let ident_of_module ~loc = function
   | Some { pmod_desc = Pmod_ident { txt; _ }; _ } -> txt
