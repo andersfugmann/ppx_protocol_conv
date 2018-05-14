@@ -1,5 +1,6 @@
-module X = struct
-  type v = [ `A | `B of int | `C of int * int | `D of (int * int) ]
-  and t = v list
-  [@@deriving protocol ~driver:(module Driver)]
-end
+class type restricted_point_type =
+  object
+    method get_x : int
+    method bump : unit
+  end
+[@@deriving protocol ~driver:(module Driver)]
