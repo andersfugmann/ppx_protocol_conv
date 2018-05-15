@@ -166,7 +166,6 @@ See the drivers directory for examples on how to implemented new drivers.
 Submissions of new drivers are welcome.
 
 ## Not supported
-* Inline records
 * Generalised algebraic datatypes
 * Extensible types
 * Extensible polymorphic variants

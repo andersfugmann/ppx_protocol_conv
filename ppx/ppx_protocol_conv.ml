@@ -1,8 +1,8 @@
-open Base
 open !Ppx_type_conv.Std
 open Ppx_core
 open Ast_builder.Default
 open !Printf
+open Base
 
 type t = {
   driver: longident;
@@ -37,7 +37,7 @@ let ident_of_string_loc { loc; txt} = { loc; txt=Lident txt }
 let driver_func t ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
   match t.flags with
-  | None ->[%expr (fun t -> [%e func] t)]
+  | None -> [%expr (fun t -> [%e func] t)]
   | Some flag -> [%expr (fun t -> [%e func] ~flags:[%e flag] t)]
 
 (** Concatinate the list of expressions into a single expression using
@@ -353,6 +353,35 @@ let test_label_mapping t labels =
   in
   ()
 
+
+let serialize_record t ~loc labels =
+  test_label_mapping t labels;
+  let field_names = List.map ~f:(fun label -> match Attribute.get t.label_attrib label with
+      | None -> estring ~loc:label.pld_loc label.pld_name.txt
+      | Some name -> estring ~loc:label.pld_loc name
+    ) labels
+  in
+  let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
+  let to_p =
+    List.map ~f:(fun ld -> serialize_expr_of_type_descr t ~loc ld.pld_type.ptyp_desc) labels
+  in
+  let arg_list =
+    List.map3_exn ~f:(fun name id of_t ->
+        [%expr [%e name],
+               [%e pexp_apply ~loc of_t
+                   [ Nolabel, pexp_ident ~loc { loc; txt=Lident id.txt }]
+               ]
+        ]
+      ) field_names field_ids to_p
+    |> list_expr ~loc
+  in
+  ppat_record ~loc
+     (List.map ~f:(fun id ->
+          { loc; txt=Lident id.txt }, ppat_var ~loc id) field_ids
+     ) Closed,
+  pexp_apply ~loc (driver_func t ~loc "of_record") [Nolabel, arg_list]
+
+
 let serialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
   | Ptype_abstract -> begin
@@ -372,10 +401,22 @@ let serialize_expr_of_tdecl t ~loc tdecl =
       |> ppat_tuple_opt ~loc
     in
     let mk_case = function
-      | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
-        (* Should create a constructor that converts this into a standard record.
-           But we dont have a name, and cannot use it outside the constr - so its hard... *)
-        raise_errorf ~loc:pcd_loc "Inline records not supported"
+      | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
+        let pattern, body = serialize_record t ~loc labels in
+        let lhs = ppat_construct
+            ~loc
+            (ident_of_string_loc pcd_name)
+            (Some pattern)
+        in
+        let rhs =
+          let constr_name = match Attribute.get t.constr_attrib constr with
+            | Some key -> key
+            | None -> pcd_name.txt
+          in
+          [%expr ( [%e estring ~loc constr_name ], [ [%e body] ]) ]
+        in
+        case ~lhs ~guard:None ~rhs
+
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
         let lhs =
           ppat_construct
@@ -407,35 +448,37 @@ let serialize_expr_of_tdecl t ~loc tdecl =
         [%e pexp_function ~loc (List.map ~f:mk_case constrs) ]
     ]
   | Ptype_record labels ->
-    test_label_mapping t labels;
-    let field_names = List.map ~f:(fun label -> match Attribute.get t.label_attrib label with
-        | None -> estring ~loc:label.pld_loc label.pld_name.txt
-        | Some name -> estring ~loc:label.pld_loc name
-      ) labels
-    in
-    let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
-    let to_p =
-      List.map ~f:(fun ld -> serialize_expr_of_type_descr t ~loc ld.pld_type.ptyp_desc) labels
-    in
-    let arg_list =
-      List.map3_exn ~f:(fun name id of_t ->
-          [%expr [%e name],
-                 [%e pexp_apply ~loc of_t
-                     [ Nolabel, pexp_ident ~loc { loc; txt=Lident id.txt }]
-                 ]
-          ]
-        ) field_names field_ids to_p
-      |> list_expr ~loc
-    in
-    let body = pexp_apply ~loc (driver_func t ~loc "of_record") [Nolabel, arg_list] in
-    pexp_fun ~loc Nolabel None
-      (ppat_record ~loc
-         (List.map ~f:(fun id ->
-              { loc; txt=Lident id.txt }, ppat_var ~loc id) field_ids)
-         Closed)
-      body
-
+    let pattern, body = serialize_record t ~loc labels in
+    pexp_fun ~loc Nolabel None pattern body
   | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
+
+
+let deserialize_record t ~loc labels =
+  test_label_mapping t labels;
+  let field_names = List.map ~f:(fun label -> match Attribute.get t.label_attrib label with
+      | None -> estring ~loc:label.pld_loc label.pld_name.txt
+      | Some name -> estring ~loc:label.pld_loc name
+    ) labels
+  in
+  let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
+
+  let constructor f =
+    let record =
+      pexp_record ~loc
+        (List.map ~f:(fun id -> let id = { loc; txt=Lident id.txt } in id, pexp_ident ~loc id) field_ids)
+        None
+      |> f
+    in
+    List.fold_right ~init:record ~f:(fun field expr ->
+        pexp_fun ~loc Nolabel None (ppat_var ~loc field) expr
+      ) field_ids
+  in
+  let of_p = List.map ~f:(
+      fun ld -> deserialize_expr_of_type_descr t ~loc ld.pld_type.ptyp_desc
+    ) labels
+  in
+  let of_funcs = spec_expr ~loc (List.zip_exn field_names of_p) in
+  (constructor, of_funcs)
 
 let deserialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
@@ -448,8 +491,27 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
   | Ptype_variant constrs ->
     test_constructor_mapping t constrs;
     let mk_case = function
-      | { pcd_args = Pcstr_record _; pcd_loc; _ } ->
-        raise_errorf ~loc:pcd_loc "Inline records not supported"
+      | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
+        let lhs =
+          let constr_name = match Attribute.get t.constr_attrib constr with
+            | Some key -> key
+            | None -> pcd_name.txt
+          in
+          let name = ppat_constant ~loc (Pconst_string (constr_name, None)) in
+          [%pat? ([%p name], [x])]
+        in
+        let rhs =
+          let constructor, of_funcs = deserialize_record t ~loc labels in
+          let wrap expr = pexp_construct (ident_of_string_loc pcd_name) ~loc (Some expr) in
+          [%expr
+            let open Protocol_conv.Runtime in
+            let of_funcs = [%e of_funcs ] in
+            let constructor = [%e constructor wrap ] in
+            [%e driver_func t ~loc "to_record"] of_funcs constructor x
+          ]
+        in
+        case ~lhs ~guard:None ~rhs
+
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
         let lhs =
           let constr_name = match Attribute.get t.constr_attrib constr with
@@ -489,33 +551,11 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
         [%e pexp_function ~loc (List.map ~f:mk_case constrs |> fun ps -> ps @ [default_case ~loc]) ]
     ]
   | Ptype_record labels ->
-    test_label_mapping t labels;
-    let field_names = List.map ~f:(fun label -> match Attribute.get t.label_attrib label with
-        | None -> estring ~loc:label.pld_loc label.pld_name.txt
-        | Some name -> estring ~loc:label.pld_loc name
-      ) labels
-    in
-    let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
-
-    (* From needs constructor: fun a -> { a } *)
-    let constructor =
-      let record = pexp_record ~loc
-          (List.map ~f:(fun id -> let id = { loc; txt=Lident id.txt } in id, pexp_ident ~loc id) field_ids)
-          None
-      in
-      List.fold_right ~init:record ~f:(fun field expr ->
-          pexp_fun ~loc Nolabel None (ppat_var ~loc field) expr
-        ) field_ids
-    in
-    let of_p = List.map ~f:(
-        fun ld -> deserialize_expr_of_type_descr t ~loc ld.pld_type.ptyp_desc
-      ) labels
-    in
-
+    let constructor, of_funcs = deserialize_record t ~loc labels in
     [%expr
       let open Protocol_conv.Runtime in
-      let of_funcs = [%e spec_expr ~loc (List.zip_exn field_names of_p)] in
-      let constructor = [%e constructor] in
+      let of_funcs = [%e of_funcs ] in
+      let constructor = [%e constructor Fn.id ] in
       [%e driver_func t ~loc "to_record"] of_funcs constructor
     ]
 

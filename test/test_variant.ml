@@ -51,6 +51,25 @@ module Make(Driver: Testable.Driver) = struct
 
     let t = { a= "a"; b = V0; c = "c" }
   end
+
+  module InlineRecord : M.Testable = struct
+    let name = "Inline Record"
+    type t = A of { a : string; }
+           | B of int
+           | C of { x : int; y: int; }
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = A { a = "a" }
+  end
+
+
+  module InlineRecord2 : M.Testable = struct
+    let name = "Inline Record"
+    type t = A of { a : string [@key "A"]; b: t} [@key "aa"]
+           | B of int
+           | C of { x : int [@key "X"]; y: int [@key "Y"]; }
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = A { a = "a"; b = A { a = "a"; b = B 5 } }
+  end
 (*
 module Poly = struct
   type t = [ `A of int ]
@@ -77,5 +96,7 @@ end
       M.test (module Tree);
       M.test (module MutualRecursion);
       M.test (module InsideRec);
+      M.test (module InlineRecord);
+      M.test (module InlineRecord2);
     ]
 end

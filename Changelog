@@ -1,10 +1,10 @@
 -*- mode: fundamental -*-
-[ ] Support anonymous records
 [ ] Support exceptions
 [ ] Support extensible polymorphic variants
 [ ] Add jsonm/ezjson driver
 
 3.0.0
+[x] Support inline records
 [x] Improve error messages on usupported type constructs
 [x] Support polymorphic variants
 [x] Support parameterised types
