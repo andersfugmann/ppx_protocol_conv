@@ -1,4 +1,4 @@
-Ppx for generating serialisation and de-serialisation of ocaml types.
+Ppx for generating serialisation and de-serialisation functions of ocaml types.
 
 Ppx_protocol_conv generates code to serialise and de-serialise
 types. The ppx itself does not contain any protocol specific code,
