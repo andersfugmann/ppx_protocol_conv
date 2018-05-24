@@ -9,7 +9,7 @@ build-test: ["jbuilder" "runtest" "-p" name "-j" jobs]
 version: "3.0.0"
 depends: [
   "ppx_protocol_conv" { >= "3.0.0" }
-  "jsonm"
+  "ezjsonm"
   "jbuilder" { build }
   "ppx_sexp_conv" { test }
   "ounit" { test }
