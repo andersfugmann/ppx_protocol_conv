@@ -1,21 +1,21 @@
 .PHONY: build clean install uninstall reinstall test update-version release doc
 build:
-	jbuilder build @install --dev
+	dune build @install
 
 clean:
-	jbuilder clean
+	dune clean
 
 install:
-	jbuilder build @install
-	jbuilder install
+	dune build @install
+	dune install
 
 uninstall:
-	jbuilder uninstall
+	dune uninstall
 
 reinstall: uninstall install
 
 test: build
-	jbuilder runtest --dev
+	dune runtest
 
 update-version: VERSION=$(shell cat Changelog | grep -E '^[0-9]' | head -n 1)
 update-version:
@@ -28,7 +28,7 @@ release:
 	@./release.sh $(VERSION)
 
 doc:
-	jbuilder build @doc
+	dune build @doc
 
 gh-pages: doc
 	git clone `git config --get remote.origin.url` .gh-pages --reference .

@@ -1,0 +1,5 @@
+(library
+ (name global)
+ (public_name ppx_protocol_conv_yaml.lib)
+ (libraries yaml)
+)
