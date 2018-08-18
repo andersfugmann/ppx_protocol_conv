@@ -2,7 +2,8 @@ open Base
 module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   type t = Ezjsonm.value
 
-  let to_string_hum t = Ezjsonm.to_sexp t |> Base.Sexp.to_string_hum
+  let to_string_hum t =
+    Ezjsonm.wrap t |> Ezjsonm.to_string ~minify:false
 
   let of_list = Ezjsonm.list Fn.id
   let to_list = Ezjsonm.get_list Fn.id
