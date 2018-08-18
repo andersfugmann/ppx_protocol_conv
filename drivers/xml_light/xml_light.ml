@@ -144,6 +144,7 @@ let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
 
 let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
 let to_value type_name of_string = function
+  | Xml.Element(_, _, []) -> of_string ""
   | Xml.Element(_, _, [PCData s]) -> of_string s
   | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in in node: %s for %s" name type_name
   | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here when deserializing %s" type_name
