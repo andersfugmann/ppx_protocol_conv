@@ -1,7 +1,7 @@
 module Driver = Protocol_conv_jsonm.Jsonm
 module TestDriver = struct
   type t = Driver.t
-  type 'a flags = 'a (* Why flags *)
+  type 'a flags = 'a
   exception Protocol_error of string * t
   let to_variant x = Driver.to_variant x
   let of_variant x = Driver.of_variant x
