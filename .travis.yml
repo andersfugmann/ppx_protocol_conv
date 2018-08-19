@@ -13,12 +13,12 @@ env:
   - PACKAGE="ppx_protocol_conv" OCAML_VERSION=4.04
   - PACKAGE="ppx_protocol_conv" OCAML_VERSION=4.05
   - PACKAGE="ppx_protocol_conv" OCAML_VERSION=4.06
-  - PACKAGE="ppx_protocol_conv_json" OCAML_VERSION=4.06
-  - PACKAGE="ppx_protocol_conv_msgpack" OCAML_VERSION=4.06
-  - PACKAGE="ppx_protocol_conv_xml_light" OCAML_VERSION=4.06
-  - PACKAGE="ppx_protocol_conv_yaml" OCAML_VERSION=4.06
-  - PACKAGE="ppx_protocol_conv_jsonm" OCAML_VERSION=4.06
-  - OCAML_VERSION=4.07
+
+  - PACKAGE="ppx_protocol_conv_json" OCAML_VERSION=4.07
+  - PACKAGE="ppx_protocol_conv_msgpack" OCAML_VERSION=4.07
+  - PACKAGE="ppx_protocol_conv_xml_light" OCAML_VERSION=4.07
+  - PACKAGE="ppx_protocol_conv_yaml" OCAML_VERSION=4.07
+  - PACKAGE="ppx_protocol_conv_jsonm" OCAML_VERSION=4.07
 
 os:
   - linux
