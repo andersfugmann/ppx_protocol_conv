@@ -41,7 +41,7 @@ let driver_func t ~loc name =
   | Some flag -> [%expr (fun t -> [%e func] ~flags:[%e flag] t)]
 
 (** Concatinate the list of expressions into a single expression using
-   list concatination *)
+   list concatenation *)
 let list_expr ~loc l =
   List.fold_right ~init:[%expr []] ~f:(fun hd tl -> [%expr [%e hd] :: [%e tl]]) l
 
