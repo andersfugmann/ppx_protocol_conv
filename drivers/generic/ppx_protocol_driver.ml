@@ -1,5 +1,7 @@
-open Base
 open Protocol_conv
+open StdLabels
+
+module StringMap = Map.Make(String)
 
 module type Driver = sig
   type t
@@ -36,6 +38,14 @@ module type Driver = sig
   val is_null: t -> bool
 end
 
+let string_map ~f str =
+  let cs = ref [] in
+  String.iter ~f:(fun c -> cs := c :: !cs) str;
+  let cs = f (List.rev !cs) in
+  let bytes = Bytes.create (List.length cs) in
+  List.iteri ~f:(fun i c -> bytes.[i] <- c) cs;
+  Bytes.to_string bytes
+
 (* Convert a_bcd_e_ to aBcdE *)
 let mangle: string -> string = fun s ->
   let rec inner : char list -> char list = function
@@ -44,7 +54,7 @@ let mangle: string -> string = fun s ->
     | c :: cs -> c :: (inner cs)
     | [] -> []
   in
-  String.to_list s |> inner |> String.of_char_list
+  string_map ~f:inner s
 
 module Make(Driver: Driver) = struct
   type t = Driver.t
@@ -90,7 +100,7 @@ module Make(Driver: Driver) = struct
         let field_name = field_func field in
         let cont = inner xs in
         fun constr t ->
-          let v = Map.find_exn t field_name |> to_value_func in
+          let v = StringMap.find field_name t |> to_value_func in
           cont (constr v) t
       | Nil -> fun a _t -> a
     in
@@ -98,7 +108,9 @@ module Make(Driver: Driver) = struct
     fun t ->
       let values =
         Driver.to_alist t
-        |> Map.Using_comparator.of_alist_exn ~comparator:String.comparator
+        |> List.fold_left
+          ~f:(fun m (k, v) -> StringMap.add k v m)
+          ~init:StringMap.empty
       in
       f values
 
@@ -117,8 +129,8 @@ module Make(Driver: Driver) = struct
       | Cons ((_field, to_value_func), xs) ->
         fun constructor t ->
           let l = Driver.to_list t in
-          let v = to_value_func (List.hd_exn l) in
-          to_tuple ?flags xs (constructor v) (Driver.of_list (List.tl_exn l))
+          let v = to_value_func (List.hd l) in
+          to_tuple ?flags xs (constructor v) (Driver.of_list (List.tl l))
       | Nil -> fun a _t -> a
 
   let of_tuple ?flags:_ t = Driver.of_list (List.map ~f:snd t)
@@ -136,7 +148,7 @@ module Make(Driver: Driver) = struct
   let to_option: ?flags:flag -> (t -> 'a) -> t -> 'a option = fun ?flags:_ to_value_fun -> function
     | t when Driver.is_null t -> None
     | t ->
-      let t = Option.value ~default:t (get_option t) in
+      let t = match (get_option t) with Some t -> t | None -> t in
       Some (to_value_fun t)
 
 
@@ -146,7 +158,7 @@ module Make(Driver: Driver) = struct
       let mk_option t = Driver.of_alist [ ("__option", t) ] in
       match of_value_fun v with
       | t when Driver.is_null t -> mk_option t
-      | t when Option.is_some (get_option t) ->
+      | t when (get_option t) <> None ->
         mk_option t
       | t -> t
 

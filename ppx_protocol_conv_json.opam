@@ -12,10 +12,10 @@ build-test: [["dune" "runtest" "-p" name "-j" jobs]]
 version: "3.0.0"
 depends: [
   "ppx_protocol_conv" { >= "3.0.0" }
-  "base"
   "yojson"
-  "dune" { build }
-  "ppx_sexp_conv" { test }
-  "ounit" { test }
+  "dune" {build}
+  "ppx_sexp_conv" {test}
+  "sexplib" {test}
+  "ounit" {test}
 ]
 available: [ ocaml-version >= "4.04" ]
