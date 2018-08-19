@@ -18,7 +18,7 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   let of_int i = `Float (float_of_int i)
   let to_int = function
     | `Float f -> begin match int_of_float f with
-        | n when Float.abs (float_of_int n -. f ) < 0.000001 -> n
+        | n when abs_float (float_of_int n -. f ) < 0.000001 -> n
         | _ -> failwith "Int expected"
       end
     | _ -> failwith "Int expected"
