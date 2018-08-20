@@ -1,0 +1,10 @@
+(executable
+ (name      unittest)
+ (libraries test ppx_protocol_conv_yaml)
+)
+
+(alias
+ (name    runtest)
+ (package ppx_protocol_conv_yaml)
+ (action  (run %{exe:unittest.exe}))
+)

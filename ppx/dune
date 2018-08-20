@@ -1,0 +1,8 @@
+(library
+ (name ppx_protocol_conv)
+ (public_name ppx_protocol_conv)
+ (kind ppx_deriver)
+ (libraries base ppxlib ppx_core ppx_type_conv ppx_driver)
+ (preprocess (pps ppxlib.metaquot))
+ (synopsis "ppx to derive (de)serialisers of a type")
+)

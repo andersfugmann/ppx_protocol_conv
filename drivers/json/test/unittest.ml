@@ -31,5 +31,6 @@ module JsonTestDriver = struct
   let of_unit x = Json.of_unit x
 end
 
-module Unittest = Test.Unittest.Make (JsonTestDriver)
+(* Why cant this do it all??? *)
+module Unittest = Test.Unittest.Make(JsonTestDriver)
 let () = Unittest.run ~name:"json"

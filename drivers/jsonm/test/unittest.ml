@@ -1,4 +1,4 @@
-module Driver = Protocol_conv_yaml.Yaml
+module Driver = Protocol_conv_jsonm.Jsonm
 module TestDriver = struct
   type t = Driver.t
   type 'a flags = 'a
@@ -32,4 +32,4 @@ module TestDriver = struct
 end
 
 module Unittest = Test.Unittest.Make (TestDriver)
-let () = Unittest.run ~name:"yaml"
+let () = Unittest.run ~name:"json"
