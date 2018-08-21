@@ -146,7 +146,7 @@ let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
 let to_value type_name of_string = function
   | Xml.Element(_, _, []) -> of_string ""
   | Xml.Element(_, _, [PCData s]) -> of_string s
-  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in in node: %s for %s" name type_name
+  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in node: %s for %s" name type_name
   | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here when deserializing %s" type_name
 
 let to_bool = to_value "bool" Bool.of_string
