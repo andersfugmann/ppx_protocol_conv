@@ -21,9 +21,9 @@ let raise_errorf t fmt =
    Alternativly, we need to wrap records into yet another level *)
 let rec element_to_map m = function
   | (Xml.Element(name, _, _) as x) :: xs ->
-    let m = StringMap.update name (function None -> Some [x]
-                                          | Some xs -> Some (x :: xs))
-        m
+    let m =
+      let ks = try StringMap.find name m with Not_found -> [] in
+      StringMap.add name (x :: ks) m
     in
     element_to_map m xs
   | _ :: xs -> element_to_map m xs
@@ -53,11 +53,7 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
     | Cons ((field, to_value_func), xs) ->
       let cont = inner xs in
       fun constr t ->
-        let values =
-          StringMap.find_opt field t
-          |> (function Some xs -> xs | None -> [])
-          |> List.rev
-        in
+        let values = try StringMap.find field t |> List.rev with Not_found -> [] in
         let arg = match values with
           | [ Xml.Element (name, _, xs) ] -> Xml.Element (name, ["record", "unwrapped"], xs)
           | [ Xml.PCData _ as d ] -> d
@@ -165,8 +161,8 @@ let of_int32 = of_value Int32.to_string
 let to_int64 = to_value "int64" Int64.of_string
 let of_int64 = of_value Int64.to_string
 
-let to_float = to_value "float" Float.of_string
-let of_float = of_value Float.to_string
+let to_float = to_value "float" float_of_string
+let of_float = of_value string_of_float
 
 let to_string = to_value "string" (fun x -> x)
 let of_string = of_value (fun x -> x)
