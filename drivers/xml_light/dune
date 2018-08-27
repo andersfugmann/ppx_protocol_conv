@@ -2,6 +2,6 @@
  (name protocol_conv_xml)
  (public_name ppx_protocol_conv_xml_light)
  (flags :standard -w -3)
- (libraries ppx_protocol_conv.runtime xml-light base)
+ (libraries ppx_protocol_conv.runtime xml-light)
  (synopsis "xml-light (de)serialization driver for ppx_protocol_conv")
 )

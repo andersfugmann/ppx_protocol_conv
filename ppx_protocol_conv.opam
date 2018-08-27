@@ -16,7 +16,7 @@ depends: [
   "ppx_driver"
   "ppx_core"
   "dune" {build}
-  "ppxlib" {build}
+  "ppxlib"
   "ppx_sexp_conv" {test}
   "sexplib" {test}
   "ounit" {test}

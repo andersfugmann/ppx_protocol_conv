@@ -1,26 +1,30 @@
 (* Xml driver for ppx_protocol_conv *)
-open Base
+open StdLabels
 open Protocol_conv.Runtime
 type t = Xml.xml
 type 'a flags = 'a no_flags
 
-let _log fmt = Caml.Printf.eprintf (fmt ^^ "\n%!")
+let _log fmt = Printf.eprintf (fmt ^^ "\n%!")
 
+module StringMap = Map.Make(String)
 
 exception Protocol_error of string * t
 (* Register exception printer *)
-let () = Caml.Printexc.register_printer
+let () = Printexc.register_printer
     (function Protocol_error (s, t) -> Some (s ^ ": " ^ (Xml.to_string t))
             | _ -> None)
 
 let raise_errorf t fmt =
-  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+  Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
 (* We are actually able to determine if we should inline by looking at the node name.
    Alternativly, we need to wrap records into yet another level *)
 let rec element_to_map m = function
   | (Xml.Element(name, _, _) as x) :: xs ->
-    let m = Map.add_multi m ~key:name ~data:x in
+    let m = StringMap.update name (function None -> Some [x]
+                                          | Some xs -> Some (x :: xs))
+        m
+    in
     element_to_map m xs
   | _ :: xs -> element_to_map m xs
   | [] -> m
@@ -50,8 +54,8 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
       let cont = inner xs in
       fun constr t ->
         let values =
-          Map.find t field
-          |> Option.value ~default:[]
+          StringMap.find_opt field t
+          |> (function Some xs -> xs | None -> [])
           |> List.rev
         in
         let arg = match values with
@@ -67,13 +71,13 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
   let f = inner spec in
   fun constr -> function
     | Xml.Element (_, _, t) ->
-      let m = Map.Using_comparator.empty ~comparator:String.comparator in
+      let m = StringMap.empty in
       f constr (element_to_map m t)
     | e -> raise_errorf e "Not a record superstruture"
 
 (* A : int list -> "a", Element("l" , [], Element list)  *)
 let of_record: (string * t) list -> t = fun assoc ->
-  List.concat_map ~f:(
+  List.map ~f:(
     function
     | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
     | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
@@ -85,7 +89,7 @@ let of_record: (string * t) list -> t = fun assoc ->
           | PCData _ as p -> Xml.Element(field, [], [p])
         ) xs (* why xs here. Or do we need to extend the option one level *)
     | (field, e) -> raise_errorf e "Must be an element: %s" field
-  ) assoc |> element "record"
+  ) assoc |> List.flatten |> element "record"
 
 
 let to_tuple = to_record
@@ -149,11 +153,11 @@ let to_value type_name of_string = function
   | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in node: %s for %s" name type_name
   | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here when deserializing %s" type_name
 
-let to_bool = to_value "bool" Bool.of_string
-let of_bool = of_value Bool.to_string
+let to_bool = to_value "bool" bool_of_string
+let of_bool = of_value string_of_bool
 
-let to_int = to_value "int" Int.of_string
-let of_int = of_value Int.to_string
+let to_int = to_value "int" int_of_string
+let of_int = of_value string_of_int
 
 let to_int32 = to_value "int32" Int32.of_string
 let of_int32 = of_value Int32.to_string
@@ -164,11 +168,11 @@ let of_int64 = of_value Int64.to_string
 let to_float = to_value "float" Float.of_string
 let of_float = of_value Float.to_string
 
-let to_string = to_value "string" String.of_string
-let of_string = of_value String.to_string
+let to_string = to_value "string" (fun x -> x)
+let of_string = of_value (fun x -> x)
 
-let to_unit = to_value "unit" (Unit.of_string)
-let of_unit = of_value Unit.to_string
+let to_unit = to_value "unit" (function "()" -> () | _ -> failwith "expected unit")
+let of_unit = of_value (fun () -> "()")
 
 (*
 let to_unit t = to_tuple Nil () t
