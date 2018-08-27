@@ -1,6 +1,6 @@
 (library
  (name protocol_conv_yaml)
  (public_name ppx_protocol_conv_yaml)
- (libraries ppx_protocol_conv ppx_protocol_conv.runtime ppx_protocol_conv.driver global)
+ (libraries ppx_protocol_conv.runtime ppx_protocol_conv.driver global)
  (synopsis "yaml (de)serialization driver for ppx_protocol_conv")
 )

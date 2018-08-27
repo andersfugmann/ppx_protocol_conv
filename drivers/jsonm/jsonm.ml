@@ -1,12 +1,12 @@
-open Base
+let identity x = x
 module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   type t = Ezjsonm.value
 
   let to_string_hum t =
     Ezjsonm.wrap t |> Ezjsonm.to_string ~minify:false
 
-  let of_list = Ezjsonm.list Fn.id
-  let to_list = Ezjsonm.get_list Fn.id
+  let of_list = Ezjsonm.list identity
+  let to_list = Ezjsonm.get_list identity
   let is_list = function `A _ -> true | _ -> false
 
   let of_alist = Ezjsonm.dict
@@ -38,5 +38,5 @@ end
 
 include Ppx_protocol_driver.Make(Driver)
 
-let of_jsonm = Fn.id
-let to_jsonm = Fn.id
+let of_jsonm = identity
+let to_jsonm = identity

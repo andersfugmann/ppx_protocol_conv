@@ -1,5 +1,5 @@
 (library
  (name      test)
- (libraries oUnit ppx_protocol_conv.runtime sexplib ppx_sexp_conv)
+ (libraries base oUnit ppx_protocol_conv.runtime sexplib)
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv))
 )

@@ -64,12 +64,12 @@ module Make(Driver: Driver) = struct
 
   exception Protocol_error of string * t
   (* Register exception printer *)
-  let () = Caml.Printexc.register_printer (function
+  let () = Printexc.register_printer (function
       | Protocol_error (s, t) -> Some (Printf.sprintf "%s, %s" s (Driver.to_string_hum t))
       | _ -> None)
 
   let raise_errorf t fmt =
-    Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+    Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
   let of_variant ?flags:_ destruct t =
     match destruct t with
