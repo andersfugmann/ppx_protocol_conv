@@ -103,7 +103,7 @@ module Make(Driver: Driver) = struct
           let v = 
             try StringMap.find field_name t |> to_value_func with
             | Not_found -> 
-              raise_errorf orig "Field not found in msgpack data: %s" field_name
+              raise_errorf orig "Field not found: %s" field_name
           in
           cont ~orig (constr v) t
       | Nil -> fun a _t -> a
