@@ -94,14 +94,18 @@ module Make(Driver: Driver) = struct
       | None -> x
       | Some (`Mangle f) -> f x
     in
-    let rec inner: type a b. (t, a, b) Runtime.structure -> a -> 'c -> b =
+    let rec inner: type a b. orig:t -> (t, a, b) Runtime.structure -> a -> 'c -> b = fun ~orig ->
       function
       | Cons ((field, to_value_func), xs) ->
         let field_name = field_func field in
         let cont = inner xs in
         fun constr t ->
-          let v = StringMap.find field_name t |> to_value_func in
-          cont (constr v) t
+          let v = 
+            try StringMap.find field_name t |> to_value_func with
+            | Not_found -> 
+              raise_errorf orig "Field not found in msgpack data: %s" field_name
+          in
+          cont ~orig (constr v) t
       | Nil -> fun a _t -> a
     in
     let f = inner spec constr in
@@ -112,7 +116,7 @@ module Make(Driver: Driver) = struct
           ~f:(fun m (k, v) -> StringMap.add k v m)
           ~init:StringMap.empty
       in
-      f values
+      f ~orig:t values
 
   let of_record: ?flags:flag -> (string * t) list -> t = fun ?flags assoc ->
     let assoc = match flags with
