@@ -21,6 +21,8 @@ module type Driver = sig
   val of_option:  (('a -> t) -> 'a option -> t) flags
   val to_list:    ((t -> 'a) -> t -> 'a list) flags
   val of_list:    (('a -> t) -> 'a list -> t) flags
+  val to_array:    ((t -> 'a) -> t -> 'a array) flags
+  val of_array:    (('a -> t) -> 'a array -> t) flags
   val to_lazy_t:  ((t -> 'a) -> t -> 'a lazy_t) flags
   val of_lazy_t:  (('a -> t) -> 'a lazy_t -> t) flags
   val to_int:     (t -> int) flags

@@ -80,6 +80,12 @@ let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun v ->
   List (List.map ~f:of_value_fun v)
 
+let to_array: (t -> 'a) -> t -> 'a array = fun to_value_fun t ->
+  to_list to_value_fun t |> Array.of_list
+
+let of_array: ('a -> t) -> 'a array -> t = fun of_value_fun v ->
+  of_list of_value_fun (Array.to_list v)
+
 let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun t ->
   Lazy.from_fun (fun () -> to_value_fun t)
 

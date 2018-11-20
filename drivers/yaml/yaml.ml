@@ -10,6 +10,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   let to_list = function `A l -> l | _ -> failwith "List expected"
   let is_list = function `A _ -> true | _ -> false
 
+  let of_array l = `A (Array.to_list l)
+  let to_array = function `A l -> Array.of_list l | _ -> failwith "Array expected"
+
   let of_alist a = `O a
   let to_alist = function `O a -> a
                         | _ -> failwith "Object expected"
