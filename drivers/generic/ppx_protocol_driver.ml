@@ -11,6 +11,9 @@ module type Driver = sig
   val of_list: t list -> t
   val is_list: t -> bool
 
+  val to_array: t -> t array
+  val of_array: t array -> t
+
   val to_alist: t -> (string * t) list
   val of_alist: (string * t) list -> t
   val is_alist: t -> bool
@@ -170,6 +173,12 @@ module Make(Driver: Driver) = struct
     List.map ~f:to_value_fun (Driver.to_list t)
   let of_list: ?flags:flag -> ('a -> t) -> 'a list -> t = fun ?flags:_ of_value_fun v ->
     List.map ~f:of_value_fun v |> Driver.of_list
+
+  let to_array: ?flags:flag -> (t -> 'a) -> t -> 'a array = fun ?flags:_ to_value_fun t ->
+    to_list to_value_fun t |> Array.of_list
+
+  let of_array: ?flags:flag -> ('a -> t) -> 'a array -> t = fun ?flags:_ of_value_fun v ->
+    Array.to_list v |> of_list of_value_fun
 
   let to_lazy_t: ?flags:flag -> (t -> 'a) -> t -> 'a lazy_t = fun ?flags:_ to_value_fun t ->
     Lazy.from_fun (fun () -> to_value_fun t)

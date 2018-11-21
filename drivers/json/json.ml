@@ -9,6 +9,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json = stru
   let to_list = U.to_list
   let is_list = function `List _ -> true | _ -> false
 
+  let of_array l = `List (Array.to_list l)
+  let to_array t = U.to_list t |> Array.of_list
+
   let of_alist a = `Assoc a
   let to_alist = U.to_assoc
   let is_alist = function `Assoc _ -> true | _ -> false

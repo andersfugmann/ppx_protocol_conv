@@ -9,6 +9,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   let to_list = Ezjsonm.get_list identity
   let is_list = function `A _ -> true | _ -> false
 
+  let of_array v = Array.to_list v |> Ezjsonm.list identity
+  let to_array v = Ezjsonm.get_list identity v |> Array.of_list
+
   let of_alist = Ezjsonm.dict
   let to_alist = Ezjsonm.get_dict
   let is_alist = function `O _ -> true | _ -> false

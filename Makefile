@@ -23,9 +23,8 @@ update-version:
 	@sed -i 's/^version: .*/version: "$(VERSION)"/' *.opam
 	@sed -i 's/^\( *\)"ppx_protocol_conv" { >= ".*" }/\1"ppx_protocol_conv" { >= "$(VERSION)" }/' ppx_protocol_conv_*.opam
 
-release: VERSION=$(shell cat Changelog | grep -E '^[0-9]' | head -n 1)
 release:
-	@./release.sh $(VERSION)
+	opam publish
 
 doc:
 	dune build @doc

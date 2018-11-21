@@ -34,6 +34,7 @@ module Make(Driver: Testable.Driver) = struct
       intoption: int option;
       tuple: (int * string * bool);
       vlist: v list;
+      varray: v array;
       record: t1;
     }
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -51,6 +52,7 @@ module Make(Driver: Testable.Driver) = struct
       intoption = Some 100;
       tuple = (5, "protocol", false);
       vlist = [ v; v; v; ];
+      varray = [| v; v; v; |];
       record = { x = 5; y = "string" };
     }
   end
@@ -118,6 +120,16 @@ module Make(Driver: Testable.Driver) = struct
 
   end
 
+  module Array : M.Testable = struct
+    let name = "array"
+    type t = { a: int array }
+    [@@deriving protocol ~driver:(module Driver), sexp]
+
+    let t = { a = [|1; 2; 3|] }
+
+  end
+
+
   module Lists : M.Testable = struct
     let name = "Lists"
 
@@ -154,6 +166,7 @@ module Make(Driver: Testable.Driver) = struct
       M.test (module Record);
       M.test (module List);
       M.test (module Lists);
+      M.test (module Array);
     ]
 
 end
