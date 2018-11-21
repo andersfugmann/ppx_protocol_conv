@@ -126,9 +126,9 @@ let test_row_mapping t rows =
         | Rtag (name, attrs, _, _) -> name, attrs
       in
       match Attribute.get t.row_attrib row with
-      | Some name when String.equal row_name name -> `Fst name
+      | Some name when String.equal row_name.txt name -> `Fst name
       | Some name -> `Snd (name, attrs)
-      | None -> `Fst row_name
+      | None -> `Fst row_name.txt
     ) rows
   in
   let _: string list = List.fold_left ~init:base
@@ -198,7 +198,7 @@ let rec serialize_expr_of_type_descr t ~loc = function
         raise_errorf ~loc "Inherited types not supported"
       | Rtag (name, _attributes, _bool, core_types) as row ->
         let lhs =
-          ppat_variant ~loc name (mk_pattern core_types)
+          ppat_variant ~loc name.txt (mk_pattern core_types)
         in
         let args =
           List.mapi ~f:(
@@ -211,7 +211,7 @@ let rec serialize_expr_of_type_descr t ~loc = function
         let rhs =
           let constr_name = match Attribute.get t.row_attrib row with
             | Some key -> key
-            | None -> name
+            | None -> name.txt
           in
           [%expr ( [%e estring ~loc constr_name ],
                    [%e args |> list_expr ~loc] )]
@@ -289,7 +289,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
         let lhs =
           let constr_name = match Attribute.get t.row_attrib row with
             | Some key -> key
-            | None -> name
+            | None -> name.txt
           in
           let pcstr s pat = ppat_construct ~loc { loc; txt=Lident s } pat in
           core_types
@@ -315,7 +315,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
                     |> pexp_tuple ~loc
                     |> Option.some
           in
-          pexp_variant ~loc name args
+          pexp_variant ~loc name.txt args
         in
         case ~lhs ~guard:None ~rhs
     in
