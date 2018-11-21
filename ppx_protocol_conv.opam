@@ -11,11 +11,11 @@ build: [
 ]
 depends: [
   "ocaml" {>= "4.04"}
-  "base"
+  "base" {< "v0.12"}
   "dune" {build}
   "ppxlib" {>= "0.3.0"}
-  "ppx_sexp_conv" {with-test}
-  "sexplib" {with-test}
+  "ppx_sexp_conv" {with-test & < "v0.12"}
+  "sexplib" {with-test & < "v0.12"}
   "ounit" {with-test}
 ]
 synopsis:
