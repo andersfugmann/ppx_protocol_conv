@@ -1,5 +1,4 @@
-open !Ppx_type_conv.Std
-open Ppx_core
+open Ppxlib
 open Ast_builder.Default
 open !Printf
 open Base
@@ -706,25 +705,25 @@ let mk_str_type_decl =
     f t recflag ~loc tydecls
 
 let () =
-  let driver = Type_conv.Args.(arg "driver" (pexp_pack __)) in
-  let flags = Type_conv.Args.(arg "flags" __) in
-  Type_conv.add "protocol"
-    ~str_type_decl:(Type_conv.Generator.make
-                      Type_conv.Args.(empty +> driver +> flags)
+  let driver = Ppxlib.Deriving.Args.(arg "driver" (pexp_pack __)) in
+  let flags = Ppxlib.Deriving.Args.(arg "flags" __) in
+  Deriving.add "protocol"
+    ~str_type_decl:(Deriving.Generator.make
+                      Deriving.Args.(empty +> driver +> flags)
                       (mk_str_type_decl protocol_str_type_decls))
-    ~sig_type_decl:(Type_conv.Generator.make Type_conv.Args.(empty +> driver) protocol_sig_type_decls)
-  |> Type_conv.ignore;
+    ~sig_type_decl:(Deriving.Generator.make Deriving.Args.(empty +> driver) protocol_sig_type_decls)
+  |> Ppxlib.Deriving.ignore;
 
-  Type_conv.add "of_protocol"
-    ~str_type_decl:(Type_conv.Generator.make
-                      Type_conv.Args.(empty +> driver +> flags)
+  Deriving.add "of_protocol"
+    ~str_type_decl:(Deriving.Generator.make
+                      Deriving.Args.(empty +> driver +> flags)
                       (mk_str_type_decl of_protocol_str_type_decls))
-    ~sig_type_decl:(Type_conv.Generator.make Type_conv.Args.(empty +> driver) of_protocol_sig_type_decls)
-  |> Type_conv.ignore;
+    ~sig_type_decl:(Deriving.Generator.make Deriving.Args.(empty +> driver) of_protocol_sig_type_decls)
+  |> Deriving.ignore;
 
-  Type_conv.add "to_protocol"
-    ~str_type_decl:(Type_conv.Generator.make
-                      Type_conv.Args.(empty +> driver +> flags)
+  Deriving.add "to_protocol"
+    ~str_type_decl:(Deriving.Generator.make
+                      Deriving.Args.(empty +> driver +> flags)
                       (mk_str_type_decl to_protocol_str_type_decls))
-    ~sig_type_decl:(Type_conv.Generator.make Type_conv.Args.(empty +> driver) to_protocol_sig_type_decls)
-  |> Type_conv.ignore;
+    ~sig_type_decl:(Deriving.Generator.make Deriving.Args.(empty +> driver) to_protocol_sig_type_decls)
+  |> Deriving.ignore;

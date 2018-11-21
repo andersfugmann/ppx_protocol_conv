@@ -12,9 +12,6 @@ build: [
 depends: [
   "ocaml" {>= "4.04"}
   "base"
-  "ppx_type_conv"
-  "ppx_driver"
-  "ppx_core"
   "dune" {build}
   "ppxlib"
   "ppx_sexp_conv" {with-test}
