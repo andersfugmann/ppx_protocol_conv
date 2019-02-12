@@ -1,5 +1,5 @@
-module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json = struct
-  type t = Yojson.Safe.json
+module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.t = struct
+  type t = Yojson.Safe.t
   module U = Yojson.Safe.Util
 
   let to_string_hum t =
