@@ -9,6 +9,7 @@ type v =
   | Int64 of int64
   | String of string
   | Float of float
+  | Char of char
   | Bool of bool
   | Unit
 

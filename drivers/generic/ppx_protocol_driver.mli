@@ -13,6 +13,9 @@ module type Driver = sig
   val of_alist: (string * t) list -> t
   val is_alist: t -> bool
 
+  val to_char: t -> char
+  val of_char: char -> t
+
   val to_int: t -> int
   val of_int: int -> t
 

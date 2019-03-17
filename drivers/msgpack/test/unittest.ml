@@ -29,6 +29,8 @@ module TestDriver = struct
   let of_float x = of_float x
   let to_bool x = to_bool x
   let of_bool x = of_bool x
+  let to_char x = to_char x
+  let of_char x = of_char x
   let to_unit x = to_unit x
   let of_unit x = of_unit x
 end

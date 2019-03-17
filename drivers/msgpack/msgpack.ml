@@ -38,10 +38,14 @@ module Driver : Ppx_protocol_driver.Driver with type t = Msgpck.t = struct
                         | _ -> failwith "float expected"
   let of_float = Msgpck.of_float
 
-
   let of_string = Msgpck.of_string
   let to_string = Msgpck.to_string
   let is_string = function Msgpck.String _ -> true | _ -> false
+
+  let of_char c = of_string (String.make 1 c)
+  let to_char t = match to_string t with
+    | s when String.length s = 1 -> s.[0]
+    | _ -> failwith "Got string with length != 1 when reading type 'char'"
 
   let of_bool = Msgpck.of_bool
   let to_bool = Msgpck.to_bool

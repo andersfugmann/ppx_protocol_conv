@@ -29,6 +29,8 @@ module TestDriver = struct
   let of_float x = Driver.of_float x
   let to_bool x = Driver.to_bool x
   let of_bool x = Driver.of_bool x
+  let to_char x = Driver.to_char x
+  let of_char x = Driver.of_char x
   let to_unit x = Driver.to_unit x
   let of_unit x = Driver.of_unit x
 end

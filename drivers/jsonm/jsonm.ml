@@ -32,6 +32,11 @@ module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   let of_string = Ezjsonm.string
   let is_string = function `String _ -> true | _ -> false
 
+  let of_char c = of_string (String.make 1 c)
+  let to_char t = match to_string t with
+    | s when String.length s = 1 -> s.[0]
+    | _ -> failwith "Got string with length != 1 when reading type 'char'"
+
   let to_bool = Ezjsonm.get_bool
   let of_bool = Ezjsonm.bool
 

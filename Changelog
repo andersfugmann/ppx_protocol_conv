@@ -6,6 +6,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 
 3.2.0
 [x] Require ppx_protocol_conv in all drivers. #12
+[*] Handle char primitive type
 
 3.1.3
 [x] Require yojson >= 1.6.0

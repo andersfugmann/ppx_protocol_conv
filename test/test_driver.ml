@@ -25,6 +25,7 @@ module Make(Driver: Testable.Driver) = struct
     and v = A | B of int list * int list | C of string
     and t = {
       bool: bool;
+      char: char;
       int: int;
       int32: int32;
       int64: int64;
@@ -43,6 +44,7 @@ module Make(Driver: Testable.Driver) = struct
 
     let t = {
       bool = true;
+      char = 'x';
       int = 2;
       int32 = Int32.of_int_exn 5;
       int64 = Int64.of_int_exn 10;

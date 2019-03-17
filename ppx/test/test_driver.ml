@@ -11,6 +11,7 @@ type v =
   | Int64 of int64
   | String of string
   | Float of float
+  | Char of char
   | Bool of bool
   | Unit
 
@@ -106,6 +107,9 @@ let of_string s = String s
 
 let to_float = function Float f -> f | e -> raise_errorf e "Float type not found"
 let of_float f = Float f
+
+let to_char = function Char c -> c | e -> raise_errorf e "String type not found"
+let of_char c = Char c
 
 let to_bool = function Bool b -> b | e -> raise_errorf e "Bool type not found"
 let of_bool b = Bool b

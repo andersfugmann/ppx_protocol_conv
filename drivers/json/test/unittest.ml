@@ -29,6 +29,8 @@ module JsonTestDriver = struct
   let of_float x = Json.of_float x
   let to_bool x = Json.to_bool x
   let of_bool x = Json.of_bool x
+  let to_char x = Json.to_char x
+  let of_char x = Json.of_char x
   let to_unit x = Json.to_unit x
   let of_unit x = Json.of_unit x
 end

@@ -21,8 +21,8 @@ module type Driver = sig
   val of_option:  (('a -> t) -> 'a option -> t) flags
   val to_list:    ((t -> 'a) -> t -> 'a list) flags
   val of_list:    (('a -> t) -> 'a list -> t) flags
-  val to_array:    ((t -> 'a) -> t -> 'a array) flags
-  val of_array:    (('a -> t) -> 'a array -> t) flags
+  val to_array:   ((t -> 'a) -> t -> 'a array) flags
+  val of_array:   (('a -> t) -> 'a array -> t) flags
   val to_lazy_t:  ((t -> 'a) -> t -> 'a lazy_t) flags
   val of_lazy_t:  (('a -> t) -> 'a lazy_t -> t) flags
   val to_int:     (t -> int) flags
@@ -31,6 +31,8 @@ module type Driver = sig
   val of_int32:   (int32 -> t) flags
   val to_int64:   (t -> int64) flags
   val of_int64:   (int64 -> t) flags
+  val to_char:    (t -> char) flags
+  val of_char:    (char -> t) flags
   val to_string:  (t -> string) flags
   val of_string:  (string -> t) flags
   val to_float:   (t -> float) flags

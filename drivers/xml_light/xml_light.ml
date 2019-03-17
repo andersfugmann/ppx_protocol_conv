@@ -173,6 +173,12 @@ let of_float = of_value string_of_float
 let to_string = to_value "string" (fun x -> x)
 let of_string = of_value (fun x -> x)
 
+let to_char t = to_value "char" (function s when String.length s = 1 -> s.[0]
+                                        | _ -> raise (Protocol_error ("Expected char", t))) t
+let of_char = of_value (fun c -> (String.make 1 c))
+
+
+
 let to_unit = to_value "unit" (function "()" -> () | _ -> failwith "expected unit")
 let of_unit = of_value (fun () -> "()")
 

@@ -18,6 +18,9 @@ module type Driver = sig
   val of_alist: (string * t) list -> t
   val is_alist: t -> bool
 
+  val to_char:  t -> char
+  val of_char:  char -> t
+
   val to_int: t -> int
   val of_int: int -> t
 
@@ -103,9 +106,9 @@ module Make(Driver: Driver) = struct
         let field_name = field_func field in
         let cont = inner xs in
         fun constr t ->
-          let v = 
+          let v =
             try StringMap.find field_name t |> to_value_func with
-            | Not_found -> 
+            | Not_found ->
               raise_errorf orig "Field not found: %s" field_name
           in
           cont ~orig (constr v) t
@@ -185,6 +188,9 @@ module Make(Driver: Driver) = struct
 
   let of_lazy_t: ?flags:flag -> ('a -> t) -> 'a lazy_t -> t = fun ?flags:_ of_value_fun v ->
     Lazy.force v |> of_value_fun
+
+  let to_char ?flags:_ t = try Driver.to_char t with _ -> raise_errorf t "char expected"
+  let of_char ?flags:_ v = Driver.of_char v
 
   let to_int ?flags:_ t = try Driver.to_int t with _ -> raise_errorf t "int expected"
   let of_int ?flags:_ v = Driver.of_int v
