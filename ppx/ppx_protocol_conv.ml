@@ -58,7 +58,7 @@ let is_primitive_type = function
 
 (** Test if the type is a type modifier *)
 let is_meta_type = function
-  | "option" | "array" | "list" | "lazy_t" -> true
+  | "option" | "array" | "list" | "lazy_t" | "ref" -> true
   | _ -> false
 
 let type_param_name ~prefix var =

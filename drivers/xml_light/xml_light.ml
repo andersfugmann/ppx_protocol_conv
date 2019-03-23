@@ -148,6 +148,13 @@ let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun v ->
   in
   t
 
+let to_ref: (t -> 'a) -> t -> 'a ref = fun to_value_fun t ->
+  let v = to_value_fun t in
+  ref v
+
+let of_ref: ('a -> t) -> 'a ref -> t = fun of_value_fun v ->
+  of_value_fun !v
+
 
 (** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function

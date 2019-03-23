@@ -34,6 +34,8 @@ module type Driver = sig
   val of_tuple:   ((string * t) list -> t) flags
   val to_option:  ((t -> 'a) -> t -> 'a option) flags
   val of_option:  (('a -> t) -> 'a option -> t) flags
+  val to_ref:     ((t -> 'a) -> t -> 'a ref) flags
+  val of_ref:     (('a -> t) -> 'a ref -> t) flags
   val to_list:    ((t -> 'a) -> t -> 'a list) flags
   val of_list:    (('a -> t) -> 'a list -> t) flags
   val to_array:   ((t -> 'a) -> t -> 'a array) flags

@@ -80,6 +80,12 @@ let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
   | None -> Option None
   | Some v -> Option (Some (of_value_fun v))
 
+let to_ref: (t -> 'a) -> t -> 'a ref = fun to_value_fun t ->
+  ref (to_value_fun t)
+
+let of_ref: ('a -> t) -> 'a ref -> t = fun of_value_fun v ->
+  of_value_fun (!v)
+
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
   | List vs -> List.map ~f:to_value_fun vs
   | e -> raise_errorf e "List type not found"

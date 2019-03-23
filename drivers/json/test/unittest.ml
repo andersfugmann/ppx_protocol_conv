@@ -11,6 +11,8 @@ module JsonTestDriver = struct
   let of_tuple x = Json.of_tuple x
   let to_option x = Json.to_option x
   let of_option x = Json.of_option x
+  let to_ref x = Json.to_ref x
+  let of_ref x = Json.of_ref x
   let to_list x = Json.to_list x
   let of_list x = Json.of_list x
   let to_array x = Json.to_array x
@@ -35,6 +37,5 @@ module JsonTestDriver = struct
   let of_unit x = Json.of_unit x
 end
 
-(* Why cant this do it all??? *)
 module Unittest = Test.Unittest.Make(JsonTestDriver)
 let () = Unittest.run ~name:"json"

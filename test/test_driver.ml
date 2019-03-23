@@ -32,6 +32,7 @@ module Make(Driver: Testable.Driver) = struct
       string: string;
       intlist: int list;
       intoption: int option;
+      intref: int ref;
       tuple: (int * string * bool);
       vlist: v list;
       varray: v array;
@@ -51,6 +52,7 @@ module Make(Driver: Testable.Driver) = struct
       string = "string";
       intlist = [3; 4; 5];
       intoption = Some 100;
+      intref = ref 4;
       tuple = (5, "protocol", false);
       vlist = [ v; v; v; ];
       varray = [| v; v; v; |];

@@ -179,6 +179,13 @@ module Make(Driver: Driver) = struct
         mk_option t
       | t -> t
 
+  let to_ref: ?flags:flag -> (t -> 'a) -> t -> 'a ref = fun ?flags:_ to_value_fun t ->
+      let v = to_value_fun t in
+      ref v
+
+  let of_ref: ?flags:flag -> ('a -> t) -> 'a ref -> t = fun ?flags:_ of_value_fun v ->
+    of_value_fun !v
+
   let to_list: ?flags:flag -> (t -> 'a) -> t -> 'a list = fun ?flags:_ to_value_fun t ->
     List.map ~f:to_value_fun (Driver.to_list t)
   let of_list: ?flags:flag -> ('a -> t) -> 'a list -> t = fun ?flags:_ of_value_fun v ->
