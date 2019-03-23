@@ -37,6 +37,7 @@ module Make(Driver: Testable.Driver) = struct
       vlist: v list;
       varray: v array;
       record: t1;
+      mutable z: int;
     }
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -57,6 +58,7 @@ module Make(Driver: Testable.Driver) = struct
       vlist = [ v; v; v; ];
       varray = [| v; v; v; |];
       record = { x = 5; y = "string" };
+      z = 101;
     }
   end
 
