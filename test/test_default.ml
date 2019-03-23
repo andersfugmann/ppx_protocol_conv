@@ -1,5 +1,10 @@
 open OUnit2
 open Sexplib.Std
+
+module L = struct
+  type 'a l = 'a list = [] | (::) of 'a * 'a l
+end
+
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
   type y = A of int | B of string [@@deriving protocol ~driver:(module Driver), sexp]
@@ -9,7 +14,7 @@ module Make(Driver: Testable.Driver) = struct
     list: int list; [@default [1;2;3]]
     key: int; [@default 9] [@key "Key"]
     std: unit;
-  } [@@deriving of_protocol ~driver:(module Driver), sexp]
+  } [@@deriving protocol ~driver:(module Driver), sexp]
   let printer t = Base.Sexp.to_string_hum (sexp_of_t t)
 
   let test_default_unused _ =
@@ -29,8 +34,10 @@ module Make(Driver: Testable.Driver) = struct
               key = 100;
               std = ();
             } in
-    let t' = of_driver s in
-    assert_equal ~printer t t'
+
+    assert_equal ~printer t (of_driver s);
+    assert_equal s (to_driver t);
+    ()
 
   let test_one_default _ =
     let s =
@@ -48,8 +55,10 @@ module Make(Driver: Testable.Driver) = struct
               key = 100;
               std = ();
             } in
-    let t' = of_driver s in
-    assert_equal ~printer t t'
+
+    assert_equal ~printer t (of_driver s);
+    assert_equal s (to_driver t);
+    ()
 
   let test_all_default _ =
     let s =
@@ -63,8 +72,9 @@ module Make(Driver: Testable.Driver) = struct
               key = 9;
               std = ();
             } in
-    let t' = of_driver s in
-    assert_equal ~printer t t'
+    assert_equal ~printer t (of_driver s);
+    assert_equal s (to_driver t);
+    ()
 
   let unittest = __MODULE__ >: test_list [
       "default_unused" >:: test_default_unused;
