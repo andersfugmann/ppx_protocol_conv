@@ -30,38 +30,44 @@ let to_variant constr (t : t) =
   | Variant v -> constr v
   | e -> raise_errorf e "Variant type not found"
 
-
-(* Get all the strings, and create a mapping from string to id? *)
-let rec to_record: type a b. (t, a, b) Runtime.structure -> a -> t -> b =
-  let open Runtime in
+let rec to_record: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
+  let open Runtime.Record_in in
   function
-  | Cons ((field_name, to_value_func), xs) -> begin
+  | (field_name, to_value_func, default) :: xs -> begin
       fun constr -> function
-        | Record t ->
+        | Record t as e ->
           let constr =
-            List.Assoc.find_exn t ~equal:String.equal field_name
-            |> to_value_func
-            |> constr
+            let v = match List.Assoc.find t ~equal:String.equal field_name, default with
+              | None, Some v -> v
+              | Some v, _ ->  to_value_func v
+              | None, None -> raise_errorf e "Cannot find field name: %s" field_name
+            in
+            constr v
           in
           to_record xs constr (Record t)
         | e -> raise_errorf e "Record type not found"
     end
-  | Nil -> fun a _t -> a
+  | [] -> fun a _t -> a
 
+let of_record: _ Runtime.Record_out.t -> t = fun l ->
+  let rec inner: _ Runtime.Record_out.t -> (string * t) list = function
+    | (_, v, _, Some default) :: xs when (Poly.(=) v default) -> inner xs
+    | (k, v, to_t, _) :: xs -> (k, to_t v) :: inner xs
+    | [] -> []
+  in
+  Record (inner l)
 
-let of_record: (string * t) list -> t = fun assoc -> Record assoc
-
-let rec to_tuple: type a b. (t, a, b) Runtime.structure -> a -> t -> b =
-  let open Runtime in
+let rec to_tuple: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
+  let open Runtime.Record_in in
   function
-  | Cons ((field, to_value_func), xs) -> begin
+  | (field, to_value_func, _default) :: xs -> begin
       fun constr -> function
         | Tuple ((fn, v) :: ts) when String.equal fn field ->
           to_tuple xs (constr (to_value_func v)) (Tuple ts)
         | Tuple _ as e -> raise_errorf e "Tuple has incorrect ordering"
         | e -> raise_errorf e "Tuple type not found"
     end
-  | Nil -> fun a _t -> a
+  | [] -> fun a _t -> a
 
 let of_tuple t = Tuple t
 

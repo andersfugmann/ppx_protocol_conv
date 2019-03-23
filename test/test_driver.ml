@@ -3,7 +3,6 @@ open OUnit2
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
-
   module Tuple : M.Testable = struct
     let name = "Tuple"
 

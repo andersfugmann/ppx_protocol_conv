@@ -12,6 +12,7 @@ module Make(Driver : Testable.Driver) = struct
     let module Lists = Test_lists.Make(Driver) in
     let module Arrays = Test_arrays.Make(Driver) in
     let module Record = Test_record.Make(Driver) in
+    let module Default = Test_default.Make(Driver) in
     let module Param_types = Test_param_types.Make(Driver) in
     let module Poly = Test_poly.Make(Driver) in
     let module Driver = Test_driver.Make(Driver) in
@@ -24,6 +25,7 @@ module Make(Driver : Testable.Driver) = struct
         Lists.unittest;
         Arrays.unittest;
         Record.unittest;
+        Default.unittest;
         Param_types.unittest;
         Poly.unittest;
         Driver.unittest;

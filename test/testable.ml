@@ -6,7 +6,6 @@ module type Test = functor(Driver: Driver) -> sig
 end
 
 module Make (Driver: Driver) = struct
-
   module type Testable = sig
     type t [@@deriving protocol ~driver:(module Driver)]
     val t: t

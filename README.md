@@ -26,6 +26,7 @@ open Protocol_conv_json
 type a = {
   x: int;
   y: string [@key "Y"]
+  z: int list [@default [2;3]]
 } [@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle)]
 
 type b = A of int
@@ -44,11 +45,11 @@ val b_of_json: Json.t -> a
 ```
 
 ```ocaml
-a_to_json { x=42; y:"really" }
+a_to_json { x=42; y:"really"; z:[6;7] }
 ```
 Evaluates to
 ```ocaml
-[ "x", `Int 42; "Y", `String "really"] (* Yojson.Safe.json *)
+[ "x", `Int 42; "Y", `String "really"; "z", `List [ `Int 6; `Int 7 ] ] (* Yojson.Safe.json *)
 ```
 
 `to_protocol` deriver will generate serilisation of the
@@ -67,9 +68,14 @@ Record label names can be changed using `[@key <string>]`
 Variant constructors names can also be changed using the `[@key <string>]`
 attribute.
 
+If a record field is not present in the input when deserialising, as default value can be
+assigned using `[@default <expr>]`. If the value to be serialized
+matches the default value, the field will be omitted. Comparrison uses
+polymorphic compare, so be carefull.
+
 ## Signatures
 The ppx also handles signature, but disallows
-`[@key ...]` and `~flags:...` as these does not impact signatures.
+`[@key ...]`, `[@default ...]` and `~flags:...` as these does not impact signatures.
 
 ## Drivers
 
@@ -97,6 +103,7 @@ the Msgpack driver accepts the following options:
 | Ocaml type      | Generates | Accepts   |
 |-----------------|-----------|-----------|
 | string          | \`String  | \`String  |
+| char            | \`String  | \`String  |
 | bytes           | \`String  | \`String  |
 | int             | \`Int     | \`Int     |
 | int32           | \`Int     | \`Int     |
@@ -128,6 +135,7 @@ The Msgpack driver accepts the following options:
 | Ocaml type      | Generates | Accepts                           |
 |-----------------|-----------|-----------------------------------|
 | string          | String    | String, Bytes                     |
+| char            | String    | String, Bytes                     |
 | int             | Int       | Int, Int32, Int64, Uint32, Uint64 |
 | int32           | Int32     | Int32                             |
 | int64           | Int64     | Int64                             |
@@ -147,6 +155,7 @@ Converts to and from `Yaml.value`
 | Ocaml type      | Generates | Accepts   |
 |-----------------|-----------|-----------|
 | string          | \`String  | \`String  |
+| char            | \`String  | \`String  |
 | bytes           | \`String  | \`String  |
 | int             | \`Float   | \`Float*  |
 | int32           | \`Float   | \`Float*  |

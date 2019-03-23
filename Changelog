@@ -4,6 +4,11 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 
 [ ] Support extensible polymorphic variants
 
+4.0.0
+[ ] Support "@default" argument on record fields. #9
+[ ] Add @name attribute to be compatible with ppx_deriving_yojson
+[ ] Support ref type
+
 3.2.0
 [x] Require ppx_protocol_conv in all drivers. #12
 [*] Handle char primitive type

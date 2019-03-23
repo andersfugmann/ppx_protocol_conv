@@ -12,6 +12,8 @@ type t = {
     (constructor_declaration, string) Attribute.t;
   row_attrib:
     (row_field, string) Attribute.t;
+  label_default:
+    (label_declaration, expression) Attribute.t;
 }
 
 (* In variants, dont encode as tuple.... *)
@@ -43,9 +45,6 @@ let driver_func t ~loc name =
    list concatenation *)
 let list_expr ~loc l =
   List.fold_right ~init:[%expr []] ~f:(fun hd tl -> [%expr [%e hd] :: [%e tl]]) l
-
-let spec_expr ~loc l =
-  List.fold_right ~init:[%expr Nil] ~f:(fun (e1, e2) tl -> [%expr ([%e e1], [%e e2]) ^:: [%e tl]]) l
 
 let ident_of_module ~loc = function
   | Some { pmod_desc = Pmod_ident { txt; _ }; _ } -> txt
@@ -170,6 +169,18 @@ let rec serialize_expr_of_type_descr t ~loc = function
       in
       let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
 
+      let _arg_list =
+        List.mapi ~f:(fun i ct ->
+            let to_ps = serialize_expr_of_type_descr t ~loc ct.ptyp_desc in
+            [%expr (
+              [%e estring ~loc (sprintf "t%d" i)],
+              [%e pexp_ident ~loc { loc; txt=Lident (sprintf "x%d" i) }],
+              [%e to_ps],
+              None)
+            ]
+          ) cts
+        |> list_expr ~loc
+      in
       let arg_list =
         List.map2_exn
           ~f:(fun id func -> pexp_apply ~loc func [Nolabel, pexp_ident ~loc id])
@@ -177,7 +188,6 @@ let rec serialize_expr_of_type_descr t ~loc = function
         |> List.mapi ~f:(fun i expr -> [%expr ([%e estring ~loc (sprintf "t%d" i)], [%e expr])])
         |> list_expr ~loc
       in
-
       pexp_fun ~loc Nolabel None
         (ppat_tuple ~loc (List.map ~f:(fun id ->ppat_var ~loc (string_of_ident_loc id)) ids))
         (pexp_apply ~loc (driver_func t ~loc "of_tuple") [Nolabel, arg_list])
@@ -256,7 +266,9 @@ let rec deserialize_expr_of_type_descr t ~loc = function
 
   | Ptyp_tuple cts -> begin
       let to_ts = List.map ~f:
-          (fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc ) cts
+          (fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc,
+                     [% expr None]
+          ) cts
       in
       let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
       let constructor =
@@ -267,9 +279,17 @@ let rec deserialize_expr_of_type_descr t ~loc = function
             pexp_fun ~loc Nolabel None (ppat_var ~loc (string_of_ident_loc id)) expr
           ) ids
       in
+      let slist =
+        List.mapi ~f:(fun i (v, d) ->
+            [%expr (
+              [%e estring ~loc (sprintf "t%d" i)],
+              [%e v],
+              [%e d])]
+          ) to_ts
+      in
       [%expr
-        let open Protocol_conv.Runtime in
-        let of_funcs = [%e spec_expr ~loc (List.mapi ~f:(fun i v -> estring ~loc (sprintf "t%d" i), v) to_ts) ] in
+        let open !Protocol_conv.Runtime.Record_in in
+        let of_funcs = [%e list_expr ~loc slist ] in
         let constructor = [%e constructor] in
         [%e driver_func t ~loc "to_tuple"] of_funcs constructor
       ]
@@ -355,28 +375,32 @@ let test_label_mapping t labels =
 
 let serialize_record t ~loc labels =
   test_label_mapping t labels;
-  let field_names = List.map ~f:(fun label -> match Attribute.get t.label_attrib label with
-      | None -> estring ~loc:label.pld_loc label.pld_name.txt
-      | Some name -> estring ~loc:label.pld_loc name
-    ) labels
-  in
-  let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
-  let to_p =
-    List.map ~f:(fun ld -> serialize_expr_of_type_descr t ~loc ld.pld_type.ptyp_desc) labels
-  in
   let arg_list =
-    List.map3_exn ~f:(fun name id of_t ->
-        [%expr [%e name],
-               [%e pexp_apply ~loc of_t
-                   [ Nolabel, pexp_ident ~loc { loc; txt=Lident id.txt }]
-               ]
+    List.map ~f:(fun label ->
+        let name =
+          match Attribute.get t.label_attrib label with
+          | None -> estring ~loc:label.pld_loc label.pld_name.txt
+          | Some name -> estring ~loc:label.pld_loc name
+        in
+        let of_t = serialize_expr_of_type_descr t ~loc label.pld_type.ptyp_desc in
+        let default =
+          match Attribute.get t.label_default label with
+          | None -> [% expr None]
+          | Some expr -> [% expr Some [%e expr]]
+        in
+        [%expr ([%e name],
+               [%e pexp_ident ~loc { loc; txt=Lident label.pld_name.txt } ],
+               [%e of_t],
+               [%e default])
         ]
-      ) field_names field_ids to_p
+      ) labels
     |> list_expr ~loc
+    |> fun l -> [%expr let open !Protocol_conv.Runtime.Record_in in [%e l]]
   in
   ppat_record ~loc
      (List.map ~f:(fun id ->
-          { loc; txt=Lident id.txt }, ppat_var ~loc id) field_ids
+        { loc; txt=Lident id.txt }, ppat_var ~loc id)
+        (List.map ~f:(fun ld -> ld.pld_name) labels)
      ) Closed,
   pexp_apply ~loc (driver_func t ~loc "of_record") [Nolabel, arg_list]
 
@@ -454,11 +478,6 @@ let serialize_expr_of_tdecl t ~loc tdecl =
 
 let deserialize_record t ~loc labels =
   test_label_mapping t labels;
-  let field_names = List.map ~f:(fun label -> match Attribute.get t.label_attrib label with
-      | None -> estring ~loc:label.pld_loc label.pld_name.txt
-      | Some name -> estring ~loc:label.pld_loc name
-    ) labels
-  in
   let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
 
   let constructor f =
@@ -472,12 +491,22 @@ let deserialize_record t ~loc labels =
         pexp_fun ~loc Nolabel None (ppat_var ~loc field) expr
       ) field_ids
   in
-  let of_p = List.map ~f:(
-      fun ld -> deserialize_expr_of_type_descr t ~loc ld.pld_type.ptyp_desc
+  let list_items = List.map ~f:(fun label ->
+      let field_name =
+        match Attribute.get t.label_attrib label with
+        | None -> estring ~loc:label.pld_loc label.pld_name.txt
+        | Some name -> estring ~loc:label.pld_loc name
+      in
+      let func = deserialize_expr_of_type_descr t ~loc label.pld_type.ptyp_desc in
+      let default = match Attribute.get t.label_default label with
+        | None -> [% expr None]
+        | Some expr -> [% expr Some [%e expr]]
+      in
+      [%expr ([%e field_name], [%e func], [%e default])]
     ) labels
   in
-  let of_funcs = spec_expr ~loc (List.zip_exn field_names of_p) in
-  (constructor, of_funcs)
+  let of_funcs = list_expr ~loc list_items in
+  (constructor, [%expr Protocol_conv.Runtime.Record_in.([%e of_funcs])])
 
 let deserialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
@@ -503,7 +532,6 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
           let constructor, of_funcs = deserialize_record t ~loc labels in
           let wrap expr = pexp_construct (ident_of_string_loc pcd_name) ~loc (Some expr) in
           [%expr
-            let open Protocol_conv.Runtime in
             let of_funcs = [%e of_funcs ] in
             let constructor = [%e constructor wrap ] in
             [%e driver_func t ~loc "to_record"] of_funcs constructor x
@@ -524,6 +552,7 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
           |> List.fold_left ~init:(pcstr "[]" None)
             ~f:(fun acc var ->
                 pcstr "::" (Some (ppat_tuple ~loc
+
                                     [ppat_var ~loc var; acc]))
               )
           |> fun p -> ppat_tuple ~loc [ ppat_constant ~loc (Pconst_string (constr_name, None)); p ]
@@ -552,7 +581,6 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
   | Ptype_record labels ->
     let constructor, of_funcs = deserialize_record t ~loc labels in
     [%expr
-      let open Protocol_conv.Runtime in
       let of_funcs = [%e of_funcs ] in
       let constructor = [%e constructor Fn.id ] in
       [%e driver_func t ~loc "to_record"] of_funcs constructor
@@ -680,7 +708,7 @@ let mk_str_type_decl =
     (* Create T and pass on to f *)
     let driver = ident_of_module ~loc driver in
     let attrib_name name = sprintf "%s.%s" (module_name driver) name in
-    let label_attrib, constr_attrib, row_attrib =
+    let label_attrib, constr_attrib, row_attrib, label_default =
       let create () =
         let open Attribute in
         declare (attrib_name "key")
@@ -691,7 +719,10 @@ let mk_str_type_decl =
           Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
         declare (attrib_name "key")
           Context.rtag
-          Ast_pattern.(single_expr_payload (estring __)) (fun x -> x)
+          Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
+        declare (attrib_name "default")
+          Context.label_declaration
+          Ast_pattern.(single_expr_payload (__)) (fun x -> x)
       in
       Hashtbl.find_or_add attrib_table driver ~default:create
     in
@@ -701,6 +732,7 @@ let mk_str_type_decl =
       label_attrib;
       constr_attrib;
       row_attrib;
+      label_default;
     } in
     f t recflag ~loc tydecls
 

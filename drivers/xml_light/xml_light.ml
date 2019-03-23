@@ -48,21 +48,35 @@ let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> funct
    of fields in the input data. There is hardly anypoint to
    that. Although it would be fun to create.
 *)
-let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
-  let rec inner: type a b. (t, a, b) structure -> a -> 't -> b = function
-    | Cons ((field, to_value_func), xs) ->
+let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
+  let rec inner: type a b. (t, a, b) Record_in.t -> a -> 't -> b =
+    let open Record_in in
+    function
+    | (field, to_value_func, default) :: xs ->
       let cont = inner xs in
       fun constr t ->
-        let values = try StringMap.find field t |> List.rev with Not_found -> [] in
-        let arg = match values with
-          | [ Xml.Element (name, _, xs) ] -> Xml.Element (name, ["record", "unwrapped"], xs)
-          | [ Xml.PCData _ as d ] -> d
-          | xs -> Xml.Element (field, [], xs)
+        let v =
+          match StringMap.find field t |> List.rev with
+          | v -> `Values v
+          | exception Not_found -> begin
+              match default with
+              | Some v -> `Default v
+              | None -> `Values []
+            end
         in
-        let v = to_value_func arg
+        let v =
+          match v with
+          | `Values values ->
+            let arg = match values with
+              | [ Xml.Element (name, _, xs) ] -> Xml.Element (name, ["record", "unwrapped"], xs)
+              | [ Xml.PCData _ as d ] -> d
+              | xs -> Xml.Element (field, [], xs)
+            in
+            to_value_func arg
+          | `Default v -> v
         in
         cont (constr v) t
-    | Nil -> fun a _t -> a
+    | [] -> fun a _t -> a
   in
   let f = inner spec in
   fun constr -> function
@@ -71,8 +85,13 @@ let to_record: type a b. (t, a, b) structure -> a -> t -> b = fun spec ->
       f constr (element_to_map m t)
     | e -> raise_errorf e "Not a record superstruture"
 
-(* A : int list -> "a", Element("l" , [], Element list)  *)
-let of_record: (string * t) list -> t = fun assoc ->
+let of_record: _ Record_out.t -> t = fun l ->
+  let rec inner: _ Record_out.t -> (string * t) list = function
+    | (_, v, _, Some default) :: xs when v = default -> inner xs
+    | (k, v, to_t, _) :: xs -> (k, to_t v) :: inner xs
+    | [] -> []
+  in
+  let assoc = inner l in
   List.map ~f:(
     function
     | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
@@ -85,12 +104,18 @@ let of_record: (string * t) list -> t = fun assoc ->
           | PCData _ as p -> Xml.Element(field, [], [p])
         ) xs (* why xs here. Or do we need to extend the option one level *)
     | (field, e) -> raise_errorf e "Must be an element: %s" field
-  ) assoc |> List.flatten |> element "record"
+  ) assoc
+  |> List.flatten |> element "record"
 
 
 let to_tuple = to_record
 
-let of_tuple = of_record
+let of_tuple l =
+  let open Record_out in
+  List.fold_right ~init:([])
+    ~f:(fun (k, t) acc -> (k, t, (fun t -> t), None) :: acc)
+    l
+  |> of_record
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   (* Not allowed to throw out the unwrap. *)

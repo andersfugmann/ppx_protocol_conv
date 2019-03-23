@@ -93,26 +93,28 @@ module Make(Driver: Driver) = struct
       end
     | t -> raise_errorf t "Variants must be a string or a list"
 
-  (* Get all the strings, and create a mapping from string to id? *)
-  let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t -> b = fun ?flags spec constr ->
-    let open Runtime in
+  let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.Record_in.t -> a -> t -> b = fun ?flags spec constr ->
     let field_func x = match flags with
       | None -> x
       | Some (`Mangle f) -> f x
     in
-    let rec inner: type a b. orig:t -> (t, a, b) Runtime.structure -> a -> 'c -> b = fun ~orig ->
+    let rec inner: type a b. orig:t -> (t, a, b) Runtime.Record_in.t -> a -> 'c -> b = fun ~orig ->
+      let open Runtime.Record_in in
       function
-      | Cons ((field, to_value_func), xs) ->
+      | (field, to_value_func, default) :: xs ->
         let field_name = field_func field in
         let cont = inner xs in
         fun constr t ->
           let v =
             try StringMap.find field_name t |> to_value_func with
-            | Not_found ->
-              raise_errorf orig "Field not found: %s" field_name
+            | Not_found -> begin
+                match default with
+                | None -> raise_errorf orig "Field not found: %s" field_name
+                | Some v -> v
+              end
           in
           cont ~orig (constr v) t
-      | Nil -> fun a _t -> a
+      | [] -> fun a _t -> a
     in
     let f = inner spec constr in
     fun t ->
@@ -124,24 +126,29 @@ module Make(Driver: Driver) = struct
       in
       f ~orig:t values
 
-  let of_record: ?flags:flag -> (string * t) list -> t = fun ?flags assoc ->
-    let assoc = match flags with
-      | None -> assoc
-      | Some `Mangle mangle ->
-        List.map ~f:(fun (k, v) -> (mangle k, v)) assoc
+  let of_record: ?flags:flag -> _ Runtime.Record_out.t -> t = fun ?flags l ->
+    let mangle = match flags with
+      | None -> fun x -> x
+      | Some `Mangle mangle -> mangle
     in
+    let rec inner: _ Runtime.Record_out.t -> (string * t) list = function
+      | (_, v, _, Some default) :: xs when v = default -> inner xs
+      | (k, v, to_t, _) :: xs -> (mangle k, to_t v) :: inner xs
+      | [] -> []
+    in
+    let assoc = inner l in
     Driver.of_alist assoc
 
-  let rec to_tuple: type a b. ?flags:flag -> (t, a, b) Runtime.structure -> a -> t -> b =
+  let rec to_tuple: type a b. ?flags:flag -> (t, a, b) Runtime.Record_in.t -> a -> t -> b =
     fun ?flags ->
-      let open Runtime in
+      let open Runtime.Record_in in
       function
-      | Cons ((_field, to_value_func), xs) ->
+      | (_field, to_value_func, _default) :: xs ->
         fun constructor t ->
           let l = Driver.to_list t in
           let v = to_value_func (List.hd l) in
           to_tuple ?flags xs (constructor v) (Driver.of_list (List.tl l))
-      | Nil -> fun a _t -> a
+      | [] -> fun a _t -> a
 
   let of_tuple ?flags:_ t = Driver.of_list (List.map ~f:snd t)
 
@@ -210,6 +217,6 @@ module Make(Driver: Driver) = struct
   let to_bool ?flags:_ t = try Driver.to_bool t with _ -> raise_errorf t "bool expected"
   let of_bool ?flags:_ v = Driver.of_bool v
 
-  let to_unit ?flags t = to_tuple ?flags Runtime.Nil () t
+  let to_unit ?flags t = to_tuple ?flags Runtime.Record_in.[] () t
   let of_unit ?flags () = of_tuple ?flags []
 end

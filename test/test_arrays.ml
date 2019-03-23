@@ -2,7 +2,6 @@ open OUnit2
 open Sexplib.Std
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
-
   module EmptyArray : M.Testable = struct
     let name = "SingleElem"
     type t = int array
@@ -32,7 +31,7 @@ module Make(Driver: Testable.Driver) = struct
     type v = int [@key "A"]
     and t = { a : string;
               b : v array; [@key "V"]
-                c : string;
+              c : string;
             }
     [@@deriving protocol ~driver:(module Driver), sexp]
 
