@@ -50,6 +50,9 @@ let driver_func t ~loc name =
 let list_expr ~loc l =
   List.fold_right ~init:[%expr []] ~f:(fun hd tl -> [%expr [%e hd] :: [%e tl]]) l
 
+let slist_expr ~loc l =
+  List.fold_right ~init:[%expr Nil] ~f:(fun hd tl -> [%expr Cons ([%e hd], [%e tl])]) l
+
 let ident_of_module ~loc = function
   | Some { pmod_desc = Pmod_ident { txt; _ }; _ } -> txt
   | Some _ -> raise_errorf ~loc "must be a module identifier"
@@ -312,7 +315,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
       in
       [%expr
         let open !Protocol_conv.Runtime.Record_in in
-        let of_funcs = [%e list_expr ~loc slist ] in
+        let of_funcs = [%e slist_expr ~loc slist ] in
         let constructor = [%e constructor] in
         [%e driver_func t ~loc "to_tuple"] of_funcs constructor
       ]
@@ -417,7 +420,7 @@ let serialize_record t ~loc labels =
                [%e default])
         ]
       ) labels
-    |> list_expr ~loc
+    |> slist_expr ~loc
     |> fun l -> [%expr let open !Protocol_conv.Runtime.Record_in in [%e l]]
   in
   ppat_record ~loc
@@ -528,7 +531,7 @@ let deserialize_record t ~loc labels =
       [%expr ([%e field_name], [%e func], [%e default])]
     ) labels
   in
-  let of_funcs = list_expr ~loc list_items in
+  let of_funcs = slist_expr ~loc list_items in
   (constructor, [%expr Protocol_conv.Runtime.Record_in.([%e of_funcs])])
 
 let deserialize_expr_of_tdecl t ~loc tdecl =

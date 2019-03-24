@@ -1,10 +1,6 @@
 open OUnit2
 open Sexplib.Std
 
-module L = struct
-  type 'a l = 'a list = [] | (::) of 'a * 'a l
-end
-
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
   type y = A of int | B of string [@@deriving protocol ~driver:(module Driver), sexp]
@@ -19,13 +15,14 @@ module Make(Driver: Testable.Driver) = struct
 
   let test_default_unused _ =
     let s =
-      Protocol_conv.Runtime.Record_out.[
-        ("int", 6, Driver.of_int, None);
-        ("string", "abc", Driver.of_string, None);
-        ("list", L.([4;5;6]), Driver.of_list Driver.of_int, None);
-        ("Key", 100, Driver.of_int, None);
-        ("std", (), Driver.of_unit, None);
-      ]
+      Protocol_conv.Runtime.Record_out.(
+        ("int", 6, Driver.of_int, None) ^::
+        ("string", "abc", Driver.of_string, None) ^::
+        ("list", [4;5;6], Driver.of_list Driver.of_int, None) ^::
+        ("Key", 100, Driver.of_int, None) ^::
+        ("std", (), Driver.of_unit, None) ^::
+        Nil
+      )
       |> Driver.of_record
     in
     let t = { int = 6;
@@ -41,12 +38,13 @@ module Make(Driver: Testable.Driver) = struct
 
   let test_one_default _ =
     let s =
-      Protocol_conv.Runtime.Record_out.[
-        ("string", "abc", Driver.of_string, None);
-        ("list", L.([4;5;6]), Driver.of_list Driver.of_int, None);
-        ("Key", 100, Driver.of_int, None);
-        ("std", (), Driver.of_unit, None);
-      ]
+      Protocol_conv.Runtime.Record_out.(
+        ("string", "abc", Driver.of_string, None) ^::
+        ("list", [4;5;6], Driver.of_list Driver.of_int, None) ^::
+        ("Key", 100, Driver.of_int, None) ^::
+        ("std", (), Driver.of_unit, None) ^::
+        Nil
+      )
       |> Driver.of_record
     in
     let t = { int = 5;
@@ -62,9 +60,9 @@ module Make(Driver: Testable.Driver) = struct
 
   let test_all_default _ =
     let s =
-      Protocol_conv.Runtime.Record_out.[
-        ("std", (), Driver.of_unit, None);
-      ] |> Driver.of_record
+      Protocol_conv.Runtime.Record_out.(
+        ("std", (), Driver.of_unit, None) ^:: Nil
+      ) |> Driver.of_record
     in
     let t = { int = 5;
               string = "xyz";

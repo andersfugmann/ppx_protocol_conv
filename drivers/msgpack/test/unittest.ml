@@ -1,3 +1,4 @@
+open OUnit2
 module TestDriver = struct
   open Protocol_conv_msgpack.Msgpack
   type nonrec t = t
@@ -38,4 +39,4 @@ module TestDriver = struct
 end
 
 module Unittest = Test.Unittest.Make (TestDriver)
-let () = Unittest.run ~name:"msgpack" ()
+let () = Unittest.run ~extra:["special types" >:: Test_types.test] ~name:"msgpack" ()

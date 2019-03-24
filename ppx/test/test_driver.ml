@@ -33,7 +33,7 @@ let to_variant constr (t : t) =
 let rec to_record: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
   let open Runtime.Record_in in
   function
-  | (field_name, to_value_func, default) :: xs -> begin
+  | Cons ((field_name, to_value_func, default), xs) -> begin
       fun constr -> function
         | Record t as e ->
           let constr =
@@ -47,27 +47,27 @@ let rec to_record: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
           to_record xs constr (Record t)
         | e -> raise_errorf e "Record type not found"
     end
-  | [] -> fun a _t -> a
+  | Nil -> fun a _t -> a
 
 let of_record: _ Runtime.Record_out.t -> t = fun l ->
   let rec inner: _ Runtime.Record_out.t -> (string * t) list = function
-    | (_, v, _, Some default) :: xs when (Poly.(=) v default) -> inner xs
-    | (k, v, to_t, _) :: xs -> (k, to_t v) :: inner xs
-    | [] -> []
+    | Cons ((_, v, _, Some default), xs) when (Poly.(=) v default) -> inner xs
+    | Cons ((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
+    | Nil -> []
   in
   Record (inner l)
 
 let rec to_tuple: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
   let open Runtime.Record_in in
   function
-  | (field, to_value_func, _default) :: xs -> begin
+  | Cons ((field, to_value_func, _default), xs) -> begin
       fun constr -> function
         | Tuple ((fn, v) :: ts) when String.equal fn field ->
           to_tuple xs (constr (to_value_func v)) (Tuple ts)
         | Tuple _ as e -> raise_errorf e "Tuple has incorrect ordering"
         | e -> raise_errorf e "Tuple type not found"
     end
-  | [] -> fun a _t -> a
+  | Nil -> fun a _t -> a
 
 let of_tuple t = Tuple t
 

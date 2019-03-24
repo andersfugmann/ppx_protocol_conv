@@ -101,7 +101,7 @@ module Make(Driver: Driver) = struct
     let rec inner: type a b. orig:t -> (t, a, b) Runtime.Record_in.t -> a -> 'c -> b = fun ~orig ->
       let open Runtime.Record_in in
       function
-      | (field, to_value_func, default) :: xs ->
+      | Cons ((field, to_value_func, default), xs) ->
         let field_name = field_func field in
         let cont = inner xs in
         fun constr t ->
@@ -114,7 +114,7 @@ module Make(Driver: Driver) = struct
               end
           in
           cont ~orig (constr v) t
-      | [] -> fun a _t -> a
+      | Nil -> fun a _t -> a
     in
     let f = inner spec constr in
     fun t ->
@@ -132,9 +132,9 @@ module Make(Driver: Driver) = struct
       | Some `Mangle mangle -> mangle
     in
     let rec inner: _ Runtime.Record_out.t -> (string * t) list = function
-      | (_, v, _, Some default) :: xs when v = default -> inner xs
-      | (k, v, to_t, _) :: xs -> (mangle k, to_t v) :: inner xs
-      | [] -> []
+      | Cons ((_, v, _, Some default), xs) when v = default -> inner xs
+      | Cons ((k, v, to_t, _), xs) -> (mangle k, to_t v) :: inner xs
+      | Nil -> []
     in
     let assoc = inner l in
     Driver.of_alist assoc
@@ -143,12 +143,12 @@ module Make(Driver: Driver) = struct
     fun ?flags ->
       let open Runtime.Record_in in
       function
-      | (_field, to_value_func, _default) :: xs ->
+      | Cons ((_field, to_value_func, _default), xs) ->
         fun constructor t ->
           let l = Driver.to_list t in
           let v = to_value_func (List.hd l) in
           to_tuple ?flags xs (constructor v) (Driver.of_list (List.tl l))
-      | [] -> fun a _t -> a
+      | Nil -> fun a _t -> a
 
   let of_tuple ?flags:_ t = Driver.of_list (List.map ~f:snd t)
 
@@ -224,6 +224,6 @@ module Make(Driver: Driver) = struct
   let to_bool ?flags:_ t = try Driver.to_bool t with _ -> raise_errorf t "bool expected"
   let of_bool ?flags:_ v = Driver.of_bool v
 
-  let to_unit ?flags t = to_tuple ?flags Runtime.Record_in.[] () t
+  let to_unit ?flags t = to_tuple ?flags Runtime.Record_in.Nil () t
   let of_unit ?flags () = of_tuple ?flags []
 end

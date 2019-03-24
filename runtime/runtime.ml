@@ -1,23 +1,15 @@
 module Record_in = struct
   type (_, _, _) t =
-  | (::) : (string * ('t -> 'a) * 'a option) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
-  | [] : ('t, 'a, 'a) t
+    | Cons : (string * ('t -> 'a) * 'a option) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
+    | Nil : ('t, 'a, 'a) t
+  let (^::) a b = Cons (a,b)
 end
 
 module Record_out = struct
   type _ t =
-  | (::) : (string * 'a * ('a -> 't) * 'a option) * 't t -> 't t
-  | [] : 'x t
-
-  let t =
-    let t = [("A", 1, string_of_int, Some 2); ("A", 1., string_of_float, Some 2.)] in
-    let rec inner: type a. a t -> (string * a) list = function
-      | (label, v, to_t, _default) :: cs ->
-        let v = to_t v in
-        (label, v) :: inner cs
-      | [] -> []
-    in
-    inner t
+    | Cons : (string * 'a * ('a -> 't) * 'a option) * 't t -> 't t
+    | Nil : 'x t
+  let (^::) a b = Cons (a,b)
 end
 
 type 'a no_flags = 'a

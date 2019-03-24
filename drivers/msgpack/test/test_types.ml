@@ -1,4 +1,5 @@
 open Protocol_conv_msgpack
+
 type t = {
   int: int;
   string: string;
@@ -14,7 +15,7 @@ type t = {
 }
 [@@deriving protocol ~driver:(module Msgpack)]
 
-let () =
+let test _ =
   let t = {
     int = 0;
     string = "a";
@@ -31,6 +32,6 @@ let () =
   in
   let m = to_msgpack t in
   let t' = of_msgpack m in
-  assert (t = t');
+  OUnit2.assert_equal t t';
   Printf.printf ".\n";
   ()

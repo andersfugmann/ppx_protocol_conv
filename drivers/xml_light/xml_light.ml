@@ -52,7 +52,7 @@ let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
   let rec inner: type a b. (t, a, b) Record_in.t -> a -> 't -> b =
     let open Record_in in
     function
-    | (field, to_value_func, default) :: xs ->
+    | Cons ((field, to_value_func, default), xs) ->
       let cont = inner xs in
       fun constr t ->
         let v =
@@ -76,7 +76,7 @@ let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
           | `Default v -> v
         in
         cont (constr v) t
-    | [] -> fun a _t -> a
+    | Nil -> fun a _t -> a
   in
   let f = inner spec in
   fun constr -> function
@@ -87,9 +87,9 @@ let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
 
 let of_record: _ Record_out.t -> t = fun l ->
   let rec inner: _ Record_out.t -> (string * t) list = function
-    | (_, v, _, Some default) :: xs when v = default -> inner xs
-    | (k, v, to_t, _) :: xs -> (k, to_t v) :: inner xs
-    | [] -> []
+    | Cons ((_, v, _, Some default), xs) when v = default -> inner xs
+    | Cons((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
+    | Nil -> []
   in
   let assoc = inner l in
   List.map ~f:(
@@ -112,8 +112,8 @@ let to_tuple = to_record
 
 let of_tuple l =
   let open Record_out in
-  List.fold_right ~init:([])
-    ~f:(fun (k, t) acc -> (k, t, (fun t -> t), None) :: acc)
+  List.fold_right ~init:(Nil)
+    ~f:(fun (k, t) acc -> (k, t, (fun t -> t), None) ^:: acc)
     l
   |> of_record
 

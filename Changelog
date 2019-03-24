@@ -8,7 +8,6 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [*] Support "@default" argument on record fields. #9
 [x] Add @name attribute to be compatible with ppx_deriving_yojson
 [*] Support ref cells
-[*] Require Ocaml >= 4.07
 
 3.2.0
 [x] Require ppx_protocol_conv in all drivers. #12

@@ -1,5 +1,8 @@
-type t = Cons of int * t
-       | Nil [@name "Niiiiiiil"] [@key "Noo"]
+type t = {
+  a: int;
+  b: string;
+  c: char;
+}
 [@@deriving protocol ~driver:(module Driver)]
 
 (*
