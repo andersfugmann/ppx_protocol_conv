@@ -1,4 +1,5 @@
 open Protocol_conv
+open Runtime
 open StdLabels
 
 module StringMap = Map.Make(String)
@@ -126,24 +127,24 @@ module Make(Driver: Driver) = struct
       in
       f ~orig:t values
 
-  let of_record: ?flags:flag -> _ Runtime.Record_out.t -> t = fun ?flags l ->
+  let of_record: ?flags:flag -> _ Record_out.t -> t = fun ?flags l ->
     let mangle = match flags with
       | None -> fun x -> x
       | Some `Mangle mangle -> mangle
     in
-    let rec inner: _ Runtime.Record_out.t -> (string * t) list = function
-      | Cons ((_, v, _, Some default), xs) when v = default -> inner xs
-      | Cons ((k, v, to_t, _), xs) -> (mangle k, to_t v) :: inner xs
-      | Nil -> []
+    let rec inner: _ Record_out.t -> (string * t) list = function
+      | Record_out.Cons ((_, v, _, Some default), xs) when v = default -> inner xs
+      | Record_out.Cons ((k, v, to_t, _), xs) -> (mangle k, to_t v) :: inner xs
+      | Record_out.Nil -> []
     in
     let assoc = inner l in
     Driver.of_alist assoc
 
-  let rec to_tuple: type a b. ?flags:flag -> (t, a, b) Runtime.Record_in.t -> a -> t -> b =
+  let rec to_tuple: type a b. ?flags:flag -> (t, a, b) Record_in.t -> a -> t -> b =
     fun ?flags ->
-      let open Runtime.Record_in in
+      let open Record_in in
       function
-      | Cons ((_field, to_value_func, _default), xs) ->
+      | Record_in.Cons ((_field, to_value_func, _default), xs) ->
         fun constructor t ->
           let l = Driver.to_list t in
           let v = to_value_func (List.hd l) in
