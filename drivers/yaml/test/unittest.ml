@@ -38,4 +38,4 @@ module TestDriver = struct
 end
 
 module Unittest = Test.Unittest.Make (TestDriver)
-let () = Unittest.run ~name:"yaml"
+let () = Unittest.run ~name:"yaml" ()

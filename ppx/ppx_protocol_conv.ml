@@ -6,13 +6,17 @@ open Base
 type t = {
   driver: longident;
   flags: expression option;
-  label_attrib:
+  field_key:
     (label_declaration, string) Attribute.t;
-  constr_attrib:
+  constr_key:
     (constructor_declaration, string) Attribute.t;
-  row_attrib:
+  constr_name:
+    (constructor_declaration, string) Attribute.t;
+  variant_key:
     (row_field, string) Attribute.t;
-  label_default:
+  variant_name:
+    (row_field, string) Attribute.t;
+  field_default:
     (label_declaration, expression) Attribute.t;
 }
 
@@ -97,12 +101,31 @@ let location_of_attrib t name (attribs:attributes) =
                | _ -> None
       ) attribs
 
+let row_loc = function
+  | Rtag (sloc, _, _, _) -> sloc.loc
+  | Rinherit typ -> typ.ptyp_loc
+
+let get_variant_name t row =
+  match Attribute.get t.variant_name row, Attribute.get t.variant_key row with
+  | Some name, None -> Some name
+  | None, Some name -> Some name
+  | Some _, Some _ -> raise_errorf ~loc:(row_loc row)  "Both 'key' and 'name' attributes supplied. Use of @@key is deprecated - use @@name instead"
+  | None, None -> None
+
+let get_constr_name t constr =
+  match Attribute.get t.constr_name constr, Attribute.get t.constr_key constr with
+  | Some name, None -> Some name
+  | None, Some name -> Some name
+  | Some _, Some _ -> raise_errorf ~loc:(constr.pcd_loc) "Both 'key' and 'name' attributes supplied. Use of @@key is deprecated - use @@name instead"
+  | None, None -> None
+
+
 (** Test that all constructor names are distict after mapping
     This function will raise an error is a conflict is found
 *)
 let test_constructor_mapping t constrs =
   let base, mapped = List.partition_map ~f:(fun constr ->
-      match Attribute.get t.constr_attrib constr with
+      match get_constr_name t constr with
       | Some name when String.equal constr.pcd_name.txt name -> `Fst name
       | Some name -> `Snd (name, constr.pcd_attributes)
       | None -> `Fst constr.pcd_name.txt
@@ -124,7 +147,7 @@ let test_row_mapping t rows =
         | Rinherit _ -> raise_errorf "Inherited polymorphic variant types not supported"
         | Rtag (name, attrs, _, _) -> name, attrs
       in
-      match Attribute.get t.row_attrib row with
+      match get_variant_name t row with
       | Some name when String.equal row_name.txt name -> `Fst name
       | Some name -> `Snd (name, attrs)
       | None -> `Fst row_name.txt
@@ -219,7 +242,7 @@ let rec serialize_expr_of_type_descr t ~loc = function
           ) core_types
         in
         let rhs =
-          let constr_name = match Attribute.get t.row_attrib row with
+          let constr_name = match get_variant_name t row with
             | Some key -> key
             | None -> name.txt
           in
@@ -307,7 +330,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
       | Rtag (name, _attributes, _bool, core_types) as row ->
         (* val: to_variant: ((string * t list) -> 'a) -> t -> 'a *)
         let lhs =
-          let constr_name = match Attribute.get t.row_attrib row with
+          let constr_name = match get_variant_name t row with
             | Some key -> key
             | None -> name.txt
           in
@@ -356,7 +379,7 @@ let rec deserialize_expr_of_type_descr t ~loc = function
 
 let test_label_mapping t labels =
   let base, mapped = List.partition_map ~f:(fun label ->
-      match Attribute.get t.label_attrib label with
+      match Attribute.get t.field_key label with
       | Some name when String.equal label.pld_name.txt name -> `Fst name
       | Some name -> `Snd (name, label.pld_attributes)
       | None -> `Fst label.pld_name.txt
@@ -378,13 +401,13 @@ let serialize_record t ~loc labels =
   let arg_list =
     List.map ~f:(fun label ->
         let name =
-          match Attribute.get t.label_attrib label with
+          match Attribute.get t.field_key label with
           | None -> estring ~loc:label.pld_loc label.pld_name.txt
           | Some name -> estring ~loc:label.pld_loc name
         in
         let of_t = serialize_expr_of_type_descr t ~loc label.pld_type.ptyp_desc in
         let default =
-          match Attribute.get t.label_default label with
+          match Attribute.get t.field_default label with
           | None -> [% expr None]
           | Some expr -> [% expr Some [%e expr]]
         in
@@ -432,7 +455,7 @@ let serialize_expr_of_tdecl t ~loc tdecl =
             (Some pattern)
         in
         let rhs =
-          let constr_name = match Attribute.get t.constr_attrib constr with
+          let constr_name = match get_constr_name t constr with
             | Some key -> key
             | None -> pcd_name.txt
           in
@@ -457,7 +480,7 @@ let serialize_expr_of_tdecl t ~loc tdecl =
           ) core_types
         in
         let rhs =
-          let constr_name = match Attribute.get t.constr_attrib constr with
+          let constr_name = match get_constr_name t constr with
             | Some key -> key
             | None -> pcd_name.txt
           in
@@ -493,12 +516,12 @@ let deserialize_record t ~loc labels =
   in
   let list_items = List.map ~f:(fun label ->
       let field_name =
-        match Attribute.get t.label_attrib label with
+        match Attribute.get t.field_key label with
         | None -> estring ~loc:label.pld_loc label.pld_name.txt
         | Some name -> estring ~loc:label.pld_loc name
       in
       let func = deserialize_expr_of_type_descr t ~loc label.pld_type.ptyp_desc in
-      let default = match Attribute.get t.label_default label with
+      let default = match Attribute.get t.field_default label with
         | None -> [% expr None]
         | Some expr -> [% expr Some [%e expr]]
       in
@@ -521,7 +544,7 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
     let mk_case = function
       | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
         let lhs =
-          let constr_name = match Attribute.get t.constr_attrib constr with
+          let constr_name = match get_constr_name t constr with
             | Some key -> key
             | None -> pcd_name.txt
           in
@@ -541,7 +564,7 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
 
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
         let lhs =
-          let constr_name = match Attribute.get t.constr_attrib constr with
+          let constr_name = match get_constr_name t constr with
             | Some key -> key
             | None -> pcd_name.txt
           in
@@ -708,16 +731,22 @@ let mk_str_type_decl =
     (* Create T and pass on to f *)
     let driver = ident_of_module ~loc driver in
     let attrib_name name = sprintf "%s.%s" (module_name driver) name in
-    let label_attrib, constr_attrib, row_attrib, label_default =
+    let field_key, constr_key, constr_name, variant_key, variant_name, field_default =
       let create () =
         let open Attribute in
         declare (attrib_name "key")
           Context.label_declaration
           Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
-        declare (attrib_name "key")
+        declare (attrib_name "key") (* Deprecated *)
           Context.constructor_declaration
           Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
-        declare (attrib_name "key")
+        declare (attrib_name "name")
+          Context.constructor_declaration
+          Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
+        declare (attrib_name "key") (* Deprecated *)
+          Context.rtag
+          Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
+        declare (attrib_name "name")
           Context.rtag
           Ast_pattern.(single_expr_payload (estring __)) (fun x -> x),
         declare (attrib_name "default")
@@ -729,10 +758,12 @@ let mk_str_type_decl =
     let t = {
       driver;
       flags;
-      label_attrib;
-      constr_attrib;
-      row_attrib;
-      label_default;
+      field_key;
+      constr_key;
+      constr_name;
+      variant_key;
+      variant_name;
+      field_default;
     } in
     f t recflag ~loc tydecls
 

@@ -65,7 +65,7 @@ runtime.
 ## Attributes
 Record label names can be changed using `[@key <string>]`
 
-Variant constructors names can also be changed using the `[@key <string>]`
+Variant and polymorphic variant constructors names can also be changed using the `[@name <string>]`
 attribute.
 
 If a record field is not present in the input when deserialising, as default value can be
@@ -75,7 +75,7 @@ polymorphic compare, so be carefull.
 
 ## Signatures
 The ppx also handles signature, but disallows
-`[@key ...]`, `[@default ...]` and `~flags:...` as these does not impact signatures.
+`[@key ...]`, `[@default ...]`, `[@name] ....` and `~flags:...` as these does not impact signatures.
 
 ## Drivers
 
@@ -100,17 +100,17 @@ the Msgpack driver accepts the following options:
 
 ##### Types
 
-| Ocaml type      | Generates | Accepts   |
-|-----------------|-----------|-----------|
-| string          | \`String  | \`String  |
-| char            | \`String  | \`String  |
-| bytes           | \`String  | \`String  |
-| int             | \`Int     | \`Int     |
-| int32           | \`Int     | \`Int     |
-| int64           | \`Int     | \`Int     |
-| float           | \`Float   | \`Float   |
-| unit            | \`List [] | \`List [] |
-| Json.t          | Yojson.Safe.t  | Yojson.Safe.t  |
+| Ocaml type         | Generates     | Accepts       |
+|--------------------|---------------|---------------|
+| string, char,bytes | \`String      | \`String      |
+| int, int32, int64  | \`Int         | \`Int         |
+| float              | \`Float       | \`Float       |
+| bool               | \`Bool        | \`Bool        |
+| unit               | \`List []     | \`List []     |
+| 'a list, 'a array  | \`List 'a list| \`List 'a list |
+| 'a option          | \`Null or \'a | \`Null or \'a |
+| 'a ref, lazy 'a    | 'a            | 'a            |
+| Json.t             | Yojson.Safe.t | Yojson.Safe.t |
 
 #### Jsonm
 Converts to and from `Ezjsonm.value`. Types and arguments are the same
@@ -132,37 +132,42 @@ The Msgpack driver accepts the following options:
 
 ##### Types
 
-| Ocaml type      | Generates | Accepts                           |
-|-----------------|-----------|-----------------------------------|
-| string          | String    | String, Bytes                     |
-| char            | String    | String, Bytes                     |
-| int             | Int       | Int, Int32, Int64, Uint32, Uint64 |
-| int32           | Int32     | Int32                             |
-| int64           | Int64     | Int64                             |
-| float           | Float64   | Float64, Float32                  |
-| unit            | List []   | List []                           |
-| Msgpack.uint32  | Uint32    | Uint32                            |
-| Msgpack.uint64  | Uint64    | Uint64                            |
-| Msgpack.bytes   | Bytes     | Bytes, String                     |
-| Msgpack.float32 | Float32   | Float32                           |
-| Msgpack.t       | MsgPck.t  | MsgPck.t                          |
+| Ocaml type         | Generates     | Accepts                           |
+|--------------------|---------------|-----------------------------------|
+| string             | String        | String, Bytes                     |
+| bytes              | Bytes         | String, Bytes                     |
+| char               | String        | String, Bytes                     |
+| int                | Int           | Int, Int32, Int64, Uint32, Uint64 |
+| int32              | Int32         | Int32                             |
+| int64              | Int64         | Int64                             |
+| float              | Float64       | Float64, Float32                  |
+| unit               | List []       | List []                           |
+| bool               | Bool          | Bool                              |
+| 'a list, 'a array  | List 'a list  | `List 'a list                     |
+| 'a option          | Nil or 'a     | Nil or 'a                         |
+| 'a ref, lazy 'a    | 'a            | 'a                                |
+| Msgpack.uint32     | Uint32        | Uint32                            |
+| Msgpack.uint64     | Uint64        | Uint64                            |
+| Msgpack.bytes      | Bytes         | Bytes, String                     |
+| Msgpack.float32    | Float32       | Float32                           |
+| Msgpack.t          | MsgPck.t      | MsgPck.t                          |
 
 #### Yaml
 Converts to and from `Yaml.value`
 
 ##### Types
 
-| Ocaml type      | Generates | Accepts   |
-|-----------------|-----------|-----------|
-| string          | \`String  | \`String  |
-| char            | \`String  | \`String  |
-| bytes           | \`String  | \`String  |
-| int             | \`Float   | \`Float*  |
-| int32           | \`Float   | \`Float*  |
-| int64           | \`Float   | \`Float*  |
-| float           | \`Float   | \`Float   |
-| unit            | \`List [] | \`List [] |
-| Yaml.t          | Yaml.t    | Yaml.t    |
+| Ocaml type          | Generates     | Accepts   |
+|---------------------|---------------|-----------|
+| string, char, bytes | \`String      | \`String  |
+| int,int32,int64     | \`Float       | \`Float*  |
+| float               | \`Float       | \`Float   |
+| bool                | \`Bool        | \`Boolt   |
+| unit                | \`List []     | \`List [] |
+| 'a list, 'a array   | \`List 'a list| \`List 'a list |
+| 'a option           | \`Null or \'a | \`Null or \'a |
+| 'a ref, lazy 'a     | 'a            | 'a            |
+| Yaml.t              | Yaml.t        | Yaml.t    |
 
 (*) Expects `abs(round(f) - f) < 0.000001`
 

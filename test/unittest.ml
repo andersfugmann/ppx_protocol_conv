@@ -4,7 +4,7 @@ let verbose = false
 
 module Make(Driver : Testable.Driver) = struct
 
-  let run ~name =
+  let run ?(extra = []) ~name () =
     let module Unit = Test_unit.Make(Driver) in
     let module Types = Test_types.Make(Driver) in
     let module Variant = Test_variant.Make(Driver) in
@@ -29,7 +29,7 @@ module Make(Driver : Testable.Driver) = struct
         Param_types.unittest;
         Poly.unittest;
         Driver.unittest;
-      ]
+      ] @ extra
     in
   run_test_tt_main suite
 end

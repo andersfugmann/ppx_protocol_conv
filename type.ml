@@ -1,5 +1,7 @@
-type y = (int * string)
-[@@deriving of_protocol ~driver:(module Msgpack)]
+type t = Cons of int * t
+       | Nil [@name "Niiiiiiil"] [@key "Noo"]
+[@@deriving protocol ~driver:(module Driver)]
+
 (*
 type t = A of { a : string; }
        | B of int
