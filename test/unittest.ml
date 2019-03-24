@@ -9,6 +9,7 @@ module Make(Driver : Testable.Driver) = struct
     let module Types = Test_types.Make(Driver) in
     let module Variant = Test_variant.Make(Driver) in
     let module Nonrec = Test_nonrec.Make(Driver) in
+    let module Option_unit = Test_option_unit.Make(Driver) in
     let module Lists = Test_lists.Make(Driver) in
     let module Arrays = Test_arrays.Make(Driver) in
     let module Record = Test_record.Make(Driver) in
@@ -22,6 +23,7 @@ module Make(Driver : Testable.Driver) = struct
         Types.unittest;
         Variant.unittest;
         Nonrec.unittest;
+        Option_unit.unittest;
         Lists.unittest;
         Arrays.unittest;
         Record.unittest;
