@@ -1,5 +1,6 @@
 open Base
 open Protocol_conv
+open Runtime
 type v =
   | Variant of (string * v list)
   | Record of (string * v) list
@@ -49,25 +50,24 @@ let rec to_record: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
     end
   | Nil -> fun a _t -> a
 
-let of_record: _ Runtime.Record_out.t -> t = fun l ->
-  let rec inner: _ Runtime.Record_out.t -> (string * t) list = function
-    | Cons ((_, v, _, Some default), xs) when (Poly.(=) v default) -> inner xs
-    | Cons ((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
-    | Nil -> []
+let of_record: _ Record_out.t -> t = fun l ->
+  let rec inner: _ Record_out.t -> (string * t) list = function
+    | Record_out.Cons ((_, v, _, Some default), xs) when (Poly.(=) v default) -> inner xs
+    | Record_out.Cons ((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
+    | Record_out.Nil -> []
   in
   Record (inner l)
 
-let rec to_tuple: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
-  let open Runtime.Record_in in
+let rec to_tuple: type a b. (t, a, b) Record_in.t -> a -> t -> b =
   function
-  | Cons ((field, to_value_func, _default), xs) -> begin
+  | Record_in.Cons ((field, to_value_func, _default), xs) -> begin
       fun constr -> function
         | Tuple ((fn, v) :: ts) when String.equal fn field ->
           to_tuple xs (constr (to_value_func v)) (Tuple ts)
         | Tuple _ as e -> raise_errorf e "Tuple has incorrect ordering"
         | e -> raise_errorf e "Tuple type not found"
     end
-  | Nil -> fun a _t -> a
+  | Record_in.Nil -> fun a _t -> a
 
 let of_tuple t = Tuple t
 

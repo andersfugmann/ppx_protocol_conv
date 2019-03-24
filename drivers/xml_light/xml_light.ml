@@ -87,9 +87,9 @@ let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
 
 let of_record: _ Record_out.t -> t = fun l ->
   let rec inner: _ Record_out.t -> (string * t) list = function
-    | Cons ((_, v, _, Some default), xs) when v = default -> inner xs
-    | Cons((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
-    | Nil -> []
+    | Record_out.Cons ((_, v, _, Some default), xs) when v = default -> inner xs
+    | Record_out.Cons ((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
+    | Record_out.Nil -> []
   in
   let assoc = inner l in
   List.map ~f:(
