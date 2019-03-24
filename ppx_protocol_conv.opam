@@ -18,7 +18,6 @@ depends: [
   "ppx_sexp_conv" {with-test & < "v0.12"}
   "sexplib" {with-test & < "v0.12"}
   "ounit" {with-test}
-  "ocaml" { >= "4.04" }
 ]
 synopsis:
   "Ppx for generating serialisation and de-serialisation functions of ocaml types"
