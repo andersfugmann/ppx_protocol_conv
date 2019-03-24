@@ -112,6 +112,24 @@ the Msgpack driver accepts the following options:
 | 'a ref, lazy 'a    | 'a            | 'a            |
 | Json.t             | Yojson.Safe.t | Yojson.Safe.t |
 
+#####  Notes
+Serialization differs from `ppx_deriving_yojson` when serializing in
+that constructors without arguments are serialized to strings, rather
+than a list. Constructors with arguments are serialized to lists.
+
+This allows for deserialising a string directly into a ADT:
+
+```ocaml
+type country = Denmark | France
+and t = {
+  name: string;
+  country: country;
+}  [@@deriving protocol ~driver:(module Json)]
+
+{ name = "Anders"; country = Denmark } |> to_json |> Yojson.Safe.to_string
+```
+produces: `{ "name": "Anders", "country": "Denmark" }`
+
 #### Jsonm
 Converts to and from `Ezjsonm.value`. Types and arguments are the same
 as for the Json implementation.

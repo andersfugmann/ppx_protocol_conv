@@ -225,6 +225,9 @@ module Make(Driver: Driver) = struct
   let to_bool ?flags:_ t = try Driver.to_bool t with _ -> raise_errorf t "bool expected"
   let of_bool ?flags:_ v = Driver.of_bool v
 
-  let to_unit ?flags t = to_tuple ?flags Runtime.Record_in.Nil () t
-  let of_unit ?flags () = of_tuple ?flags []
+  let to_unit ?flags t = to_option ?flags (fun _ -> ()) t
+                         |> function Some _ -> raise_errorf t "Unit (null) expected"
+                                   | None -> ()
+
+  let of_unit ?flags () = of_option ?flags (fun _ -> failwith "Should call with None") None
 end
