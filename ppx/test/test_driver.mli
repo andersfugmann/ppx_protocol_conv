@@ -13,9 +13,6 @@ type v =
   | Bool of bool
   | Unit
 
-include Protocol_conv.Runtime.Driver with
-  type t = v and
-  type 'a flags = 'a
-
+include Protocol_conv.Runtime.Driver with type t = v
 val t_of_test: t -> t
 val t_to_test: t -> t

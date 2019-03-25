@@ -1,5 +1,5 @@
 open OUnit2
-module type Driver = Protocol_conv.Runtime.Driver with type 'a flags = 'a
+module type Driver = Protocol_conv.Runtime.Driver
 
 module type Test = functor(Driver: Driver) -> sig
   val unittest : printer:(Driver.t -> string) -> test

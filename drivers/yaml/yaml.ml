@@ -53,8 +53,8 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   let null = `Null
   let is_null = function `Null -> true | _ -> false
 end
-
-include Ppx_protocol_driver.Make(Driver)
+module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
+include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
 
 let of_yaml t = t
 let to_yaml t = t

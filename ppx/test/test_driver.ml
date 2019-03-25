@@ -17,7 +17,6 @@ type v =
   | Unit
 
 type t = v
-type 'a flags = 'a
 
 exception Protocol_error of string * t
 

@@ -27,7 +27,7 @@ type a = {
   x: int;
   y: string [@key "Y"]
   z: int list [@default [2;3]]
-} [@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle)]
+} [@@deriving protocol ~driver:(module Json)]
 
 type b = A of int
        | B of int [@key "b"]
@@ -56,12 +56,6 @@ Evaluates to
 type. `of_protocol` deriver generates de-serilisation of the type,
 while `protocol` deriver will generate both serilisation and de-serilisation functions.
 
-Flags can be specified using the driver argument ~flags. For the json
-and msgpack drivers, the `mangle` function transforms record label names to be
-lower camelcase: a_bc_de -> aBcDe and a_bc_de_ -> aBcDe. Beware that
-this may cause name collisions, which can only be determined at
-runtime.
-
 ## Attributes
 Record label names can be changed using `[@key <string>]`
 
@@ -75,7 +69,7 @@ polymorphic compare, so be carefull.
 
 ## Signatures
 The ppx also handles signature, but disallows
-`[@key ...]`, `[@default ...]`, `[@name] ....` and `~flags:...` as these does not impact signatures.
+`[@key ...]`, `[@default ...]` and `[@name] ....` as these does not impact signatures.
 
 ## Drivers
 
@@ -91,12 +85,12 @@ type example = {
 Maps to and from `Yojson.Safe.t`
 
 ##### Options
-the Msgpack driver accepts the following options:
+Standard options mimics that of `ppx_deriving_yojson`, except that
+Constructors without arguments are serialized to a string rather than
+a list.
 
-| Option      | Description | Example |
-|-------------|-------------|---------|
-| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle]` |
-| | | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
+Complete yojson compatibility with `ppx_deriving_yojson` it provides
+though module Json.Yojson.
 
 ##### Types
 
@@ -131,7 +125,8 @@ and t = {
 produces: `{ "name": "Anders", "country": "Denmark" }`
 
 #### Jsonm
-Converts to and from `Ezjsonm.value`. Types and arguments are the same
+Converts to and from `Ezjsonm.value`.
+Types and arguments are the same
 as for the Json implementation.
 
 #### Msgpack
@@ -140,13 +135,8 @@ To allow more finegrained control over generated type, the
 msgpack module defines extra types. See table in #types section.
 
 ##### Options
-The Msgpack driver accepts the following options:
-
-| Option      | Description | Example |
-|-------------|-------------|---------|
-| `Mangle of (string -> string) | Maps record field names | `[@@deriving protocol ~driver:(module Json) ~flags:(`Mangle Json.mangle]` |
-| | | Mangles names: `a_bc_de -> aBcDe`, `ab_ -> ab`, `ab_cd__ -> abCd' |
-
+The module Also provides means for chaning default attribute behaviour
+and record field naming convensions, by using the functor `Msgpack.Make(P:Parameters)`
 
 ##### Types
 
@@ -173,6 +163,10 @@ The Msgpack driver accepts the following options:
 #### Yaml
 Converts to and from `Yaml.value`
 
+##### Options
+The module Also provides means for chaning default attribute behaviour
+and record field naming convensions, by using the functor `Yaml.Make(P:Parameters)`
+
 ##### Types
 
 | Ocaml type          | Generates     | Accepts   |
@@ -194,12 +188,10 @@ It is easy to provide custom drivers by implementing the signature:
 
 ```ocaml
 include Protocol_conv.Runtime.Driver with
-  type t = ... and
-  type 'a flags = ...
+  type t = ...
 ```
-
-See the drivers directory for examples on how to implemented new drivers.
-Submissions of new drivers are welcome.
+See the `drivers` directory for examples on how to implemented new drivers.
+Submissions of new drivers are more than welcome.
 
 ## Not supported
 * Generalised algebraic datatypes

@@ -1,3 +1,17 @@
+module type Parameters = sig
+  (** Map field names*)
+  val field_name: string -> string
+
+  (** Map singleton constructors to a string.
+      If true, singleton constructors are mapped to a string *)
+  val singleton_constr_as_string: bool
+
+  (** Omit default values from output *)
+  val omit_default_values: bool
+end
+
+module Default_parameters : Parameters
+
 module type Driver = sig
   type t
   val to_string_hum: t -> string
@@ -41,7 +55,5 @@ end
 
 val mangle: string -> string
 
-module Make: functor (D : Driver) ->
-  Protocol_conv.Runtime.Driver with
-  type t = D.t and
-  type 'a flags = ?flags:[ `Mangle of (string -> string) ] -> 'a
+module Make: functor (D : Driver)(P : Parameters) ->
+  Protocol_conv.Runtime.Driver with type t = D.t

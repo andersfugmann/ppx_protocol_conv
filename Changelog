@@ -9,6 +9,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Add @name attribute to be compatible with ppx_deriving_yojson
 [*] Support ref cells
 [*] Serialize unit to Null instead of the empty list
+[*] Replace mangle option with driver functors.
 
 3.2.0
 [x] Require ppx_protocol_conv in all drivers. #12

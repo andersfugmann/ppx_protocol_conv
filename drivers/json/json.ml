@@ -44,7 +44,20 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warn
   let is_null = function `Null -> true | _ -> false
 end
 
-include Ppx_protocol_driver.Make(Driver)
+include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
+module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
+
+module Yojson = struct
+  include Make(struct
+      let omit_default_values = true
+      let field_name name = name
+      let singleton_constr_as_string = false
+    end)
+  let to_yojson t = t
+  let of_yojson t = t
+end
+
+
 
 (* Allow referencing Json.t in structures. *)
 let of_json t = t

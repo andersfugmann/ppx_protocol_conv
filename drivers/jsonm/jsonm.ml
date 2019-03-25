@@ -1,4 +1,5 @@
 let identity x = x
+
 module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   type t = Ezjsonm.value
 
@@ -44,7 +45,8 @@ module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   let is_null = function `Null -> true | _ -> false
 end
 
-include Ppx_protocol_driver.Make(Driver)
+include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
+module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
 
 let of_jsonm = identity
 let to_jsonm = identity

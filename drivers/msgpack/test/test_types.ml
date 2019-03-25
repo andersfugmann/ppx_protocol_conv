@@ -1,3 +1,4 @@
+open OUnit2
 open Protocol_conv_msgpack
 
 type t = {
@@ -15,7 +16,7 @@ type t = {
 }
 [@@deriving protocol ~driver:(module Msgpack)]
 
-let test _ =
+let test_types _ =
   let t = {
     int = 0;
     string = "a";
@@ -32,6 +33,8 @@ let test _ =
   in
   let m = to_msgpack t in
   let t' = of_msgpack m in
-  OUnit2.assert_equal t t';
+  assert_equal t t';
   Printf.printf ".\n";
   ()
+
+let unittest = "special types" >:: test_types

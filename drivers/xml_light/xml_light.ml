@@ -2,7 +2,6 @@
 open StdLabels
 open Protocol_conv.Runtime
 type t = Xml.xml
-type 'a flags = 'a no_flags
 
 let _log fmt = Printf.eprintf (fmt ^^ "\n%!")
 
@@ -31,11 +30,11 @@ let rec element_to_map m = function
 
 let element name t = Xml.Element (name, [], t)
 
-let of_variant: (('a -> string * t list) -> 'a -> t) flags = fun destruct t ->
+let of_variant: ('a -> string * t list) -> 'a -> t = fun destruct t ->
   let (s, ts) = destruct t in
   Xml.Element("variant", [], Xml.PCData s :: ts)
 
-let to_variant: ((string * t list -> 'a) -> t -> 'a) flags = fun constr -> function
+let to_variant: (string * t list -> 'a) -> t -> 'a = fun constr -> function
   | Xml.Element(_, _, Xml.PCData s :: es) -> constr (s, es)
   | Xml.Element(name, _, []) as d -> raise_errorf d "No contents for variant type: %s" name
   | d -> raise_errorf d "Wrong variant data"

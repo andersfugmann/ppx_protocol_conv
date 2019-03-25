@@ -5,7 +5,6 @@ open Base
 
 type t = {
   driver: longident;
-  flags: expression option;
   field_key:
     (label_declaration, string) Attribute.t;
   constr_key:
@@ -41,9 +40,7 @@ let ident_of_string_loc { loc; txt} = { loc; txt=Lident txt }
 
 let driver_func t ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
-  match t.flags with
-  | None -> [%expr (fun t -> [%e func] t)]
-  | Some flag -> [%expr (fun t -> [%e func] ~flags:[%e flag] t)]
+  [%expr (fun t -> [%e func] t)]
 
 (** Concatinate the list of expressions into a single expression using
    list concatenation *)
@@ -730,7 +727,7 @@ let protocol_sig_type_decls ~loc ~path (rec_flag, tydecls) (driver:module_expr o
 let mk_str_type_decl =
   (* Cache to avoid creating the same attributes twice. *)
   let attrib_table = Hashtbl.Poly.create () in
-  fun f ~loc ~path:_ (recflag, tydecls) driver flags ->
+  fun f ~loc ~path:_ (recflag, tydecls) driver ->
     (* Create T and pass on to f *)
     let driver = ident_of_module ~loc driver in
     let attrib_name name = sprintf "%s.%s" (module_name driver) name in
@@ -760,7 +757,6 @@ let mk_str_type_decl =
     in
     let t = {
       driver;
-      flags;
       field_key;
       constr_key;
       constr_name;
@@ -772,24 +768,23 @@ let mk_str_type_decl =
 
 let () =
   let driver = Ppxlib.Deriving.Args.(arg "driver" (pexp_pack __)) in
-  let flags = Ppxlib.Deriving.Args.(arg "flags" __) in
   Deriving.add "protocol"
     ~str_type_decl:(Deriving.Generator.make
-                      Deriving.Args.(empty +> driver +> flags)
+                      Deriving.Args.(empty +> driver)
                       (mk_str_type_decl protocol_str_type_decls))
     ~sig_type_decl:(Deriving.Generator.make Deriving.Args.(empty +> driver) protocol_sig_type_decls)
   |> Ppxlib.Deriving.ignore;
 
   Deriving.add "of_protocol"
     ~str_type_decl:(Deriving.Generator.make
-                      Deriving.Args.(empty +> driver +> flags)
+                      Deriving.Args.(empty +> driver)
                       (mk_str_type_decl of_protocol_str_type_decls))
     ~sig_type_decl:(Deriving.Generator.make Deriving.Args.(empty +> driver) of_protocol_sig_type_decls)
   |> Deriving.ignore;
 
   Deriving.add "to_protocol"
     ~str_type_decl:(Deriving.Generator.make
-                      Deriving.Args.(empty +> driver +> flags)
+                      Deriving.Args.(empty +> driver)
                       (mk_str_type_decl to_protocol_str_type_decls))
     ~sig_type_decl:(Deriving.Generator.make Deriving.Args.(empty +> driver) to_protocol_sig_type_decls)
   |> Deriving.ignore;

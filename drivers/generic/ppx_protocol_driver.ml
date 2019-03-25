@@ -4,6 +4,18 @@ open StdLabels
 
 module StringMap = Map.Make(String)
 
+module type Parameters = sig
+  val field_name: string -> string
+  val singleton_constr_as_string: bool
+  val omit_default_values: bool
+end
+
+module Default_parameters : Parameters = struct
+  let field_name name = name
+  let singleton_constr_as_string = true
+  let omit_default_values = true
+end
+
 module type Driver = sig
   type t
   val to_string_hum: t -> string
@@ -63,11 +75,8 @@ let mangle: string -> string = fun s ->
   in
   string_map ~f:inner s
 
-module Make(Driver: Driver) = struct
+module Make(Driver: Driver)(P: Parameters) = struct
   type t = Driver.t
-  type flag = [ `Mangle of (string -> string) ]
-  type 'a flags = ?flags:flag -> 'a
-
 
   exception Protocol_error of string * t
   (* Register exception printer *)
@@ -78,32 +87,30 @@ module Make(Driver: Driver) = struct
   let raise_errorf t fmt =
     Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
-  let of_variant ?flags:_ destruct t =
+  let of_variant destruct t =
     match destruct t with
-    | name, [] -> Driver.of_string name
-    | name, args -> Driver.of_list (Driver.of_string name :: args)
+    | name, [] when P.singleton_constr_as_string ->
+      Driver.of_string name
+    | name, args -> Driver.of_string name :: args |> Driver.of_list
 
-  let to_variant ?flags:_ constr =
+  let to_variant constr =
     function
-    | t when Driver.is_string t -> constr (Driver.to_string t, [])
+    | t when P.singleton_constr_as_string && Driver.is_string t -> constr (Driver.to_string t, [])
     | t when Driver.is_list t -> begin
         match Driver.to_list t with
         | name :: ts when Driver.is_string name ->
           constr (Driver.to_string name, ts)
         | _ -> raise_errorf t "Variant list must start with a string"
       end
-    | t -> raise_errorf t "Variants must be a string or a list"
+    | t when P.singleton_constr_as_string -> raise_errorf t "Variants must be a string or a list"
+    | t -> raise_errorf t "Variants must be a list"
 
-  let to_record: type a b. ?flags:flag -> (t, a, b) Runtime.Record_in.t -> a -> t -> b = fun ?flags spec constr ->
-    let field_func x = match flags with
-      | None -> x
-      | Some (`Mangle f) -> f x
-    in
-    let rec inner: type a b. orig:t -> (t, a, b) Runtime.Record_in.t -> a -> 'c -> b = fun ~orig ->
-      let open Runtime.Record_in in
+  let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec constr ->
+    let rec inner: type a b. orig:t -> (t, a, b) Record_in.t -> a -> 'c -> b = fun ~orig ->
+      let open Record_in in
       function
       | Cons ((field, to_value_func, default), xs) ->
-        let field_name = field_func field in
+        let field_name = P.field_name field in
         let cont = inner xs in
         fun constr t ->
           let v =
@@ -127,31 +134,26 @@ module Make(Driver: Driver) = struct
       in
       f ~orig:t values
 
-  let of_record: ?flags:flag -> _ Record_out.t -> t = fun ?flags l ->
-    let mangle = match flags with
-      | None -> fun x -> x
-      | Some `Mangle mangle -> mangle
-    in
+  let of_record: _ Record_out.t -> t = fun l ->
     let rec inner: _ Record_out.t -> (string * t) list = function
-      | Record_out.Cons ((_, v, _, Some default), xs) when v = default -> inner xs
-      | Record_out.Cons ((k, v, to_t, _), xs) -> (mangle k, to_t v) :: inner xs
+      | Record_out.Cons ((_, v, _, Some default), xs) when P.omit_default_values && v = default -> inner xs
+      | Record_out.Cons ((k, v, to_t, _), xs) -> (P.field_name k, to_t v) :: inner xs
       | Record_out.Nil -> []
     in
     let assoc = inner l in
     Driver.of_alist assoc
 
-  let rec to_tuple: type a b. ?flags:flag -> (t, a, b) Record_in.t -> a -> t -> b =
-    fun ?flags ->
+  let rec to_tuple: type a b. (t, a, b) Record_in.t -> a -> t -> b =
       let open Record_in in
       function
       | Record_in.Cons ((_field, to_value_func, _default), xs) ->
         fun constructor t ->
           let l = Driver.to_list t in
           let v = to_value_func (List.hd l) in
-          to_tuple ?flags xs (constructor v) (Driver.of_list (List.tl l))
+          to_tuple xs (constructor v) (Driver.of_list (List.tl l))
       | Nil -> fun a _t -> a
 
-  let of_tuple ?flags:_ t = Driver.of_list (List.map ~f:snd t)
+  let of_tuple  t = Driver.of_list (List.map ~f:snd t)
 
   let get_option = function
     | t when Driver.is_alist t -> begin
@@ -163,14 +165,14 @@ module Make(Driver: Driver) = struct
 
 
   (* If the type is an empty list, thats also null. *)
-  let to_option: ?flags:flag -> (t -> 'a) -> t -> 'a option = fun ?flags:_ to_value_fun -> function
+  let to_option: (t -> 'a) -> t -> 'a option = fun  to_value_fun -> function
     | t when Driver.is_null t -> None
     | t ->
       let t = match (get_option t) with Some t -> t | None -> t in
       Some (to_value_fun t)
 
 
-  let of_option: ?flags:flag -> ('a -> t) -> 'a option -> t = fun ?flags:_ of_value_fun -> function
+  let of_option: ('a -> t) -> 'a option -> t = fun  of_value_fun -> function
     | None -> Driver.null
     | Some v ->
       let mk_option t = Driver.of_alist [ ("__option", t) ] in
@@ -180,54 +182,54 @@ module Make(Driver: Driver) = struct
         mk_option t
       | t -> t
 
-  let to_ref: ?flags:flag -> (t -> 'a) -> t -> 'a ref = fun ?flags:_ to_value_fun t ->
+  let to_ref: (t -> 'a) -> t -> 'a ref = fun  to_value_fun t ->
       let v = to_value_fun t in
       ref v
 
-  let of_ref: ?flags:flag -> ('a -> t) -> 'a ref -> t = fun ?flags:_ of_value_fun v ->
+  let of_ref: ('a -> t) -> 'a ref -> t = fun  of_value_fun v ->
     of_value_fun !v
 
-  let to_list: ?flags:flag -> (t -> 'a) -> t -> 'a list = fun ?flags:_ to_value_fun t ->
+  let to_list: (t -> 'a) -> t -> 'a list = fun  to_value_fun t ->
     List.map ~f:to_value_fun (Driver.to_list t)
-  let of_list: ?flags:flag -> ('a -> t) -> 'a list -> t = fun ?flags:_ of_value_fun v ->
+  let of_list: ('a -> t) -> 'a list -> t = fun  of_value_fun v ->
     List.map ~f:of_value_fun v |> Driver.of_list
 
-  let to_array: ?flags:flag -> (t -> 'a) -> t -> 'a array = fun ?flags:_ to_value_fun t ->
+  let to_array: (t -> 'a) -> t -> 'a array = fun  to_value_fun t ->
     to_list to_value_fun t |> Array.of_list
 
-  let of_array: ?flags:flag -> ('a -> t) -> 'a array -> t = fun ?flags:_ of_value_fun v ->
+  let of_array: ('a -> t) -> 'a array -> t = fun  of_value_fun v ->
     Array.to_list v |> of_list of_value_fun
 
-  let to_lazy_t: ?flags:flag -> (t -> 'a) -> t -> 'a lazy_t = fun ?flags:_ to_value_fun t ->
+  let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun  to_value_fun t ->
     Lazy.from_fun (fun () -> to_value_fun t)
 
-  let of_lazy_t: ?flags:flag -> ('a -> t) -> 'a lazy_t -> t = fun ?flags:_ of_value_fun v ->
+  let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun  of_value_fun v ->
     Lazy.force v |> of_value_fun
 
-  let to_char ?flags:_ t = try Driver.to_char t with _ -> raise_errorf t "char expected"
-  let of_char ?flags:_ v = Driver.of_char v
+  let to_char  t = try Driver.to_char t with _ -> raise_errorf t "char expected"
+  let of_char  v = Driver.of_char v
 
-  let to_int ?flags:_ t = try Driver.to_int t with _ -> raise_errorf t "int expected"
-  let of_int ?flags:_ v = Driver.of_int v
+  let to_int  t = try Driver.to_int t with _ -> raise_errorf t "int expected"
+  let of_int  v = Driver.of_int v
 
-  let to_int32 ?flags:_ t = try Driver.to_int32 t with _ -> raise_errorf t "int32 expected"
-  let of_int32 ?flags:_ v = Driver.of_int32 v
+  let to_int32  t = try Driver.to_int32 t with _ -> raise_errorf t "int32 expected"
+  let of_int32  v = Driver.of_int32 v
 
-  let to_int64 ?flags:_ t = try Driver.to_int64 t with _ -> raise_errorf t "int64 expected"
-  let of_int64 ?flags:_ v = Driver.of_int64 v
+  let to_int64  t = try Driver.to_int64 t with _ -> raise_errorf t "int64 expected"
+  let of_int64  v = Driver.of_int64 v
 
-  let to_string ?flags:_ t = try Driver.to_string t with _ -> raise_errorf t "string expected"
-  let of_string ?flags:_ v = Driver.of_string v
+  let to_string  t = try Driver.to_string t with _ -> raise_errorf t "string expected"
+  let of_string  v = Driver.of_string v
 
-  let to_float ?flags:_ t = try Driver.to_float t with _ -> raise_errorf t "float expected"
-  let of_float ?flags:_ v = Driver.of_float v
+  let to_float  t = try Driver.to_float t with _ -> raise_errorf t "float expected"
+  let of_float  v = Driver.of_float v
 
-  let to_bool ?flags:_ t = try Driver.to_bool t with _ -> raise_errorf t "bool expected"
-  let of_bool ?flags:_ v = Driver.of_bool v
+  let to_bool  t = try Driver.to_bool t with _ -> raise_errorf t "bool expected"
+  let of_bool  v = Driver.of_bool v
 
-  let to_unit ?flags t = to_option ?flags (fun _ -> ()) t
-                         |> function Some _ -> raise_errorf t "Unit (null) expected"
-                                   | None -> ()
+  let to_unit t = to_option (fun _ -> ()) t
+                  |> function Some _ -> raise_errorf t "Unit (null) expected"
+                            | None -> ()
 
-  let of_unit ?flags () = of_option ?flags (fun _ -> failwith "Should call with None") None
+  let of_unit () = of_option (fun _ -> failwith "Should call with None") None
 end
