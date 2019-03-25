@@ -84,6 +84,16 @@ The ppx also handles signature, but disallows
 
 ## Drivers
 
+Drivers specify concrete serialization and deserialization.
+Users of the library can elect to implement their own driver see
+[custom drivers](#custom-drivers), or use predefined drivers:
+
+ * `Json` which serialises to `Yojson.Safe.t`
+ * `Jsonm` which serialises to `Ezjsonm.value`
+ * `Msgpack` which serialises to `Msgpck.t`
+ * `Yaml` which serialises to `Yaml.t`
+ * `Xml_light` which serialises to `Xml.xml list`
+
 ### Notes on type mappings
 All included driver allow for the identity mapping by using the
 `<driver>.t` type, i.e.:
@@ -93,7 +103,8 @@ type example = {
 }
 ```
 #### Json
-Maps to and from `Yojson.Safe.t`
+Maps to and from `Yojson.Safe.t`.
+Package `ppx_protocol_conv_json`
 
 ##### Options
 Standard options mimics that of `ppx_deriving_yojson`, except that
@@ -149,11 +160,13 @@ produces: `{ "name": "Anders", "country": "Denmark" }`
 Converts to and from `Ezjsonm.value`.
 Types and arguments are the same
 as for the Json implementation.
+Package `ppx_protocol_conv_jsonm`
 
 #### Msgpack
 Msgpack driver maps to and from `Msgpck.t`.
 To allow more finegrained control over generated type, the
 msgpack module defines extra types. See table in #types section.
+Package `ppx_protocol_conv_msgpack`
 
 ##### Options
 The module Also provides means for chaning default attribute behaviour
@@ -183,7 +196,7 @@ and record field naming convensions, by using the functor `Msgpack.Make(P:Parame
 
 #### Yaml
 Converts to and from `Yaml.value`
-
+Package `ppx_protocol_conv_yaml`
 ##### Options
 The module Also provides means for chaning default attribute behaviour
 and record field naming convensions, by using the functor `Yaml.Make(P:Parameters)`
@@ -211,6 +224,7 @@ returned from Amazon S3 api, and the implementation is feature
 complete, and the implementation tries to produce as slim xml as
 possible.
 
+Package `ppx_protocol_conv_xml_light`
 
 ## Custom drivers
 It is easy to provide custom drivers by implementing the signature:
