@@ -15,9 +15,9 @@ The ppx supports the following features:
 The following drivers exists
  * `Json` which serialises to `Yojson.Safe.t`
  * `Jsonm` which serialises to `Ezjsonm.value`
- * `Xml_light` which serialises to `Xml.xml list`
  * `Msgpack` which serialises to `Msgpck.t`
  * `Yaml` which serialises to `Yaml.t`
+ * `Xml_light` which serialises to `Xml.xml list`
 
 ## Example Usage
 ```ocaml
@@ -89,8 +89,18 @@ Standard options mimics that of `ppx_deriving_yojson`, except that
 Constructors without arguments are serialized to a string rather than
 a list.
 
-Complete yojson compatibility with `ppx_deriving_yojson` it provides
-though module Json.Yojson.
+To set options to create output compatible with `ppx_deriving_yojson` use
+```ocaml
+module Json = Json.Make(
+  struct
+    let field_name str = str
+    let singleton_constr_as_string = false
+    let omit_default_values: true
+  end)
+```
+See [Parameters](https://andersfugmann.github.io/ppx_protocol_conv/ppx_protocol_conv/Ppx_protocol_driver/module-type-Parameters/index.html)
+for a description of possible options.
+
 
 ##### Types
 
