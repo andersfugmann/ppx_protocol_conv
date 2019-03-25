@@ -4,6 +4,18 @@ plugable (de)serialisers. [Api](https://andersfugmann.github.io/ppx_protocol_con
 
 [![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
 
+# Table of contents
+1. [Features](#features)
+1. [Examples](#examples)
+1. [Drivers](#drivers)
+    1. [Json](#json)
+    1. [Jsonm](#jsonm)
+    1. [Msgpack](#msgpack)
+    1. [Yaml](#yaml)
+    1. [Xml_light](#xml_light)
+1. [Custom drivers](#custom-drivers)
+1. [Not supported](#not-supported)
+
 ## Features
 The ppx supports the following features:
  * records
@@ -19,9 +31,8 @@ The following drivers exists
  * `Yaml` which serialises to `Yaml.t`
  * `Xml_light` which serialises to `Xml.xml list`
 
-## Example Usage
+## Examples
 ```ocaml
-open Protocol_conv
 open Protocol_conv_json
 type a = {
   x: int;
@@ -59,13 +70,13 @@ while `protocol` deriver will generate both serilisation and de-serilisation fun
 ## Attributes
 Record label names can be changed using `[@key <string>]`
 
-Variant and polymorphic variant constructors names can also be changed using the `[@name <string>]`
+Variant and polymorphic variant constructors names can be changed using the `[@name <string>]`
 attribute.
 
 If a record field is not present in the input when deserialising, as default value can be
 assigned using `[@default <expr>]`. If the value to be serialized
-matches the default value, the field will be omitted. Comparrison uses
-polymorphic compare, so be carefull.
+matches the default value, the field will be omitted (Some drivers
+allow disabling this functonality. Comparrison uses polymorphic compare, so be careful.
 
 ## Signatures
 The ppx also handles signature, but disallows
@@ -192,6 +203,14 @@ and record field naming convensions, by using the functor `Yaml.Make(P:Parameter
 | Yaml.t              | Yaml.t        | Yaml.t    |
 
 (*) Expects `abs(round(f) - f) < 0.000001`
+
+#### Xml_light
+Converts to and from `Xml_light.xml`.
+The serialization is implemented to be compatible with the xml
+returned from Amazon S3 api, and the implementation is feature
+complete, and the implementation tries to produce as slim xml as
+possible.
+
 
 ## Custom drivers
 It is easy to provide custom drivers by implementing the signature:
