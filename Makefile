@@ -21,7 +21,7 @@ update-version: VERSION=$(shell cat Changelog | grep -E '^[0-9]' | head -n 1)
 update-version:
 	@echo "Set version to $(VERSION)"
 	@sed -i 's/^version: .*/version: "$(VERSION)"/' *.opam
-	@sed -i 's/^\( *\)"ppx_protocol_conv" {[ ]*>= ".*"[ ]*}/\1"ppx_protocol_conv" {>= "$(VERSION)"}/' ppx_protocol_conv_*.opam
+	@sed -i 's/^\( *\)"ppx_protocol_conv" {[ ]*= ".*"[ ]*}/\1"ppx_protocol_conv" {= "$(VERSION)"}/' ppx_protocol_conv_*.opam
 
 release:
 	opam publish
