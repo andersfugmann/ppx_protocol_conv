@@ -40,7 +40,7 @@ let ident_of_string_loc { loc; txt} = { loc; txt=Lident txt }
 
 let driver_func t ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
-  [%expr (fun t -> [%e func] t)]
+  [%expr ([%e func])]
 
 (** Concatinate the list of expressions into a single expression using
    list concatenation *)
