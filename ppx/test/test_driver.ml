@@ -20,6 +20,8 @@ type t = v
 
 exception Protocol_error of string * t
 
+let to_string_hum _ = failwith "Not implemented"
+
 let raise_errorf t fmt =
   Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 

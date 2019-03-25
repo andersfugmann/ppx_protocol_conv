@@ -16,6 +16,9 @@ let () = Printexc.register_printer
 let raise_errorf t fmt =
   Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
+let to_string_hum xml =
+  Xml.to_string_fmt xml
+
 (* We are actually able to determine if we should inline by looking at the node name.
    Alternativly, we need to wrap records into yet another level *)
 let rec element_to_map m = function

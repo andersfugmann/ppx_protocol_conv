@@ -1,16 +1,8 @@
 (executable
  (name       unittest)
- (modules :standard \ test_parameters)
+ (modules    :standard)
  (libraries  test ppx_protocol_conv_json)
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect))
-)
-
-(library
- (name       expect)
- (modules    test_parameters)
- (inline_tests)
- (libraries  ppx_protocol_conv_json)
- (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect ppx_inline_test))
 )
 
 (alias

@@ -15,7 +15,7 @@ end
 module type Driver = sig
   type t
   exception Protocol_error of string * t
-
+  val to_string_hum: t -> string
   val to_variant: (string * t list -> 'a) -> t -> 'a
   val of_variant: ('a -> string * t list) -> 'a -> t
   val to_record:  (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b

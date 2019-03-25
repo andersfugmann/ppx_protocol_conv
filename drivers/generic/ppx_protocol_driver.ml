@@ -84,6 +84,8 @@ module Make(Driver: Driver)(P: Parameters) = struct
       | Protocol_error (s, t) -> Some (Printf.sprintf "%s, %s" s (Driver.to_string_hum t))
       | _ -> None)
 
+  let to_string_hum = Driver.to_string_hum
+
   let raise_errorf t fmt =
     Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
