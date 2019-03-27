@@ -1,3 +1,18 @@
+module Test = struct
+  type (_, _) spec =
+    | (::) : (string * ('a -> string))  * ('b, 'c) spec -> ('a -> 'b, 'c) spec
+    | [] : ('a, 'a) spec
+
+  let rec print: type b. (b, (string * string) list) spec -> (string * string) list -> b = function
+    | (name, f) :: xs ->
+      let cont = print xs in
+      fun acc v -> cont ((name, f v) :: acc)
+    | [] -> fun v -> v
+
+  let x = print ["A", string_of_int; "B", string_of_float] []
+  let y = (x 4 5.6)
+end
+
 module Record_in = struct
   type (_, _, _) t =
     | Cons : (string * ('t -> 'a) * 'a option) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
@@ -6,9 +21,9 @@ module Record_in = struct
 end
 
 module Record_out = struct
-  type _ t =
-    | Cons : (string * 'a * ('a -> 't) * 'a option) * 't t -> 't t
-    | Nil : 'x t
+  type (_, _, _) t =
+    | Cons : (string * ('a -> 't) * 'a option) * ('t, 'b, 'c)  t -> ('t, 'a -> 'b, 'c) t
+    | Nil : ('t, 'a, 'a) t
   let (^::) a b = Cons (a,b)
 end
 
@@ -19,8 +34,9 @@ module type Driver = sig
   val to_variant: (string * t list -> 'a) -> t -> 'a
   val of_variant: ('a -> string * t list) -> 'a -> t
   val to_record:  (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
-  val of_record:  t Record_out.t -> t
+  val of_record:  (t, 'a, t) Record_out.t -> 'a
   val to_tuple:   (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
+  (* This should also be a gadt type *)
   val of_tuple:   (string * t) list -> t
   val to_option:  (t -> 'a) -> t -> 'a option
   val of_option:  ('a -> t) -> 'a option -> t

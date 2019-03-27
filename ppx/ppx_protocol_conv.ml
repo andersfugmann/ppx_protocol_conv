@@ -23,6 +23,11 @@ type t = {
 let (^^) = Caml.(^^)
 let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^ fmt)
 
+let debug = false
+let debug fmt = match debug with
+  | true -> eprintf (fmt ^^ "\n%!")
+  | false -> ifprintf Stdio.stderr fmt
+
 let string_of_ident_loc { loc; txt } =
   let rec inner = function
     | Lident s -> s
@@ -30,6 +35,12 @@ let string_of_ident_loc { loc; txt } =
     | Lapply _  -> raise_errorf ~loc "lapply???"
   in
   { loc; txt=inner txt }
+
+let _longident_loc_of_string ~loc s =
+  { txt = Lident s; loc }
+
+let pexp_ident_string_loc { loc; txt } =
+  pexp_ident ~loc {loc; txt = Lident txt}
 
 let rec string_of_ident = function
   | Lident s -> s
@@ -395,10 +406,10 @@ let test_label_mapping t labels =
   in
   ()
 
-
-let serialize_record t ~loc labels =
+(** @returns function, pattern and arguments *)
+let of_record_fun t ~loc labels =
   test_label_mapping t labels;
-  let arg_list =
+  let cons_list =
     List.map ~f:(fun label ->
         let name =
           match Attribute.get t.field_key label with
@@ -411,22 +422,18 @@ let serialize_record t ~loc labels =
           | None -> [% expr None]
           | Some expr -> [% expr Some [%e expr]]
         in
-        [%expr ([%e name],
-               [%e pexp_ident ~loc { loc; txt=Lident label.pld_name.txt } ],
-               [%e of_t],
-               [%e default])
-        ]
+        [%expr ([%e name], [%e of_t], [%e default])]
       ) labels
     |> slist_expr ~loc
     |> fun l -> [%expr let open !Protocol_conv.Runtime.Record_in in [%e l]]
   in
+  pexp_apply ~loc (driver_func t ~loc "of_record") [Nolabel, cons_list],
   ppat_record ~loc
      (List.map ~f:(fun id ->
         { loc; txt=Lident id.txt }, ppat_var ~loc id)
         (List.map ~f:(fun ld -> ld.pld_name) labels)
      ) Closed,
-  pexp_apply ~loc (driver_func t ~loc "of_record") [Nolabel, arg_list]
-
+  List.map ~f:(fun label -> Nolabel, pexp_ident ~loc { loc; txt=Lident label.pld_name.txt }) labels
 
 let serialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
@@ -448,20 +455,26 @@ let serialize_expr_of_tdecl t ~loc tdecl =
     in
     let mk_case = function
       | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
-        let pattern, body = serialize_record t ~loc labels in
+        let f, patt, args = of_record_fun t ~loc labels in
+        let f_name = { loc; txt = "_of_record_" ^ pcd_name.txt } in
         let lhs = ppat_construct
             ~loc
             (ident_of_string_loc pcd_name)
-            (Some pattern)
+            (Some patt)
         in
         let rhs =
           let constr_name = match get_constr_name t constr with
             | Some key -> key
             | None -> pcd_name.txt
           in
-          [%expr ( [%e estring ~loc constr_name ], [ [%e body] ]) ]
+          [%expr
+            (
+              [%e estring ~loc constr_name ],
+              [ [%e pexp_apply ~loc (pexp_ident_string_loc f_name) args ] ]
+            )
+          ]
         in
-        case ~lhs ~guard:None ~rhs
+        Some (f_name, f), case ~lhs ~guard:None ~rhs
 
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
         let lhs =
@@ -487,15 +500,28 @@ let serialize_expr_of_tdecl t ~loc tdecl =
           [%expr ( [%e estring ~loc constr_name ],
                    [%e args |> list_expr ~loc] )]
         in
-        case ~lhs ~guard:None ~rhs
+        None, case ~lhs ~guard:None ~rhs
     in
-    [%expr
-      [%e driver_func t ~loc "of_variant" ]
-        [%e pexp_function ~loc (List.map ~f:mk_case constrs) ]
-    ]
+    let bindings, cases = List.map ~f:mk_case constrs |> List.unzip in
+    let bindings =
+      List.filter_opt bindings
+      |> List.map ~f:(fun (name, f) ->
+          value_binding ~loc ~pat:{ppat_desc = Ppat_var name; ppat_loc = loc; ppat_attributes=[]} ~expr:f
+        )
+    in
+    let body = [%expr [%e driver_func t ~loc "of_variant" ] [%e pexp_function ~loc cases ] ] in
+    begin
+      match bindings with
+      | [] -> body
+      | b -> pexp_let ~loc Nonrecursive b body
+    end
   | Ptype_record labels ->
-    let pattern, body = serialize_record t ~loc labels in
-    pexp_fun ~loc Nolabel None pattern body
+    let f, patt, args = of_record_fun t ~loc labels in
+    [%expr
+      let _of_record = [%e f] in
+      fun [%p patt] ->
+        [%e pexp_apply ~loc [%expr _of_record] args]
+    ]
   | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
 
 
@@ -555,9 +581,9 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
           let constructor, of_funcs = deserialize_record t ~loc labels in
           let wrap expr = pexp_construct (ident_of_string_loc pcd_name) ~loc (Some expr) in
           [%expr
-            let of_funcs = [%e of_funcs ] in
-            let constructor = [%e constructor wrap ] in
-            [%e driver_func t ~loc "to_record"] of_funcs constructor x
+            let _of_record = [%e driver_func t ~loc "to_record"] [%e of_funcs ] in
+            let _constructor = [%e constructor wrap ] in
+            _of_record _constructor x
           ]
         in
         case ~lhs ~guard:None ~rhs
@@ -604,9 +630,9 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
   | Ptype_record labels ->
     let constructor, of_funcs = deserialize_record t ~loc labels in
     [%expr
-      let of_funcs = [%e of_funcs ] in
-      let constructor = [%e constructor Fn.id ] in
-      [%e driver_func t ~loc "to_record"] of_funcs constructor
+      let _of_record = [%e driver_func t ~loc "to_record"] [%e of_funcs ] in
+      let _constructor = [%e constructor Fn.id ] in
+      _of_record _constructor
     ]
 
   | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
@@ -651,14 +677,66 @@ let name_of_core_type ~prefix = function
   | { ptyp_desc = Ptyp_package _; _} -> failwith "Ptyp_package "
   | { ptyp_desc = Ptyp_extension _; _} -> failwith "Ptyp_extension "
 
+let rec is_recursive_ct types = function
+  | { ptyp_desc = Ptyp_var var; _ } ->
+    debug "Compare to %s\n%!" var;
+    List.mem types var ~equal:String.equal
+  | { ptyp_desc = Ptyp_any; _ } -> debug "any"; false
+  | { ptyp_desc = Ptyp_arrow _; _} -> debug "Ptyp_arrow"; false
+  | { ptyp_desc = Ptyp_tuple cts; _} -> debug "Ptyp_tuple"; List.exists ~f:(is_recursive_ct types) cts
+  | { ptyp_desc = Ptyp_constr (l, cts); _} ->
+    debug "Ptyp_constr (%s)" (string_of_ident_loc l).txt;
+    List.mem types (string_of_ident_loc l).txt ~equal:String.equal ||
+    List.exists ~f:(is_recursive_ct types) cts
+  | { ptyp_desc = Ptyp_object _; _} -> debug "Ptyp_object"; false
+  | { ptyp_desc = Ptyp_class _; _} -> debug "Ptyp_class"; false
+  | { ptyp_desc = Ptyp_alias (c, _); _} -> debug "Ptyp_alias"; is_recursive_ct types c
+  | { ptyp_desc = Ptyp_variant (rows, _, _); _} ->debug "Ptyp_variant";
+    List.exists ~f:(function
+        | Rtag (_, _, _, cts) -> List.exists ~f:(is_recursive_ct types) cts
+        | Rinherit _ -> false
+      ) rows
+  | { ptyp_desc = Ptyp_poly (_, ct); _} -> debug "Ptyp_poly"; is_recursive_ct types ct
+  | { ptyp_desc = Ptyp_package _; _} -> debug "Ptyp_package"; false
+  | { ptyp_desc = Ptyp_extension _; _} -> debug "Ptyp_extension"; false
+
+let is_recursive types = function
+  | Ptype_abstract -> debug "Abstr"; false
+  | Ptype_variant (cstr_decls) -> debug "Variant";
+    List.exists ~f:(function
+        | { pcd_args = Pcstr_tuple cts; _ } ->
+          List.exists ~f:(is_recursive_ct types) cts
+        | { pcd_args = Pcstr_record ldecls; _ } ->
+          List.exists ~f:(fun { pld_type = ct; _} -> is_recursive_ct types ct) ldecls
+      ) cstr_decls
+  | Ptype_record ldecls -> debug "Record";
+    List.exists ~f:(fun { pld_type = ct; _} -> is_recursive_ct types ct) ldecls
+  | Ptype_open -> debug "Record"; false
+
+let is_recursive tydecls = function
+  | Nonrecursive -> false
+  | Recursive ->
+    let names = List.map ~f:(fun { ptype_name = { txt=name; _}; _ } -> name) tydecls in
+    debug "\nFound names: [%s]" (String.concat ~sep:"; " names);
+    List.exists ~f:(fun { ptype_kind; ptype_params = ctvl; ptype_manifest; _} ->
+        debug "===";
+        is_recursive names ptype_kind ||
+        List.exists ~f:(fun (ct, _var) -> is_recursive_ct names ct) ctvl ||
+        Option.value_map ptype_manifest ~default:false ~f:(is_recursive_ct names)
+      ) tydecls
+
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
+  let is_recursive = is_recursive tydecls rec_flag in
   pstr_value_of_funcs ~loc rec_flag
     ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
             let to_p = serialize_function_name ~loc ~driver:t.driver name in
             let expr =
-              [%expr fun t -> [%e serialize_expr_of_tdecl t ~loc tdecl] t]
+              let e = serialize_expr_of_tdecl t ~loc tdecl in
+              match is_recursive with
+              | true -> [%expr fun t -> [%e e] t]
+              | false  -> e
             in
             let expr_param =
               List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
@@ -673,14 +751,17 @@ let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   :: []
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
+  let is_recursive = is_recursive tydecls rec_flag in
   pstr_value_of_funcs ~loc rec_flag
     ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
             let of_p = deserialize_function_name ~loc ~driver:t.driver name in
-
             let expr =
-              [%expr fun t -> [%e deserialize_expr_of_tdecl t ~loc tdecl] t]
+              let expr = deserialize_expr_of_tdecl t ~loc tdecl in
+              match is_recursive with
+              | true -> [%expr fun t -> [%e expr] t]
+              | false  -> expr
             in
             let expr_param =
               List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->

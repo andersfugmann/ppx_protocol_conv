@@ -107,43 +107,50 @@ module Make(Driver: Driver)(P: Parameters) = struct
     | t when P.singleton_constr_as_string -> raise_errorf t "Variants must be a string or a list"
     | t -> raise_errorf t "Variants must be a list"
 
-  let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec constr ->
-    let rec inner: type a b. orig:t -> (t, a, b) Record_in.t -> a -> 'c -> b = fun ~orig ->
+  let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
+    let rec inner: type a b. (t, a, b) Record_in.t -> orig:t -> a -> 'c -> b =
       let open Record_in in
       function
       | Cons ((field, to_value_func, default), xs) ->
-        let field_name = P.field_name field in
+        let field = P.field_name field in
         let cont = inner xs in
-        fun constr t ->
+        fun ~orig constr t ->
           let v =
-            try StringMap.find field_name t |> to_value_func with
+            try StringMap.find field t |> to_value_func with
             | Not_found -> begin
                 match default with
-                | None -> raise_errorf orig "Field not found: %s" field_name
+                | None -> raise_errorf orig "Field not found: %s" field
                 | Some v -> v
               end
           in
           cont ~orig (constr v) t
-      | Nil -> fun a _t -> a
+      | Nil -> fun ~orig:_ a _t -> a
     in
-    let f = inner spec constr in
-    fun t ->
+    let f = inner spec in
+    fun constr t ->
       let values =
         Driver.to_alist t
         |> List.fold_left
           ~f:(fun m (k, v) -> StringMap.add k v m)
           ~init:StringMap.empty
       in
-      f ~orig:t values
+      f constr ~orig:t values
 
-  let of_record: _ Record_out.t -> t = fun l ->
-    let rec inner: _ Record_out.t -> (string * t) list = function
-      | Record_out.Cons ((_, v, _, Some default), xs) when P.omit_default_values && v = default -> inner xs
-      | Record_out.Cons ((k, v, to_t, _), xs) -> (P.field_name k, to_t v) :: inner xs
-      | Record_out.Nil -> []
-    in
-    let assoc = inner l in
-    Driver.of_alist assoc
+  let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
+    | Record_out.Cons ((field, to_t, default), xs) ->
+      let field = P.field_name field in
+      let cont = of_record xs in
+      fun acc v -> begin
+          match default with
+          | Some d when d = v -> cont acc
+          | _ -> cont ((field, to_t v) :: acc)
+        end
+    | Record_out.Nil ->
+      fun acc -> Driver.of_alist acc
+
+  let of_record x = of_record x []
+
+  let _x = of_record (Record_out.Cons ( ("X", Driver.of_int, None), Record_out.Cons ( ("Y", Driver.of_float, None), Record_out.Nil)))
 
   let rec to_tuple: type a b. (t, a, b) Record_in.t -> a -> t -> b =
       let open Record_in in

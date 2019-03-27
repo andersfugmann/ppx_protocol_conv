@@ -1,51 +1,28 @@
-type t = {
-  a: int;
-  b: string;
-  c: char;
-}
+type v = A | B of int | C of int * int | D of (int * int)
+and t = v list
+[@@deriving protocol ~driver:(module Json)]
+(*
+
+type v = A of { a: int; b: string; c: char; }
+       | B of { a: int; b: string; c: char; }
+       | C of { a: int; b: string; c: char; }
+       | D of { a: int; b: string; c: char; }
+       | E of { a: int; b: string; c: char; }
 [@@deriving protocol ~driver:(module Driver)]
 
-(*
-type t = A of { a : string; }
-       | B of int
-       | C of { x : int; y: int; }
-[@@deriving to_protocol ~driver:(module Driver)]
+
+type u = A | B of int
+[@@deriving protocol ~driver:(module Driver)]
 *)
+(* We need to name the record in order to call it. *)
+(* we can use the name of the constr *)
+(* So we need the name of the to_record function *)
+(* And we can apply it our-selves??? *)
 
-(* Create a poly list??? *)
-(*
-type a = { x: int; y: (int * int) }
-  (let open Protocol_conv.Runtime in
-     let of_funcs =
-       ("x", (fun t  -> Driver.to_int t)) ^::
-         (("y",
-            (let open Protocol_conv.Runtime in
-               let of_funcs =
-                 ("t0", (fun t  -> Driver.to_int t)) ^::
-                   (("t1", (fun t  -> Driver.to_int t)) ^:: Nil)
-                  in
-               let constructor x0 x1 = (x0, x1)  in
-               (fun t  -> Driver.to_tuple t) of_funcs constructor))
-            ^:: Nil)
-        in
-     let constructor x y = { x; y }  in
-     (fun t  -> Driver.to_record t) of_funcs constructor) t
-*)
-(*
-type a = A of int
-       | B of string * int
-       | C
-[@@deriving of_protocol ~driver:(module Driver)]
+(* A function should return:
+   The name of the function.
+   The of_record function
+   The pattern??? (* The pattern should be trivial *)
 
-
-let rec a_of_driver t =
-  ((fun t  -> Driver.to_variant t)
-     (function
-      | ("A",c0::[]) -> A (((fun t  -> Driver.to_int t)) c0)
-      | ("B",c0::c1::[]) ->
-          B
-            ((((fun t  -> Driver.to_string t)) c0),
-              (((fun t  -> Driver.to_int t)) c1))
-      | ("C",[]) -> C
-      | (s,_) -> failwith ("Unknown variant or arity error: " ^ s))) t
+   No its good!
 *)

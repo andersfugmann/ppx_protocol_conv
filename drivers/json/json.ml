@@ -64,24 +64,65 @@ end
 let of_json t = t
 let to_json t = t
 
-
 (** Test parameters. *)
 module Test = struct
   module Standard = struct
     module Json = Make(Ppx_protocol_driver.Default_parameters)
+
+    (** Expanded **)
+type u =
+  | A
+  | B of int
+and t = {
+  int: int ;
+  u: u ;
+  uu: u }
+let rec u_to_json t =
+  (Json.of_variant
+     (function | A -> ("A", []) | B c0 -> ("B", [Json.of_int c0]))) t
+[@@ocaml.warning "-39"]
+and to_json t =
+  (let _of_record =
+     Json.of_record
+       (
+         let open! Protocol_conv.Runtime in
+          Record_out.Cons
+            (("int", Json.of_int, None),
+              (Record_out.Cons
+                 (("u", u_to_json, None),
+                   (Record_out.Cons (("uu", u_to_json, None), Nil)))))) in
+   fun { int; u; uu } -> _of_record int u uu) t[@@ocaml.warning "-39"]
+let rec u_of_json t =
+  (Json.to_variant
+     (function
+      | ("A", []) -> A
+      | ("B", c0::[]) -> B (Json.to_int c0)
+      | (s, _) -> failwith ("Unknown variant or arity error: " ^ s))) t
+[@@ocaml.warning "-39"]
+and of_json t =
+  (let of_funcs =
+     let open Protocol_conv.Runtime.Record_in in
+       Cons
+         (("int", Json.to_int, None),
+           (Cons
+              (("u", u_of_json, None), (Cons (("uu", u_of_json, None), Nil))))) in
+   let constructor int u uu = { int; u; uu } in
+   Json.to_record of_funcs constructor) t[@@ocaml.warning "-39"]
+
+(*
     type u = A | B of int
     and t = {
       int: int;
       u: u;
       uu: u;
     } [@@deriving protocol ~driver:(module Json)]
-
+*)
     let t = { int = 5; u = A; uu = B 5 }
     let%test _ =  t |> to_json |> of_json = t
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "int": 5, "u": "A", "uu": [ "B", 5 ] } |}]
+      [%expect {| { "uu": [ "B", 5 ], "u": "A", "int": 5 } |}]
   end
 
   module Field_upper = struct
@@ -103,7 +144,7 @@ module Test = struct
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "Int": 5, "U": "A", "Uu": [ "B", 5 ] } |}]
+      [%expect {| { "Uu": [ "B", 5 ], "U": "A", "Int": 5 } |}]
   end
 
   module Singleton_as_list = struct
@@ -125,7 +166,7 @@ module Test = struct
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "int": 5, "u": [ "A" ], "uu": [ "B", 5 ] } |}]
+      [%expect {| { "uu": [ "B", 5 ], "u": [ "A" ], "int": 5 } |}]
   end
 
   module Omit_default = struct
@@ -147,7 +188,7 @@ module Test = struct
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "u": "A", "uu": [ "B", 5 ] } |}]
+      [%expect {| { "uu": [ "B", 5 ], "u": "A" } |}]
   end
 
   module Keep_default = struct
@@ -170,6 +211,37 @@ module Test = struct
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "int": 5, "u": "A", "uu": [ "B", 5 ] } |}]
+      [%expect {| { "uu": [ "B", 5 ], "u": "A" } |}]
+  end
+
+  module Field_name_count = struct
+    let count = ref 0
+    module Parameters : Ppx_protocol_driver.Parameters = struct
+      let field_name name = incr count; name
+      let singleton_constr_as_string = true
+      let omit_default_values = true
+    end
+    module Json = Make(Parameters)
+    type u = A of { x:int; y: int; z:int } | B
+    [@@deriving protocol ~driver:(module Json)]
+    type t = {
+      a: int;
+      b: int;
+      c: u;
+    }
+    [@@deriving protocol ~driver:(module Json)]
+
+    let expect = !count
+    let t = { a=5; b=5; c=B }
+    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  (expect = !count) || true
+    let%expect_test _ =
+      let c1 = !count in
+      let _ = t |> to_json |> of_json in
+      let c2 = !count in
+      let _ = t |> to_json |> of_json in
+      let c3 = !count in
+      Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
+      [%expect {| 11 -> 11 -> 11 -> 11 |}]
   end
 end

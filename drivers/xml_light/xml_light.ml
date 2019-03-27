@@ -87,13 +87,7 @@ let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
       f constr (element_to_map m t)
     | e -> raise_errorf e "Not a record superstruture"
 
-let of_record: _ Record_out.t -> t = fun l ->
-  let rec inner: _ Record_out.t -> (string * t) list = function
-    | Record_out.Cons ((_, v, _, Some default), xs) when v = default -> inner xs
-    | Record_out.Cons ((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
-    | Record_out.Nil -> []
-  in
-  let assoc = inner l in
+let of_tuple assoc =
   List.map ~f:(
     function
     | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
@@ -109,15 +103,20 @@ let of_record: _ Record_out.t -> t = fun l ->
   ) assoc
   |> List.flatten |> element "record"
 
+let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
+  | Record_out.Cons ((field, to_t, default), xs) ->
+    let cont = of_record xs in
+    fun acc v -> begin
+        match default with
+        | Some d when d = v -> cont acc
+        | _ -> cont ((field, to_t v) :: acc)
+      end
+  | Record_out.Nil ->
+    of_tuple
+
+let of_record t = of_record t []
 
 let to_tuple = to_record
-
-let of_tuple l =
-  let open Record_out in
-  List.fold_right ~init:(Nil)
-    ~f:(fun (k, t) acc -> (k, t, (fun t -> t), None) ^:: acc)
-    l
-  |> of_record
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   (* Not allowed to throw out the unwrap. *)

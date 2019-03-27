@@ -51,13 +51,18 @@ let rec to_record: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
     end
   | Nil -> fun a _t -> a
 
-let of_record: _ Record_out.t -> t = fun l ->
-  let rec inner: _ Record_out.t -> (string * t) list = function
-    | Record_out.Cons ((_, v, _, Some default), xs) when (Poly.(=) v default) -> inner xs
-    | Record_out.Cons ((k, v, to_t, _), xs) -> (k, to_t v) :: inner xs
-    | Record_out.Nil -> []
-  in
-  Record (inner l)
+  let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
+    | Record_out.Cons ((field, to_t, default), xs) ->
+      let cont = of_record xs in
+      fun acc v -> begin
+          match default with
+          | Some d when Poly.equal d v -> cont acc
+          | _ -> cont ((field, to_t v) :: acc)
+        end
+    | Record_out.Nil ->
+      fun acc -> Record acc
+
+  let of_record x = of_record x []
 
 let rec to_tuple: type a b. (t, a, b) Record_in.t -> a -> t -> b =
   function

@@ -15,15 +15,16 @@ module Make(Driver: Testable.Driver) = struct
 
   let test_default_unused _ =
     let s =
-      Protocol_conv.Runtime.Record_out.(
-        ("int", 6, Driver.of_int, None) ^::
-        ("string", "abc", Driver.of_string, None) ^::
-        ("list", [4;5;6], Driver.of_list Driver.of_int, None) ^::
-        ("Key", 100, Driver.of_int, None) ^::
-        ("std", (), Driver.of_unit, None) ^::
+      let spec =
+        let open Protocol_conv.Runtime.Record_out in
+        ("int", Driver.of_int, None) ^::
+        ("string", Driver.of_string, None) ^::
+        ("list", Driver.of_list Driver.of_int, None) ^::
+        ("Key", Driver.of_int, None) ^::
+        ("std", Driver.of_unit, None) ^::
         Nil
-      )
-      |> Driver.of_record
+      in
+      Driver.of_record spec 6 "abc" [4;5;6] 100 ()
     in
     let t = { int = 6;
               string = "abc";
@@ -38,14 +39,15 @@ module Make(Driver: Testable.Driver) = struct
 
   let test_one_default _ =
     let s =
-      Protocol_conv.Runtime.Record_out.(
-        ("string", "abc", Driver.of_string, None) ^::
-        ("list", [4;5;6], Driver.of_list Driver.of_int, None) ^::
-        ("Key", 100, Driver.of_int, None) ^::
-        ("std", (), Driver.of_unit, None) ^::
+      let spec =
+        let open Protocol_conv.Runtime.Record_out in
+        ("string", Driver.of_string, None) ^::
+        ("list", Driver.of_list Driver.of_int, None) ^::
+        ("Key", Driver.of_int, None) ^::
+        ("std", Driver.of_unit, None) ^::
         Nil
-      )
-      |> Driver.of_record
+      in
+      Driver.of_record spec "abc" [4;5;6] 100 ()
     in
     let t = { int = 5;
               string = "abc";
@@ -60,9 +62,12 @@ module Make(Driver: Testable.Driver) = struct
 
   let test_all_default _ =
     let s =
-      Protocol_conv.Runtime.Record_out.(
-        ("std", (), Driver.of_unit, None) ^:: Nil
-      ) |> Driver.of_record
+      let spec =
+        let open Protocol_conv.Runtime.Record_out in
+        ("std", Driver.of_unit, None) ^::
+        Nil
+      in
+      Driver.of_record spec ()
     in
     let t = { int = 5;
               string = "xyz";
