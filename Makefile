@@ -1,4 +1,5 @@
 .PHONY: build clean install uninstall reinstall test update-version release doc
+.DEFAULT_GOAL = build
 build:
 	dune build @install
 
@@ -14,7 +15,7 @@ uninstall:
 
 reinstall: uninstall install
 
-test: build
+test:
 	dune runtest
 
 update-version: VERSION=$(shell cat Changelog | grep -E '^[0-9]' | head -n 1)
@@ -47,8 +48,6 @@ debug:
 
 drivers/json/types.ml: force
 	./_build/default/.ppx/e9840e423ed75c867f2f125ead673d85/ppx.exe  -pretty type.ml | ocamlformat - --name=b | sed 's/\[@@[^\]*\]//'  > drivers/json/types.ml
-
-test: drivers/json/types.ml
 
 .PHONY: force
 force:

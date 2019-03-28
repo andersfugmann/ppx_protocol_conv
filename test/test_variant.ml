@@ -14,6 +14,14 @@ module Make(Driver: Testable.Driver) = struct
     let t = [ A; B 5; C (6,7); D (8,9) ]
   end
 
+  module Tuple : M.Testable = struct
+    let name = "Tuple"
+    type t = A of (int * int)
+           | B of int * int
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = A (3,4)
+  end
+
 
   module Tree : M.Testable = struct
     let name = "Tree"
@@ -70,33 +78,21 @@ module Make(Driver: Testable.Driver) = struct
     [@@deriving protocol ~driver:(module Driver), sexp]
     let t = A { a = "a"; b = A { a = "a"; b = B 5 } }
   end
-(*
-module Poly = struct
-  type t = [ `A of int ]
-  [@@deriving to_protocol ~driver:(module Json)]
+
+module Poly : M.Testable = struct
+  let name = "Polymoric variants"
+  type t = [ `A of int [@key "a"]| `B of string ]
+  [@@deriving protocol ~driver:(module Driver), sexp]
+  let t = `A 5
 end
-*)
-(* Not supported yet
-module Record = struct
-  type v = V of { v1: int; v2: string}
-         | U of { u1: string; u2: int }
-  [@@deriving protocol ~driver:(module Json), protocol ~driver:(module Xml_light), protocol ~driver:(module Msgpack)]
-
-  let _ =
-    let t = V { v1=5; v2="test" } in
-    Util.test_json "Variant.Record" t_to_json t_of_json t;
-    Util.test_xml "Variant.Record" t_to_xml_light t_of_xml_light t;
-    ()
-
-
-end
-*)
   let unittest = __MODULE__ >: test_list [
       M.test (module Simple);
+      M.test (module Tuple);
       M.test (module Tree);
       M.test (module MutualRecursion);
       M.test (module InsideRec);
       M.test (module InlineRecord);
       M.test (module InlineRecord2);
+      M.test (module Poly);
     ]
 end
