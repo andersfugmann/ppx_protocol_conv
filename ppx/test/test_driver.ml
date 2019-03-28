@@ -75,7 +75,14 @@ let rec to_tuple: type a b. (t, a, b) Tuple_in.t -> a -> t -> b =
     end
   | Tuple_in.Nil -> fun a _t -> a
 
-let of_tuple t = Tuple (List.map ~f:snd t)
+let rec of_tuple: type a. (t, a, t) Tuple_out.t -> t list -> a = function
+  | Tuple_out.Cons (to_t, xs) ->
+    let cont = of_tuple xs in
+    fun acc v ->
+      cont (to_t v :: acc)
+  | Tuple_out.Nil ->
+    fun acc -> Tuple (List.rev acc)
+let of_tuple spec = of_tuple spec []
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
   | Option None -> None

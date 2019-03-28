@@ -153,13 +153,21 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let rec to_tuple: type a b. (t, a, b) Tuple_in.t -> a -> t -> b =
       function
       | Tuple_in.Cons (to_value_func, xs) ->
+        let cont = to_tuple xs in
         fun constructor t ->
           let l = Driver.to_list t in
           let v = to_value_func (List.hd l) in
-          to_tuple xs (constructor v) (Driver.of_list (List.tl l))
+          cont (constructor v) (Driver.of_list (List.tl l))
       | Tuple_in.Nil -> fun a _t -> a
 
-  let of_tuple  t = Driver.of_list (List.map ~f:snd t)
+  let rec of_tuple: type a. (t, a, t) Tuple_out.t -> t list -> a = function
+    | Tuple_out.Cons (to_t, xs) ->
+      let cont = of_tuple xs in
+      fun acc v ->
+        cont (to_t v :: acc)
+    | Tuple_out.Nil ->
+      fun acc -> Driver.of_list (List.rev acc)
+  let of_tuple spec = of_tuple spec []
 
   let get_option = function
     | t when Driver.is_alist t -> begin

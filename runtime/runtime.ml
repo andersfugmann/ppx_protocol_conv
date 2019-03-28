@@ -51,7 +51,7 @@ module type Driver = sig
   val to_record:  (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
   val of_record:  (t, 'a, t) Record_out.t -> 'a
   val to_tuple:   (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b
-  val of_tuple:   (string * t) list -> t
+  val of_tuple:   (t, 'a, t) Tuple_out.t -> 'a
 
   val to_option:  (t -> 'a) -> t -> 'a option
   val of_option:  ('a -> t) -> 'a option -> t

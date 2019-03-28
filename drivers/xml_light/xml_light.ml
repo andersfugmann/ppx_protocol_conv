@@ -87,22 +87,6 @@ let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
       f constr (element_to_map m t)
     | e -> raise_errorf e "Not a record superstruture"
 
-let of_tuple assoc =
-  List.map ~f:(
-    function
-    | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-    | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-    | (field, Xml.Element ("__option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-    | (field, Xml.Element (_, _, xs)) ->
-      List.map ~f:(function
-          | Xml.Element(_, attrs, xs) ->
-            Xml.Element(field, attrs, xs)
-          | PCData _ as p -> Xml.Element(field, [], [p])
-        ) xs (* why xs here. Or do we need to extend the option one level *)
-    | (field, e) -> raise_errorf e "Must be an element: %s" field
-  ) assoc
-  |> List.flatten |> element "record"
-
 let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
   | Record_out.Cons ((field, to_t, default), xs) ->
     let cont = of_record xs in
@@ -111,10 +95,34 @@ let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = fu
         | Some d when d = v -> cont acc
         | _ -> cont ((field, to_t v) :: acc)
       end
-  | Record_out.Nil ->
-    of_tuple
+  | Record_out.Nil -> begin
+      fun assoc ->
+        List.map ~f:(
+          function
+          | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+          | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+          | (field, Xml.Element ("__option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+          | (field, Xml.Element (_, _, xs)) ->
+            List.map ~f:(function
+                | Xml.Element(_, attrs, xs) ->
+                  Xml.Element(field, attrs, xs)
+                | PCData _ as p -> Xml.Element(field, [], [p])
+              ) xs (* why xs here. Or do we need to extend the option one level *)
+          | (field, e) -> raise_errorf e "Must be an element: %s" field
+        ) assoc
+        |> List.flatten |> element "record"
+    end
 
 let of_record t = of_record t []
+
+let of_tuple constr =
+  let rec inner: type a b c. int -> (a, b, c) Tuple_out.t -> (a, b, c) Record_out.t = fun i -> function
+    | Tuple_out.Cons (f, xs) ->
+      let tail = inner (i+1) xs in
+      Record_out.Cons ( (Printf.sprintf "t%d" i, f, None), tail)
+    | Tuple_out.Nil -> Record_out.Nil
+  in
+  of_record (inner 0 constr)
 
 let to_tuple constr =
   let rec inner: type a b c. int -> (a, b, c) Tuple_in.t -> (a, b, c) Record_in.t = fun i -> function

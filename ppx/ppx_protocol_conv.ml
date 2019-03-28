@@ -198,33 +198,23 @@ let rec serialize_expr_of_type_descr t ~loc = function
     pexp_apply ~loc func args
 
   | Ptyp_tuple cts -> begin
-      let to_ps = List.map ~f:
-          (fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc ) cts
+      let spec =
+        List.map cts ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
+        |> slist_expr ~loc
       in
-      let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
-
-      let _arg_list =
-        List.mapi ~f:(fun i ct ->
-            let to_ps = serialize_expr_of_type_descr t ~loc ct.ptyp_desc in
-            [%expr (
-              [%e estring ~loc (sprintf "t%d" i)],
-              [%e pexp_ident ~loc { loc; txt=Lident (sprintf "x%d" i) }],
-              [%e to_ps],
-              None)
-            ]
-          ) cts
-        |> list_expr ~loc
+      let ids = List.mapi cts ~f:(fun i _ -> sprintf "t%d" i) in
+      let args = List.map ids ~f:(fun id -> Nolabel, pexp_ident ~loc { loc; txt=Lident id } ) in
+      let patt =
+        List.map ids ~f:(fun id -> ppat_var ~loc { loc; txt=id })
+        |> ppat_tuple ~loc
       in
-      let arg_list =
-        List.map2_exn
-          ~f:(fun id func -> pexp_apply ~loc func [Nolabel, pexp_ident ~loc id])
-          ids to_ps
-        |> List.mapi ~f:(fun i expr -> [%expr ([%e estring ~loc (sprintf "t%d" i)], [%e expr])])
-        |> list_expr ~loc
-      in
-      pexp_fun ~loc Nolabel None
-        (ppat_tuple ~loc (List.map ~f:(fun id ->ppat_var ~loc (string_of_ident_loc id)) ids))
-        (pexp_apply ~loc (driver_func t ~loc "of_tuple") [Nolabel, arg_list])
+      [%expr
+        let _of_tuple =
+          let open !Protocol_conv.Runtime.Tuple_out in
+          [%e driver_func t ~loc "of_tuple"] [%e spec]
+        in
+        fun [%p patt] -> [%e pexp_apply ~loc [%expr _of_tuple] args]
+      ]
     end
   | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
   | Ptyp_variant (rows, _closed, None) ->
@@ -397,7 +387,7 @@ let test_label_mapping t labels =
   ()
 
 (** @returns function, pattern and arguments *)
-let of_record_fun t ~loc labels =
+let serialize_record t ~loc labels =
   test_label_mapping t labels;
   let cons_list =
     List.map ~f:(fun label ->
@@ -445,7 +435,7 @@ let serialize_expr_of_tdecl t ~loc tdecl =
     in
     let mk_case = function
       | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
-        let f, patt, args = of_record_fun t ~loc labels in
+        let f, patt, args = serialize_record t ~loc labels in
         let f_name = { loc; txt = "_of_record_" ^ pcd_name.txt } in
         let lhs = ppat_construct
             ~loc
@@ -506,7 +496,7 @@ let serialize_expr_of_tdecl t ~loc tdecl =
       | b -> pexp_let ~loc Nonrecursive b body
     end
   | Ptype_record labels ->
-    let f, patt, args = of_record_fun t ~loc labels in
+    let f, patt, args = serialize_record t ~loc labels in
     [%expr
       let _of_record = [%e f] in
       fun [%p patt] ->
