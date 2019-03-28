@@ -655,9 +655,7 @@ let deserialize_function_name ~loc ~driver name =
 let pstr_value_of_funcs ~loc rec_flag elements =
   List.map ~f:(fun (name, expr) ->
       let pat = ppat_var ~loc name in
-      Ast_helper.Vb.mk
-        ~attrs:[{ loc; txt="ocaml.warning" }, PStr [%str "-39"]]
-        ~loc pat expr
+      Ast_helper.Vb.mk ~loc pat expr
     ) elements
   |> pstr_value ~loc rec_flag
 
@@ -727,7 +725,7 @@ let is_recursive tydecls = function
 
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   let is_recursive = is_recursive tydecls rec_flag in
-  pstr_value_of_funcs ~loc rec_flag
+  pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive)
     ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
@@ -752,7 +750,7 @@ let to_protocol_str_type_decls t rec_flag ~loc tydecls =
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
   let is_recursive = is_recursive tydecls rec_flag in
-  pstr_value_of_funcs ~loc rec_flag
+  pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive)
     ( List.map
         ~f:(fun tdecl ->
             let name = tdecl.ptype_name in
