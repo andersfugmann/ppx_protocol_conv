@@ -4,7 +4,7 @@ open Runtime
 type v =
   | Variant of (string * v list)
   | Record of (string * v) list
-  | Tuple of (string * v) list
+  | Tuple of v list
   | Option of v option
   | List of v list
   | Int of int
@@ -64,18 +64,18 @@ let rec to_record: type a b. (t, a, b) Runtime.Record_in.t -> a -> t -> b =
 
   let of_record x = of_record x []
 
-let rec to_tuple: type a b. (t, a, b) Record_in.t -> a -> t -> b =
+let rec to_tuple: type a b. (t, a, b) Tuple_in.t -> a -> t -> b =
   function
-  | Record_in.Cons ((field, to_value_func, _default), xs) -> begin
+  | Tuple_in.Cons (to_value_func, xs) -> begin
       fun constr -> function
-        | Tuple ((fn, v) :: ts) when String.equal fn field ->
-          to_tuple xs (constr (to_value_func v)) (Tuple ts)
+        | Tuple (t :: ts) ->
+          to_tuple xs (constr (to_value_func t)) (Tuple ts)
         | Tuple _ as e -> raise_errorf e "Tuple has incorrect ordering"
         | e -> raise_errorf e "Tuple type not found"
     end
-  | Record_in.Nil -> fun a _t -> a
+  | Tuple_in.Nil -> fun a _t -> a
 
-let of_tuple t = Tuple t
+let of_tuple t = Tuple (List.map ~f:snd t)
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
   | Option None -> None

@@ -1,5 +1,4 @@
-type v = A | B of int | C of int * int | D of (int * int)
-and t = v list
+type t = (int * string )
 [@@deriving protocol ~driver:(module Json)]
 (*
 

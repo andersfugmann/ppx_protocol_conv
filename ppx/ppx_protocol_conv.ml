@@ -299,13 +299,8 @@ let rec deserialize_expr_of_type_descr t ~loc = function
     pexp_apply ~loc func args
 
   | Ptyp_tuple cts -> begin
-      let to_ts = List.map ~f:
-          (fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc,
-                     [% expr None]
-          ) cts
-      in
-      let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
       let constructor =
+        let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
         let tuple =
           pexp_tuple ~loc (List.map ~f:(pexp_ident ~loc) ids)
         in
@@ -314,18 +309,13 @@ let rec deserialize_expr_of_type_descr t ~loc = function
           ) ids
       in
       let slist =
-        List.mapi ~f:(fun i (v, d) ->
-            [%expr (
-              [%e estring ~loc (sprintf "t%d" i)],
-              [%e v],
-              [%e d])]
-          ) to_ts
+        List.map ~f:(fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc) cts
       in
       [%expr
-        let open !Protocol_conv.Runtime.Record_in in
-        let of_funcs = [%e slist_expr ~loc slist ] in
-        let constructor = [%e constructor] in
-        [%e driver_func t ~loc "to_tuple"] of_funcs constructor
+        let open !Protocol_conv.Runtime.Tuple_in in
+        let _of_funcs = [%e slist_expr ~loc slist ] in
+        let _constructor = [%e constructor] in
+        [%e driver_func t ~loc "to_tuple"] _of_funcs _constructor
       ]
     end
   | Ptyp_poly _      ->

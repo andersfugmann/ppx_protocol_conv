@@ -150,17 +150,14 @@ module Make(Driver: Driver)(P: Parameters) = struct
 
   let of_record x = of_record x []
 
-  let _x = of_record (Record_out.Cons ( ("X", Driver.of_int, None), Record_out.Cons ( ("Y", Driver.of_float, None), Record_out.Nil)))
-
-  let rec to_tuple: type a b. (t, a, b) Record_in.t -> a -> t -> b =
-      let open Record_in in
+  let rec to_tuple: type a b. (t, a, b) Tuple_in.t -> a -> t -> b =
       function
-      | Record_in.Cons ((_field, to_value_func, _default), xs) ->
+      | Tuple_in.Cons (to_value_func, xs) ->
         fun constructor t ->
           let l = Driver.to_list t in
           let v = to_value_func (List.hd l) in
           to_tuple xs (constructor v) (Driver.of_list (List.tl l))
-      | Nil -> fun a _t -> a
+      | Tuple_in.Nil -> fun a _t -> a
 
   let of_tuple  t = Driver.of_list (List.map ~f:snd t)
 

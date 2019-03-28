@@ -27,17 +27,32 @@ module Record_out = struct
   let (^::) a b = Cons (a,b)
 end
 
+module Tuple_in = struct
+  type (_, _, _) t =
+    | Cons : ('t -> 'a) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
+    | Nil : ('t, 'a, 'a) t
+  let (^::) a b = Cons (a,b)
+end
+
+module Tuple_out = struct
+  type (_, _, _) t =
+    | Cons : ('a -> 't) * ('t, 'b, 'c)  t -> ('t, 'a -> 'b, 'c) t
+    | Nil : ('t, 'a, 'a) t
+  let (^::) a b = Cons (a,b)
+end
+
 module type Driver = sig
   type t
   exception Protocol_error of string * t
   val to_string_hum: t -> string
+  (* Use gadt *)
   val to_variant: (string * t list -> 'a) -> t -> 'a
   val of_variant: ('a -> string * t list) -> 'a -> t
   val to_record:  (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
   val of_record:  (t, 'a, t) Record_out.t -> 'a
-  val to_tuple:   (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
-  (* This should also be a gadt type *)
+  val to_tuple:   (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b
   val of_tuple:   (string * t) list -> t
+
   val to_option:  (t -> 'a) -> t -> 'a option
   val of_option:  ('a -> t) -> 'a option -> t
   val to_ref:     (t -> 'a) -> t -> 'a ref

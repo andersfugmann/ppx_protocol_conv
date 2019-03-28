@@ -1,7 +1,7 @@
 type v =
   | Variant of (string * v list)
   | Record of (string * v) list
-  | Tuple of (string * v) list
+  | Tuple of v list
   | Option of v option
   | List of v list
   | Int of int

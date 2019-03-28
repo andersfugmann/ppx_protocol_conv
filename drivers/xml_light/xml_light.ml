@@ -116,7 +116,15 @@ let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = fu
 
 let of_record t = of_record t []
 
-let to_tuple = to_record
+let to_tuple constr =
+  let rec inner: type a b c. int -> (a, b, c) Tuple_in.t -> (a, b, c) Record_in.t = fun i -> function
+    | Tuple_in.Cons (f, xs) ->
+      let tail = inner (i+1) xs in
+      Record_in.Cons ( (Printf.sprintf "t%d" i, f, None), tail)
+    | Tuple_in.Nil -> Record_in.Nil
+  in
+  let constr = inner 0 constr in
+  to_record constr
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   (* Not allowed to throw out the unwrap. *)

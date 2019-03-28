@@ -242,6 +242,6 @@ and of_json t =
       let _ = t |> to_json |> of_json in
       let c3 = !count in
       Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
-      [%expect {| 11 -> 11 -> 11 -> 11 |}]
+      [%expect {| 9 -> 9 -> 9 -> 9 |}]
   end
 end
