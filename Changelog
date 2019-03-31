@@ -5,12 +5,13 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 
 4.1.0 (unreleased)
 [ ] Add option make make lazy type indeed lazy
-[ ] Add option to mangle variant names
-[ ] Refactor tuple, variant and record code to be more efficient
+[x] Add option to mangle variant names
+[x] Refactor tuple, variant and record code to be more efficient
 [x] Reduce amount of closures in generated code
 [ ] support nativeint
-[ ] test A (int * int) vs A int * int
 [x] Remove superfluous rec flag from generated code
+[ ] Fix signatures for parameterized types
+[ ] Create helper module for tuple, record and variant.
 
 4.0.0 (released 2019-03-26)
 [*] Support "@default" argument on record fields. #9

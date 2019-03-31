@@ -1,18 +1,3 @@
-module Test = struct
-  type (_, _) spec =
-    | (::) : (string * ('a -> string))  * ('b, 'c) spec -> ('a -> 'b, 'c) spec
-    | [] : ('a, 'a) spec
-
-  let rec print: type b. (b, (string * string) list) spec -> (string * string) list -> b = function
-    | (name, f) :: xs ->
-      let cont = print xs in
-      fun acc v -> cont ((name, f v) :: acc)
-    | [] -> fun v -> v
-
-  let x = print ["A", string_of_int; "B", string_of_float] []
-  let y = (x 4 5.6)
-end
-
 module Record_in = struct
   type (_, _, _) t =
     | Cons : (string * ('t -> 'a) * 'a option) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
@@ -41,13 +26,30 @@ module Tuple_out = struct
   let (^::) a b = Cons (a,b)
 end
 
+(** How does the Nil tuple work?
+    Would it be given a t? It throws it away, but it would
+    be interesting to see it. Lets build the first version first.
+    Should we create aliases. I think its best
+*)
+module Variant_in = struct
+  type  (_, _) t =
+    | Tuple:  ('a, 'b, 'c) Tuple_in.t  * 'b -> ('a, 'c) t
+    | Record: ('a, 'b, 'c) Record_in.t * 'b -> ('a, 'c) t
+end
+
+module Variant_out = struct
+  type ('a, 'b, 'c) t =
+    | Tuple of ('a, 'b, 'c) Tuple_out.t
+    | Record of ('a, 'b, 'c) Record_out.t
+end
+
 module type Driver = sig
   type t
   exception Protocol_error of string * t
   val to_string_hum: t -> string
-  (* Use gadt *)
-  val to_variant: (string * t list -> 'a) -> t -> 'a
-  val of_variant: ('a -> string * t list) -> 'a -> t
+
+  val to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c
+  val of_variant: string -> (t, 'a, t) Variant_out.t -> 'a
   val to_record:  (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
   val of_record:  (t, 'a, t) Record_out.t -> 'a
   val to_tuple:   (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b

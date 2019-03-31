@@ -1,6 +1,6 @@
 (executable
  (name       unittest)
- (modules    :standard)
+ (modules    :standard \ test)
  (libraries  test ppx_protocol_conv_json)
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect))
 )
@@ -10,3 +10,9 @@
  (package ppx_protocol_conv_json)
  (action (run %{exe:unittest.exe}))
 )
+
+(executable
+ (name        test)
+ (modules     test)
+ (libraries   ppx_protocol_conv_json)
+ (preprocess (pps ppx_protocol_conv)))

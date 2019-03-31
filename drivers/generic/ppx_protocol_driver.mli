@@ -2,12 +2,22 @@ module type Parameters = sig
   (** Map field names*)
   val field_name: string -> string
 
+  (** Map variant and constructors *)
+  val variant_name: string -> string
+
   (** Map singleton constructors to a string.
       If true, singleton constructors are mapped to a string *)
   val singleton_constr_as_string: bool
 
   (** Omit default values from output *)
   val omit_default_values: bool
+
+  (** Lazy evaluate lazy fields.
+      If true, lazy fields are parsed eagerly.
+      If false, lazy fields are parsed first when forced, which means they
+      will hold the serialized structure untill forced, and forcing
+      might raise a parse error *)
+  val eager: bool
 end
 
 module Default_parameters : Parameters

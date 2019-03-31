@@ -33,15 +33,21 @@ let rec element_to_map m = function
 
 let element name t = Xml.Element (name, [], t)
 
-let of_variant: ('a -> string * t list) -> 'a -> t = fun destruct t ->
+let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun _ -> failwith "Not implemented"
+
+      (*
+      ('a -> string * t list) -> 'a -> t = fun destruct t ->
   let (s, ts) = destruct t in
   Xml.Element("variant", [], Xml.PCData s :: ts)
+*)
+let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun _ -> failwith "Not implemented"
+      (*
 
-let to_variant: (string * t list -> 'a) -> t -> 'a = fun constr -> function
+let to_variant: string -> (t -> 'a) -> t -> 'a = fun name constr -> function
   | Xml.Element(_, _, Xml.PCData s :: es) -> constr (s, es)
   | Xml.Element(name, _, []) as d -> raise_errorf d "No contents for variant type: %s" name
   | d -> raise_errorf d "Wrong variant data"
-
+*)
 (* Records could be optimized by first creating a map of existing
    usable labels -> id's (at startup). Then map the input data to an
    array of lists (mutable). Then do the decoding. That would be O(n

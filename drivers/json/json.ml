@@ -52,7 +52,9 @@ module Yojson = struct
   include Make(struct
       let omit_default_values = true
       let field_name name = name
+      let variant_name name = name
       let singleton_constr_as_string = false
+      let eager = true
     end)
   let to_yojson t = t
   let of_yojson t = t
@@ -68,55 +70,12 @@ let to_json t = t
 module Test = struct
   module Standard = struct
     module Json = Make(Ppx_protocol_driver.Default_parameters)
-
-    (** Expanded **)
-type u =
-  | A
-  | B of int
-and t = {
-  int: int ;
-  u: u ;
-  uu: u }
-let rec u_to_json t =
-  (Json.of_variant
-     (function | A -> ("A", []) | B c0 -> ("B", [Json.of_int c0]))) t
-[@@ocaml.warning "-39"]
-and to_json t =
-  (let _of_record =
-     Json.of_record
-       (
-         let open! Protocol_conv.Runtime in
-          Record_out.Cons
-            (("int", Json.of_int, None),
-              (Record_out.Cons
-                 (("u", u_to_json, None),
-                   (Record_out.Cons (("uu", u_to_json, None), Nil)))))) in
-   fun { int; u; uu } -> _of_record int u uu) t[@@ocaml.warning "-39"]
-let rec u_of_json t =
-  (Json.to_variant
-     (function
-      | ("A", []) -> A
-      | ("B", c0::[]) -> B (Json.to_int c0)
-      | (s, _) -> failwith ("Unknown variant or arity error: " ^ s))) t
-[@@ocaml.warning "-39"]
-and of_json t =
-  (let of_funcs =
-     let open Protocol_conv.Runtime.Record_in in
-       Cons
-         (("int", Json.to_int, None),
-           (Cons
-              (("u", u_of_json, None), (Cons (("uu", u_of_json, None), Nil))))) in
-   let constructor int u uu = { int; u; uu } in
-   Json.to_record of_funcs constructor) t[@@ocaml.warning "-39"]
-
-(*
     type u = A | B of int
     and t = {
       int: int;
       u: u;
       uu: u;
     } [@@deriving protocol ~driver:(module Json)]
-*)
     let t = { int = 5; u = A; uu = B 5 }
     let%test _ =  t |> to_json |> of_json = t
     let%expect_test _ =
@@ -128,8 +87,10 @@ and of_json t =
   module Field_upper = struct
     module Parameters : Ppx_protocol_driver.Parameters = struct
       let field_name name = String.capitalize_ascii name
+      let variant_name name = name
       let singleton_constr_as_string = true
       let omit_default_values = true
+      let eager = true
     end
     module Json = Make(Parameters)
     type u = A | B of int
@@ -150,8 +111,10 @@ and of_json t =
   module Singleton_as_list = struct
     module Parameters : Ppx_protocol_driver.Parameters = struct
       let field_name name = name
+      let variant_name name = name
       let singleton_constr_as_string = false
       let omit_default_values = true
+      let eager = true
     end
     module Json = Make(Parameters)
     type u = A | B of int
@@ -172,8 +135,10 @@ and of_json t =
   module Omit_default = struct
     module Parameters : Ppx_protocol_driver.Parameters = struct
       let field_name name = name
+      let variant_name name = name
       let singleton_constr_as_string = true
       let omit_default_values = true
+      let eager = true
     end
     module Json = Make(Parameters)
     type u = A | B of int
@@ -194,8 +159,10 @@ and of_json t =
   module Keep_default = struct
     module Parameters : Ppx_protocol_driver.Parameters = struct
       let field_name name = name
+      let variant_name name = name
       let singleton_constr_as_string = true
       let omit_default_values = false
+      let eager = true
     end
     module Json = Make(Parameters)
 
@@ -218,8 +185,10 @@ and of_json t =
     let count = ref 0
     module Parameters : Ppx_protocol_driver.Parameters = struct
       let field_name name = incr count; name
+      let variant_name name = name
       let singleton_constr_as_string = true
       let omit_default_values = true
+      let eager = true
     end
     module Json = Make(Parameters)
     type u = A of { x:int; y: int; z:int } | B
@@ -242,6 +211,6 @@ and of_json t =
       let _ = t |> to_json |> of_json in
       let c3 = !count in
       Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
-      [%expect {| 9 -> 9 -> 9 -> 9 |}]
+      [%expect {| 12 -> 12 -> 12 -> 12 |}]
   end
 end

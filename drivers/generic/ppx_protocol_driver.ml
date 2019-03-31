@@ -6,14 +6,18 @@ module StringMap = Map.Make(String)
 
 module type Parameters = sig
   val field_name: string -> string
+  val variant_name: string -> string
   val singleton_constr_as_string: bool
   val omit_default_values: bool
+  val eager: bool
 end
 
 module Default_parameters : Parameters = struct
   let field_name name = name
+  let variant_name name = name
   let singleton_constr_as_string = true
   let omit_default_values = true
+  let eager = true
 end
 
 module type Driver = sig
@@ -78,6 +82,16 @@ let mangle: string -> string = fun s ->
 module Make(Driver: Driver)(P: Parameters) = struct
   type t = Driver.t
 
+  let debug_t = false
+  let debug_t t fmt = match debug_t with
+    | true -> Printf.eprintf ("%s:" ^^ fmt ^^ "\n%!") (Driver.to_string_hum t)
+    | false -> Printf.ifprintf stderr fmt [@@warning "-32"]
+
+  let debug = true
+  let debug fmt = match debug with
+    | true -> Printf.eprintf (fmt ^^ "\n%!")
+    | false -> Printf.ifprintf stderr fmt [@@warning "-32"]
+
   exception Protocol_error of string * t
   (* Register exception printer *)
   let () = Printexc.register_printer (function
@@ -89,24 +103,6 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let raise_errorf t fmt =
     Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
-  let of_variant destruct t =
-    match destruct t with
-    | name, [] when P.singleton_constr_as_string ->
-      Driver.of_string name
-    | name, args -> Driver.of_string name :: args |> Driver.of_list
-
-  let to_variant constr =
-    function
-    | t when P.singleton_constr_as_string && Driver.is_string t -> constr (Driver.to_string t, [])
-    | t when Driver.is_list t -> begin
-        match Driver.to_list t with
-        | name :: ts when Driver.is_string name ->
-          constr (Driver.to_string name, ts)
-        | _ -> raise_errorf t "Variant list must start with a string"
-      end
-    | t when P.singleton_constr_as_string -> raise_errorf t "Variants must be a string or a list"
-    | t -> raise_errorf t "Variants must be a list"
-
   let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
     let rec inner: type a b. (t, a, b) Record_in.t -> orig:t -> a -> 'c -> b =
       let open Record_in in
@@ -116,8 +112,10 @@ module Make(Driver: Driver)(P: Parameters) = struct
         let cont = inner xs in
         fun ~orig constr t ->
           let v =
-            try StringMap.find field t |> to_value_func with
-            | Not_found -> begin
+            match StringMap.find field t with
+            | t ->
+              to_value_func t
+            | exception Not_found -> begin
                 match default with
                 | None -> raise_errorf orig "Field not found: %s" field
                 | Some v -> v
@@ -136,38 +134,93 @@ module Make(Driver: Driver)(P: Parameters) = struct
       in
       f constr ~orig:t values
 
-  let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
+  let rec of_record': type a. ((string * t) list -> t) -> (t, a, t) Record_out.t -> (string * t) list -> a = fun f -> function
     | Record_out.Cons ((field, to_t, default), xs) ->
       let field = P.field_name field in
-      let cont = of_record xs in
+      let cont = of_record' f xs in
       fun acc v -> begin
           match default with
           | Some d when d = v -> cont acc
           | _ -> cont ((field, to_t v) :: acc)
         end
     | Record_out.Nil ->
-      fun acc -> Driver.of_alist acc
+      fun acc -> f acc
 
-  let of_record x = of_record x []
+  let of_record spec = of_record' Driver.of_alist spec []
 
-  let rec to_tuple: type a b. (t, a, b) Tuple_in.t -> a -> t -> b =
-      function
-      | Tuple_in.Cons (to_value_func, xs) ->
-        let cont = to_tuple xs in
-        fun constructor t ->
-          let l = Driver.to_list t in
-          let v = to_value_func (List.hd l) in
-          cont (constructor v) (Driver.of_list (List.tl l))
-      | Tuple_in.Nil -> fun a _t -> a
+  let rec to_tuple': type a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
+    function
+    | Tuple_in.Cons (to_value_func, xs) ->
+      let cont = to_tuple' xs in
+      fun constructor -> begin function
+          | t :: ts ->
+            let v = to_value_func t in
+            cont (constructor v) ts
+          | [] -> raise_errorf (Driver.of_list []) "Too few elements when parsing tuple"
+        end
+    | Tuple_in.Nil -> fun a -> begin
+        function [] ->
+                  a
+               | ts -> raise_errorf (Driver.of_list ts) "Too many elements when parsing tuple"
+      end
 
-  let rec of_tuple: type a. (t, a, t) Tuple_out.t -> t list -> a = function
+  let to_tuple spec constructor =
+    let to_tuple = to_tuple' spec constructor in
+    fun t ->
+      to_tuple (Driver.to_list t)
+
+  let rec of_tuple': type a. (t, a, t) Tuple_out.t -> t list -> a = function
     | Tuple_out.Cons (to_t, xs) ->
-      let cont = of_tuple xs in
+      let cont = of_tuple' xs in
       fun acc v ->
         cont (to_t v :: acc)
     | Tuple_out.Nil ->
       fun acc -> Driver.of_list (List.rev acc)
-  let of_tuple spec = of_tuple spec []
+  let of_tuple spec = of_tuple' spec []
+
+  let of_variant: type a. string -> (t, a, t) Variant_out.t -> a = fun name ->
+    let name = P.variant_name name |> Driver.of_string in
+    function
+    | Variant_out.Record spec -> of_record' (fun r -> Driver.of_list [ name; Driver.of_alist r ])  spec [ ]
+    | Variant_out.Tuple Tuple_out.Nil when P.singleton_constr_as_string -> name
+    | Variant_out.Tuple Tuple_out.Nil -> Driver.of_list [ name ]
+    | Variant_out.Tuple spec -> of_tuple' spec [ name ]
+
+  let map_variant_constr: type c. (t, c) Variant_in.t -> (t -> c) = function
+    | Variant_in.Record (spec, constructor) ->
+      begin
+        let f = to_record spec constructor in
+        fun t -> match Driver.to_list t with
+          | [] -> raise_errorf t "Need exactly one argument for parsing record argument of variant"
+          | [t] -> f t
+          | _ -> raise_errorf t "Too many arguments for parsing record of variant"
+      end
+    | Variant_in.Tuple (spec, constructor) ->
+      let f = to_tuple spec constructor in
+      fun t -> f t
+
+  let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
+    let map = List.fold_left ~init:StringMap.empty ~f:(fun acc (name, spec) ->
+        StringMap.add (P.variant_name name) (map_variant_constr spec) acc
+      ) spec
+    in
+    fun t ->
+      let name, args = match t with
+        | t when P.singleton_constr_as_string && Driver.is_string t -> t, []
+        | t when Driver.is_list t -> begin
+            match Driver.to_list t with
+            | t :: ts when Driver.is_string t -> t, ts
+            | _ :: _ -> raise_errorf t "First element in variant list must be a string"
+            | [] ->  raise_errorf t "Nonempty list required for variant"
+          end
+        | _ when P.singleton_constr_as_string -> raise_errorf t "Variant must be a string or list"
+        | _ -> raise_errorf t "Variant must be a list"
+      in
+      let name = Driver.to_string name in
+      match StringMap.find name map with
+      | f ->
+        f (Driver.of_list args)
+      | exception _ -> raise_errorf t "Unknown constructor name: %s" name
 
   let get_option = function
     | t when Driver.is_alist t -> begin
