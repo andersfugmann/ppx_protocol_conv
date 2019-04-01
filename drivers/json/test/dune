@@ -1,6 +1,6 @@
 (executable
  (name       unittest)
- (modules    :standard \ test)
+ (modules    :standard \ test test_expect)
  (libraries  test ppx_protocol_conv_json)
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect))
 )
@@ -16,3 +16,13 @@
  (modules     test)
  (libraries   ppx_protocol_conv_json)
  (preprocess (pps ppx_protocol_conv)))
+
+(library
+ (name        test_expect)
+ (public_name ppx_protocol_conv_json.test_expect)
+ (modules     test_expect)
+ (private_modules     test_expect)
+ (inline_tests)
+ (optional)
+ (libraries   ppx_protocol_conv_json)
+ (preprocess (pps ppx_protocol_conv ppx_inline_test ppx_expect)))

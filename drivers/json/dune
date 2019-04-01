@@ -3,6 +3,5 @@
  (public_name ppx_protocol_conv_json)
  (libraries ppx_protocol_conv ppx_protocol_conv.runtime ppx_protocol_conv.driver yojson)
  (synopsis "yojson (de)serialization driver for ppx_protocol_conv")
- (preprocess (pps ppx_protocol_conv ppx_expect ppx_inline_test))
- (inline_tests)
+ (preprocess (pps ppx_protocol_conv))
 )
