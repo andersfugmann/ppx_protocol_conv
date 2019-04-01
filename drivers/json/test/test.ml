@@ -18,9 +18,7 @@ end
 
 module Test_tuple = struct
   type t = int * string
-  [@@deriving protocol ~driver:(module Json)]
-
-  type x = { t: t }
+  and x = { t: t }
   [@@deriving protocol ~driver:(module Json)]
 
   let () =

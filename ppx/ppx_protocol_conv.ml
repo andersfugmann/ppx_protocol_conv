@@ -734,17 +734,24 @@ let serialization_signature ~loc driver tdecl =
     )
   |> ptyp_poly ~loc (List.map ~f:(fun txt -> { loc; txt }) params)
 
+let make_recursive ~loc (e : expression) = function
+  | false -> e
+  | true ->
+    [%expr (let f = ref None in
+            (fun t -> match !f with
+               | None ->
+                 let f' = [%e e] in f := Some f'; f' t
+               | Some f -> f t
+            ))
+    ]
+
+
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   let is_recursive = is_recursive tydecls rec_flag in
   List.map
     ~f:(fun tdecl ->
         let to_p = serialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
-        let expr =
-          let e = serialize_expr_of_tdecl t ~loc tdecl in
-          match is_recursive with
-          | true -> [%expr (fun t -> [%e e] t) ]
-          | false  -> e
-        in
+        let expr = make_recursive ~loc (serialize_expr_of_tdecl t ~loc tdecl) is_recursive in
         let expr_param =
           List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
               let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"to" ct) in
@@ -762,12 +769,7 @@ let of_protocol_str_type_decls t rec_flag ~loc tydecls =
   List.map
     ~f:(fun tdecl ->
         let of_p = deserialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
-        let expr =
-          let expr = deserialize_expr_of_tdecl t ~loc tdecl in
-          match is_recursive with
-          | true -> [%expr fun t -> [%e expr] t]
-          | false  -> expr
-        in
+        let expr = make_recursive ~loc (deserialize_expr_of_tdecl t ~loc tdecl) is_recursive in
         let expr_param =
           List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
               let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"of" ct) in

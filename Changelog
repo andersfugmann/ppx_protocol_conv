@@ -10,6 +10,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Reduce amount of closures in generated code
 [ ] support nativeint
 [x] Remove superfluous rec flag from generated code
+[x] Cache partial results for recursive types
 [ ] Fix signatures for parameterized types
 [ ] Create helper module for tuple, record and variant.
 
