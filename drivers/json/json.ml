@@ -50,11 +50,11 @@ module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver
 module Y = Yojson.Safe
 module Yojson = struct
   include Make(struct
+      include Ppx_protocol_driver.Default_parameters
       let omit_default_values = true
-      let field_name name = name
-      let variant_name name = name
       let singleton_constr_as_string = false
       let eager = true
+      let strict = true
     end)
   let to_yojson t = t
   let of_yojson t = t

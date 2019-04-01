@@ -103,5 +103,4 @@ module Test_variant = struct
     let _ = x_of_json (Yojson.Safe.from_string s) in
     Printf.eprintf "Ok\n";
     ()
-
 end

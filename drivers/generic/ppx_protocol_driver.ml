@@ -10,6 +10,7 @@ module type Parameters = sig
   val singleton_constr_as_string: bool
   val omit_default_values: bool
   val eager: bool
+  val strict: bool
 end
 
 module Default_parameters : Parameters = struct
@@ -18,6 +19,7 @@ module Default_parameters : Parameters = struct
   let singleton_constr_as_string = true
   let omit_default_values = true
   let eager = true
+  let strict = false
 end
 
 module type Driver = sig

@@ -1,15 +1,20 @@
 module type Parameters = sig
-  (** Map field names*)
+  (** Map field names of records *)
   val field_name: string -> string
 
-  (** Map variant and constructors *)
+  (** Map variant and constructor names *)
   val variant_name: string -> string
 
   (** Map singleton constructors to a string.
-      If true, singleton constructors are mapped to a string *)
-  val singleton_constr_as_string: bool
+      If true, constructors without arguments are mapped to a string, instead of
+      than a list containing only the constructor / variant name *)
+  val singleton_constr_as_string: bool (* Stupid name. Find a better one *)
 
-  (** Omit default values from output *)
+  (** Omit default values from output.
+      If true, default values
+      are not serialized. Note that this uses polymorphic compare
+      to determine if a field value is the same as the default value
+  *)
   val omit_default_values: bool
 
   (** Lazy evaluate lazy fields.
@@ -18,6 +23,9 @@ module type Parameters = sig
       will hold the serialized structure untill forced, and forcing
       might raise a parse error *)
   val eager: bool
+
+  (** Require exact amount of input fields when deserialising objects *)
+  val strict: bool
 end
 
 module Default_parameters : Parameters
