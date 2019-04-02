@@ -105,7 +105,7 @@ module Test = struct
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "uu": [ "B", 5 ], "u": "A" } |}]
+      [%expect {| { "uu": [ "B", 5 ], "u": "A", "int": 5 } |}]
   end
 
   module Field_name_count = struct
