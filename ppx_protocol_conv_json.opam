@@ -15,8 +15,8 @@ depends: [
   "yojson" {>= "1.5.0" & < "2.0.0"}
   "dune" {build & >= "1.2"}
   "ppx_sexp_conv" {with-test & < "v0.12"}
-  "ppx_expect" {< with-test & "v0.12"}
-  "ppx_inline_test" {< with-test & "v0.12"}
+  "ppx_expect" {with-test & < "v0.12"}
+  "ppx_inline_test" {with-test & < "v0.12"}
   "sexplib" {with-test & < "v0.12"}
   "ounit" {with-test}
 ]
