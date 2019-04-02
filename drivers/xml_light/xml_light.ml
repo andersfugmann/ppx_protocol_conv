@@ -7,10 +7,11 @@ let _log fmt = Printf.eprintf (fmt ^^ "\n%!")
 
 module StringMap = Map.Make(String)
 
-exception Protocol_error of string * t
+exception Protocol_error of string * t option
 (* Register exception printer *)
 let () = Printexc.register_printer
-    (function Protocol_error (s, t) -> Some (s ^ ": " ^ (Xml.to_string t))
+    (function Protocol_error (s, Some t) -> Some (s ^ ": " ^ (Xml.to_string t))
+            | Protocol_error (s, None) -> Some (s)
             | _ -> None)
 
 let raise_errorf t fmt =
@@ -114,7 +115,7 @@ let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = fu
                   Xml.Element(field, attrs, xs)
                 | PCData _ as p -> Xml.Element(field, [], [p])
               ) xs (* why xs here. Or do we need to extend the option one level *)
-          | (field, e) -> raise_errorf e "Must be an element: %s" field
+          | (field, e) -> raise_errorf (Some e) "Must be an element: %s" field
         ) assoc
         |> List.flatten |> element "record"
     end
@@ -186,7 +187,7 @@ let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
     [ to_value_fun elm ]
   | Xml.Element (_, _, ts) ->
     List.map ~f:(fun t -> to_value_fun t) ts
-  | e -> raise_errorf e "Must be an element type"
+  | e -> raise_errorf (Some e) "Must be an element type"
 
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
   Xml.Element("l", [], List.map ~f:(fun v -> of_value_fun v) vs)
@@ -207,8 +208,8 @@ let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
 let to_value type_name of_string = function
   | Xml.Element(_, _, []) -> of_string ""
   | Xml.Element(_, _, [PCData s]) -> of_string s
-  | Xml.Element(name, _, _) as e -> raise_errorf e "Primitive value expected in node: %s for %s" name type_name
-  | Xml.PCData _ as e -> raise_errorf e "Primitive type not expected here when deserializing %s" type_name
+  | Xml.Element(name, _, _) as e -> raise_errorf (Some e) "Primitive value expected in node: %s for %s" name type_name
+  | Xml.PCData _ as e -> raise_errorf (Some e) "Primitive type not expected here when deserializing %s" type_name
 
 let to_bool = to_value "bool" bool_of_string
 let of_bool = of_value string_of_bool
@@ -229,12 +230,12 @@ let to_string = to_value "string" (fun x -> x)
 let of_string = of_value (fun x -> x)
 
 let to_char t = to_value "char" (function s when String.length s = 1 -> s.[0]
-                                        | _ -> raise (Protocol_error ("Expected char", t))) t
+                                        | _ -> raise_errorf (Some t) "Expected char")
 let of_char = of_value (fun c -> (String.make 1 c))
 
 
 
-let to_unit = to_value "unit" (function "()" -> () | _ -> failwith "expected unit")
+let to_unit = to_value "unit" (function "()" -> () | _ -> raise_errorf None "Expected char")
 let of_unit = of_value (fun () -> "()")
 
 (*

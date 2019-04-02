@@ -12,7 +12,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Remove superfluous rec flag from generated code
 [x] Cache partial results for recursive types
 [ ] Fix signatures for parameterized types
-[ ] Create helper module for tuple, record and variant.
+[x] Create helper module for tuple, record and variant.
 [ ] Add strict option
 
 4.0.0 (released 2019-03-26)

@@ -94,10 +94,11 @@ module Make(Driver: Driver)(P: Parameters) = struct
     | true -> Printf.eprintf (fmt ^^ "\n%!")
     | false -> Printf.ifprintf stderr fmt [@@warning "-32"]
 
-  exception Protocol_error of string * t
+  exception Protocol_error of string * t option
   (* Register exception printer *)
   let () = Printexc.register_printer (function
-      | Protocol_error (s, t) -> Some (Printf.sprintf "%s, %s" s (Driver.to_string_hum t))
+      | Protocol_error (s, Some t) -> Some (Printf.sprintf "%s, %s" s (Driver.to_string_hum t))
+      | Protocol_error (s, None) -> Some (Printf.sprintf "%s" s)
       | _ -> None)
 
   let to_string_hum = Driver.to_string_hum
@@ -105,124 +106,56 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let raise_errorf t fmt =
     Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
-  let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
-    let rec inner: type a b. (t, a, b) Record_in.t -> orig:t -> a -> 'c -> b =
-      let open Record_in in
-      function
-      | Cons ((field, to_value_func, default), xs) ->
-        let field = P.field_name field in
-        let cont = inner xs in
-        fun ~orig constr t ->
-          let v =
-            match StringMap.find field t with
-            | t ->
-              to_value_func t
-            | exception Not_found -> begin
-                match default with
-                | None -> raise_errorf orig "Field not found: %s" field
-                | Some v -> v
-              end
-          in
-          cont ~orig (constr v) t
-      | Nil -> fun ~orig:_ a _t -> a
-    in
-    let f = inner spec in
-    fun constr t ->
-      let values =
-        Driver.to_alist t
-        |> List.fold_left
-          ~f:(fun m (k, v) -> StringMap.add k v m)
-          ~init:StringMap.empty
-      in
-      f constr ~orig:t values
+  let to_record: (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b = fun spec constr ->
+    let spec = Helper.map_record_in ~field:P.field_name spec in
+    let f = Helper.to_record ~strict:P.strict spec constr in
+    fun t -> f (Driver.to_alist t)
 
-  let rec of_record': type a. ((string * t) list -> t) -> (t, a, t) Record_out.t -> (string * t) list -> a = fun f -> function
-    | Record_out.Cons ((field, to_t, default), xs) ->
-      let field = P.field_name field in
-      let cont = of_record' f xs in
-      fun acc v -> begin
-          match default with
-          | Some d when d = v -> cont acc
-          | _ -> cont ((field, to_t v) :: acc)
-        end
-    | Record_out.Nil ->
-      fun acc -> f acc
+  let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
+    let spec = Helper.map_record_out ~field:P.field_name spec in
+    Helper.of_record ~omit_default:P.omit_default_values Driver.of_alist spec
 
-  let of_record spec = of_record' Driver.of_alist spec []
+  let to_tuple: (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b = fun spec constr ->
+    let f = Helper.to_tuple spec constr in
+    fun t -> f (Driver.to_list t)
 
-  let rec to_tuple': type a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
-    function
-    | Tuple_in.Cons (to_value_func, xs) ->
-      let cont = to_tuple' xs in
-      fun constructor -> begin function
-          | t :: ts ->
-            let v = to_value_func t in
-            cont (constructor v) ts
-          | [] -> raise_errorf (Driver.of_list []) "Too few elements when parsing tuple"
-        end
-    | Tuple_in.Nil -> fun a -> begin
-        function [] ->
-                  a
-               | ts -> raise_errorf (Driver.of_list ts) "Too many elements when parsing tuple"
-      end
+  let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
+    Helper.of_tuple Driver.of_list spec
 
-  let to_tuple spec constructor =
-    let to_tuple = to_tuple' spec constructor in
-    fun t ->
-      to_tuple (Driver.to_list t)
-
-  let rec of_tuple': type a. (t, a, t) Tuple_out.t -> t list -> a = function
-    | Tuple_out.Cons (to_t, xs) ->
-      let cont = of_tuple' xs in
-      fun acc v ->
-        cont (to_t v :: acc)
-    | Tuple_out.Nil ->
-      fun acc -> Driver.of_list (List.rev acc)
-  let of_tuple spec = of_tuple' spec []
-
-  let of_variant: type a. string -> (t, a, t) Variant_out.t -> a = fun name ->
+  let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name spec ->
+    let spec = Helper.map_variant_out ~field:P.field_name spec in
     let name = P.variant_name name |> Driver.of_string in
-    function
-    | Variant_out.Record spec -> of_record' (fun r -> Driver.of_list [ name; Driver.of_alist r ])  spec [ ]
-    | Variant_out.Tuple Tuple_out.Nil when P.singleton_constr_as_string -> name
-    | Variant_out.Tuple Tuple_out.Nil -> Driver.of_list [ name ]
-    | Variant_out.Tuple spec -> of_tuple' spec [ name ]
-
-  let map_variant_constr: type c. (t, c) Variant_in.t -> (t -> c) = function
-    | Variant_in.Record (spec, constructor) ->
-      begin
-        let f = to_record spec constructor in
-        fun t -> match Driver.to_list t with
-          | [] -> raise_errorf t "Need exactly one argument for parsing record argument of variant"
-          | [t] -> f t
-          | _ -> raise_errorf t "Too many arguments for parsing record of variant"
-      end
-    | Variant_in.Tuple (spec, constructor) ->
-      let f = to_tuple spec constructor in
-      fun t -> f t
+    let to_result = function
+      | Helper.Tuple l -> Driver.of_list (name :: l)
+      | Helper.Record alist -> Driver.of_list [name; Driver.of_alist alist]
+      | Helper.Nil when P.singleton_constr_as_string -> name
+      | Helper.Nil -> Driver.of_list [name]
+    in
+    Helper.of_variant ~omit_default:P.omit_default_values to_result spec
 
   let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
-    let map = List.fold_left ~init:StringMap.empty ~f:(fun acc (name, spec) ->
-        StringMap.add (P.variant_name name) (map_variant_constr spec) acc
-      ) spec
+    let spec = Helper.map_variant_in ~field:P.field_name ~constructor:P.variant_name spec in
+    let to_alist t = match Driver.is_alist t with
+      | true -> Some (Driver.to_alist t)
+      | false -> None
     in
-    fun t ->
-      let name, args = match t with
-        | t when P.singleton_constr_as_string && Driver.is_string t -> t, []
-        | t when Driver.is_list t -> begin
-            match Driver.to_list t with
-            | t :: ts when Driver.is_string t -> t, ts
-            | _ :: _ -> raise_errorf t "First element in variant list must be a string"
-            | [] ->  raise_errorf t "Nonempty list required for variant"
-          end
-        | _ when P.singleton_constr_as_string -> raise_errorf t "Variant must be a string or list"
-        | _ -> raise_errorf t "Variant must be a list"
-      in
-      let name = Driver.to_string name in
-      match StringMap.find name map with
-      | f ->
-        f (Driver.of_list args)
-      | exception _ -> raise_errorf t "Unknown constructor name: %s" name
+    let f = Helper.to_variant ~strict:P.strict to_alist spec in
+    function
+    | t when Driver.is_list t -> begin
+        let name, args = match Driver.to_list t with
+          | name :: args when Driver.is_string name -> Driver.to_string name, args
+          | _ :: _ -> raise_errorf (Some t) "First elements in the list must be the constructor name when name when deserialising variant"
+          | [] -> raise_errorf (Some t) "Empty list found when deserialising variant"
+        in
+        f name args
+      end
+    | t when P.singleton_constr_as_string && Driver.is_string t ->
+      let name = Driver.to_string t in
+      f name []
+    | t when P.singleton_constr_as_string ->
+      raise_errorf (Some t) "Expected list or string when deserialisating variant"
+    | t ->
+      raise_errorf (Some t) "Expected list when deserialisating variant"
 
   let get_option = function
     | t when Driver.is_alist t -> begin
@@ -231,7 +164,6 @@ module Make(Driver: Driver)(P: Parameters) = struct
         | _ -> None
       end
     | _ -> None
-
 
   (* If the type is an empty list, thats also null. *)
   let to_option: (t -> 'a) -> t -> 'a option = fun  to_value_fun -> function
@@ -275,29 +207,29 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun  of_value_fun v ->
     Lazy.force v |> of_value_fun
 
-  let to_char  t = try Driver.to_char t with _ -> raise_errorf t "char expected"
+  let to_char  t = try Driver.to_char t with _ -> raise_errorf (Some t) "char expected"
   let of_char  v = Driver.of_char v
 
-  let to_int  t = try Driver.to_int t with _ -> raise_errorf t "int expected"
+  let to_int  t = try Driver.to_int t with _ -> raise_errorf (Some t) "int expected"
   let of_int  v = Driver.of_int v
 
-  let to_int32  t = try Driver.to_int32 t with _ -> raise_errorf t "int32 expected"
+  let to_int32  t = try Driver.to_int32 t with _ -> raise_errorf (Some t) "int32 expected"
   let of_int32  v = Driver.of_int32 v
 
-  let to_int64  t = try Driver.to_int64 t with _ -> raise_errorf t "int64 expected"
+  let to_int64  t = try Driver.to_int64 t with _ -> raise_errorf (Some t) "int64 expected"
   let of_int64  v = Driver.of_int64 v
 
-  let to_string  t = try Driver.to_string t with _ -> raise_errorf t "string expected"
+  let to_string  t = try Driver.to_string t with _ -> raise_errorf (Some t) "string expected"
   let of_string  v = Driver.of_string v
 
-  let to_float  t = try Driver.to_float t with _ -> raise_errorf t "float expected"
+  let to_float  t = try Driver.to_float t with _ -> raise_errorf (Some t) "float expected"
   let of_float  v = Driver.of_float v
 
-  let to_bool  t = try Driver.to_bool t with _ -> raise_errorf t "bool expected"
+  let to_bool  t = try Driver.to_bool t with _ -> raise_errorf (Some t) "bool expected"
   let of_bool  v = Driver.of_bool v
 
   let to_unit t = to_option (fun _ -> ()) t
-                  |> function Some _ -> raise_errorf t "Unit (null) expected"
+                  |> function Some _ -> raise_errorf (Some t) "Unit expected"
                             | None -> ()
 
   let of_unit () = of_option (fun _ -> failwith "Should call with None") None

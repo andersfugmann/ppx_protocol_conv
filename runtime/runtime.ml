@@ -26,11 +26,6 @@ module Tuple_out = struct
   let (^::) a b = Cons (a,b)
 end
 
-(** How does the Nil tuple work?
-    Would it be given a t? It throws it away, but it would
-    be interesting to see it. Lets build the first version first.
-    Should we create aliases. I think its best
-*)
 module Variant_in = struct
   type  (_, _) t =
     | Tuple:  ('a, 'b, 'c) Tuple_in.t  * 'b -> ('a, 'c) t
@@ -45,7 +40,7 @@ end
 
 module type Driver = sig
   type t
-  exception Protocol_error of string * t
+  exception Protocol_error of string * t option
   val to_string_hum: t -> string
 
   val to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c
@@ -81,4 +76,179 @@ module type Driver = sig
   val of_bool:    bool -> t
   val to_unit:    t -> unit
   val of_unit:    unit -> t
+end
+
+
+module Helper = struct
+  exception Protocol_error of string
+
+
+  (** / **)
+  let raise_errorf: ('a, unit, string, 'b) format4 -> 'a = fun fmt -> Printf.ksprintf (fun s -> raise (Protocol_error s)) fmt
+  module StringMap = Map.Make(String)
+  (** / **)
+
+  type 'a variant = Record of (string * 'a) list | Tuple of 'a list | Nil
+
+  (** Map fields names of a {Record_in} structure *)
+  let rec map_record_in: type t a b. field:(string -> string) -> (t, a, b) Record_in.t -> (t, a, b) Record_in.t = fun ~field -> function
+    | Record_in.Cons ((field_name, to_value_func, default), xs) ->
+      Record_in.Cons ((field field_name, to_value_func, default), map_record_in ~field xs)
+    | Record_in.Nil -> Record_in.Nil
+
+  (** {to_record spec constructor get_function} returns the constructed value.
+        [get_function] is a function that maps a record field name to a value. *)
+  let to_record: type t a b. ?strict:bool -> (t, a, b) Record_in.t -> a -> (string * t) list -> b = fun ?(strict=false) ->
+    let rec inner: type t a b. (t, a, b) Record_in.t -> a -> t StringMap.t -> b = function
+      | Record_in.Cons ((field, to_value_func, Some default), xs) ->
+        let cont = inner xs in
+        fun constr map ->
+          let t = ref None in
+          let map = StringMap.update field (fun a -> t := a; None) map in
+          let v = match !t with
+            | Some t -> to_value_func t
+            | None -> default
+          in
+          cont (constr v) map
+      | Record_in.Cons ((field, to_value_func, None), xs) ->
+        let cont = inner xs in
+        fun constr map ->
+          let t = ref None in
+          let map = StringMap.update field (fun a -> t := a; None) map in
+          let v = match !t with
+            | Some t -> to_value_func t
+            | None -> raise_errorf "Field not found: %s" field
+          in
+          cont (constr v) map
+      | Record_in.Nil when strict -> fun a map -> begin
+          match StringMap.is_empty map with
+          | true -> a
+          | false -> raise_errorf "Superfluous fields for map: [%s]" (StringMap.bindings map |> List.map fst |> String.concat "; ")
+        end
+      | Record_in.Nil -> fun a _map -> a
+    in
+    fun spec ->
+      let f = inner spec in
+      fun constr elements ->
+        let map = List.fold_left (fun acc (field, t) ->
+            StringMap.update field (function
+                | Some _ -> raise_errorf "Duplicate fields found: %s" field
+                | None -> Some t) acc
+          ) StringMap.empty elements
+        in
+        f constr map
+
+  (** Map fields names of a {Record_out} structure *)
+  let rec map_record_out: type t a. field:(string -> string) -> (t, a, t) Record_out.t -> (t, a, t) Record_out.t = fun ~field -> function
+    | Record_out.Cons ((field_name, to_t, default), xs) ->
+      Record_out.Cons ((field field_name, to_t, default), map_record_out ~field xs)
+    | Record_out.Nil -> Record_out.Nil
+
+  let rec of_record: type t a. omit_default:bool -> ((string * t) list -> t) -> (t, a, t) Record_out.t -> (string * t) list -> a = fun ~omit_default map -> function
+    | Record_out.Cons ((field, to_t, default), xs) ->
+      let cont = of_record ~omit_default map xs in
+      let f = match omit_default, default with
+        | true, Some d -> begin
+            fun acc -> function
+              | v when v = d -> cont acc
+              | v -> cont ((field, to_t v) :: acc)
+          end
+        | _, _ -> fun acc v -> cont ((field, to_t v) :: acc)
+      in
+      f
+    | Record_out.Nil ->
+      fun acc -> map acc
+
+  (** {of_record map_f spec} produces a valid deserialisation function for a record type
+      The [map_f] function is called to produce the serialised result from a field_name, t association list.
+      If [omit_default] is true, then default values are omitted from the output
+  *)
+  let of_record ?(omit_default=false) map_f spec = of_record ~omit_default map_f spec []
+
+
+  (** {to_tuple spec tlist} produces a tuple from the serialized values in [tlist] *)
+  let rec to_tuple: type t a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
+    function
+    | Tuple_in.Cons (to_value_func, xs) ->
+      let cont = to_tuple xs in
+      fun constructor -> begin function
+          | t :: ts ->
+            let v = to_value_func t in
+            cont (constructor v) ts
+          | [] -> raise_errorf "Too few elements when parsing tuple"
+        end
+    | Tuple_in.Nil -> fun a -> function
+      | [] -> a
+      | _ -> raise_errorf "Too many elements when parsing tuple"
+
+  let rec of_tuple: type t a. (t list -> t) -> (t, a, t) Tuple_out.t -> t list -> a = fun map -> function
+    | Tuple_out.Cons (to_t, xs) ->
+      let cont = of_tuple map xs in
+      fun acc v ->
+        cont (to_t v :: acc)
+    | Tuple_out.Nil ->
+      fun acc -> List.rev acc |> map
+
+  (** {of_tuple spec} prduces a list of serialized values from the given tuple [v] *)
+  let of_tuple map_f spec = of_tuple map_f spec []
+
+  (** Map field names in all inline records of the spec *)
+  let map_variant_out: field:(string -> string) -> ('a, 'b, 'c) Variant_out.t -> ('a, 'b, 'c) Variant_out.t = fun ~field -> function
+    | Variant_out.Record spec -> Variant_out.Record (map_record_out ~field spec)
+    | Variant_out.Tuple spec -> Variant_out.Tuple spec
+
+  (** {of_variant spec v} serialises v and returns the serialized values as a list or map *)
+  let of_variant: type t a. ?omit_default:bool -> (t variant -> t) -> (t, a, t) Variant_out.t -> a = fun ?(omit_default=false) map_f -> function
+    | Variant_out.Record spec ->
+      of_record ~omit_default (fun x -> Record x |> map_f) spec
+    | Variant_out.Tuple Tuple_out.Nil -> of_tuple (fun _ -> map_f Nil) Tuple_out.Nil
+    | Variant_out.Tuple spec ->
+      of_tuple (fun x -> Tuple x |> map_f) spec
+
+  (** Map field names in all inline records of the spec *)
+  let map_variant_in: field:(string -> string) -> constructor:(string -> string) -> (string * ('a,'b) Variant_in.t) list -> (string * ('a,'b) Variant_in.t) list =
+    fun ~field ~constructor variants ->
+    List.map (fun (name, spec) ->
+        let name = constructor name in
+        let spec = match spec with
+          | Variant_in.Record (spec, v) -> Variant_in.Record (map_record_in ~field spec, v)
+          | Variant_in.Tuple (spec, v) -> Variant_in.Tuple (spec, v)
+        in
+        name, spec
+      ) variants
+
+  let to_variant: type t c. ?strict:bool -> (t -> (string * t) list option) -> (string * (t, c) Variant_in.t) list -> string -> t list -> c = fun ?strict to_alist spec ->
+    let map_variant_constr: type c. (t, c) Variant_in.t -> t list -> c = function
+      | Variant_in.Record (spec, constructor) ->
+        begin
+          let f = to_record ?strict spec constructor in
+          function
+          | [t] ->
+            let v = match to_alist t with
+              | Some alist -> alist
+              | None -> raise_errorf "Expected map when deserialising variant of record"
+            in
+            f v
+          | _ -> raise_errorf "Expected exactly one alist argument when deserialising variant of record"
+        end
+      | Variant_in.Tuple (Tuple_in.Nil, constructor) ->
+        begin
+          function
+          | [] -> constructor
+          | _ -> failwith "Too many arguments when deserialising variant with no arguments"
+        end
+      | Variant_in.Tuple (spec, constructor) ->
+        begin
+          let f = to_tuple spec constructor in
+          fun t -> f t
+        end
+    in
+    let map = List.fold_left (fun acc (name, spec) ->
+        StringMap.add name (map_variant_constr spec) acc
+      ) StringMap.empty spec
+    in
+    fun name t ->
+      match StringMap.find name map with
+      | f -> f t
+      | exception Not_found -> raise_errorf "Unknown constructor name: %s" name
 end

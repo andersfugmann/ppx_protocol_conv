@@ -19,12 +19,12 @@ type t = v
 
 module StringMap = Caml.Map.Make(String)
 
-exception Protocol_error of string * t
+exception Protocol_error of string * t option
 
 let to_string_hum _ = failwith "Not implemented - Use sexp"
 
 let raise_errorf t fmt =
-  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, Some t))) fmt
 
 let of_list l = List l
 let to_list = function
