@@ -16,6 +16,10 @@ module Make (Driver: Driver) = struct
   let test (module T : Testable) =
     let f _ =
       let serialized = T.to_driver T.t in
+      let out_ch = open_out_gen [Open_append; Open_creat] 0o644 "test.out" in
+      Printf.fprintf out_ch "=== %s ===\n%s\n" T.name (Driver.to_string_hum serialized);
+      close_out out_ch;
+
       let t' =
         try T.to_driver T.t |> T.of_driver with
         | exn -> Printf.printf "\n%s: Failed parsing:\n>>>>>\n%s\n======\n%s\n<<<<<<\n"

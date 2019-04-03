@@ -1,0 +1,283 @@
+=== Some Some Some true ===
+(Option ((Option ((Option ((Bool true)))))))
+=== Some Some None ===
+(Option ((Option ((Option ())))))
+=== Some None ===
+(Option ((Option ())))
+=== None ===
+(Option ())
+=== Some Some Some true ===
+(Map ((a (Option ((Option ((Option ((Bool true))))))))))
+=== Some Some None ===
+(Map ((a (Option ((Option ((Option ()))))))))
+=== Some None ===
+(Map ((a (Option ((Option ()))))))
+=== None ===
+(Map ((a (Option ()))))
+=== unit option option list option option ===
+(Option
+ ((Option
+   ((List ((Option ((Option (Unit)))) (Option ((Option ()))) (Option ())))))))
+=== confuse deserialization by using reserved word ===
+(Map ((o (Map ((option (Option ((Option ((Bool true)))))))))))
+=== S3 ===
+(Map
+ ((Contents
+   (List
+    ((Map ((ETag (String Etag)) (StorageClass (List ((String STANDARD)))))))))
+  (Prefix (Option ((String prefix))))))
+=== Types ===
+(Map
+ ((baz
+   (Map
+    ((y_yd (List ((String Variant_two1) (Int 1))))
+     (y_yc
+      (Option
+       ((List ((String three) (List ((Int 100) (Int 200) (Int 300))))))))
+     (y_b (List ((String two) (List ((Int 10) (Int 20) (Int 30))))))
+     (y_a (Int 2)))))
+  (bar (String one)) (foo (Int 1))))
+=== Simple ===
+(List
+ ((List ((String A))) (List ((String B) (Int 5)))
+  (List ((String C) (Int 6) (Int 7))) (List ((String D) (Int 8) (Int 9)))))
+=== Tuple ===
+(List ((String A) (Int 3) (Int 4)))
+=== Tree ===
+(List
+ ((String Node)
+  (List
+   ((String Node) (List ((String Leaf))) (Int 3) (List ((String Leaf)))))
+  (Int 10) (List ((String Leaf)))))
+=== MutualRecursion ===
+(List
+ ((String T1)
+  (List
+   ((String V)
+    (List
+     ((String T)
+      (List
+       ((String V)
+        (List
+         ((String V1)
+          (List
+           ((String V1) (List ((String V1) (List ((String V0) (Int 5)))))))))))))))))
+=== InsideRec ===
+(Map ((c (String c)) (V (List ((String A)))) (a (String a))))
+=== Inline Record ===
+(List ((String A) (Map ((a (String a))))))
+=== Inline Record ===
+(List
+ ((String aa)
+  (Map
+   ((b
+     (List
+      ((String aa) (Map ((b (List ((String B) (Int 5)))) (A (String a)))))))
+    (A (String a))))))
+=== Polymoric variants ===
+(List ((String a) (Int 5)))
+=== Nonrec ===
+(List
+ ((String A)
+  (List
+   ((String Cons) (Int 4)
+    (List ((String Cons) (Int 3) (List ((String Nil)))))))))
+=== Nonrec2 ===
+(List
+ ((String Cons) (Int 4) (List ((String Cons) (Int 3) (List ((String Nil)))))))
+=== None ===
+(Option ())
+=== Some None ===
+(Option ((Option ())))
+=== Some Some None ===
+(Option ((Option ((Option ())))))
+=== Some Some Some Unit ===
+(Option ((Option ((Option ((Option (Unit))))))))
+=== SingleElem ===
+(List ())
+=== SingleElem ===
+(List ((Int 2)))
+=== Longlist ===
+(List ((Int 4) (Int 2) (Int 3) (Int 1)))
+=== EmptyInsideRec ===
+(Map ((c (String c)) (V (List ())) (a (String a))))
+=== SingleInsideRec ===
+(Map ((c (String c)) (V (List ((Int 2)))) (a (String a))))
+=== MultiInsideRec ===
+(Map
+ ((c (String c)) (V (List ((Int 4) (Int 2) (Int 3) (Int 1)))) (a (String a))))
+=== ListOfLists ===
+(Map ((a (List ((List ((Int 2) (Int 3))) (List ((Int 4) (Int 5))))))))
+=== ListOfLists2 ===
+(List
+ ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
+  (List ((List ()))) (List ((List ((Int 2)))))))
+=== SingleElem ===
+(List ())
+=== SingleElem ===
+(List ((Int 2)))
+=== Longarray ===
+(List ((Int 4) (Int 2) (Int 3) (Int 1)))
+=== EmptyInsideRec ===
+(Map ((c (String c)) (V (List ())) (a (String a))))
+=== SingleInsideRec ===
+(Map ((c (String c)) (V (List ((Int 2)))) (a (String a))))
+=== MultiInsideRec ===
+(Map
+ ((c (String c)) (V (List ((Int 4) (Int 2) (Int 3) (Int 1)))) (a (String a))))
+=== ArrayOfArrays ===
+(Map ((a (List ((List ((Int 2) (Int 3))) (List ((Int 4) (Int 5))))))))
+=== ArrayOfArrays2 ===
+(List
+ ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
+  (List ((List ()))) (List ((List ((Int 2)))))))
+=== RecordList ===
+(Map ((objects (List ((Map ((key (Int 1)))) (Map ((key (Int 2)))))))))
+=== SimpleRecord ===
+(Map
+ ((HostId (String SDsd)) (RequestId (String sdfsd)) (Endpoint (Option ()))
+  (Bucket (Option ())) (Message (String Message)) (Code (String Error))))
+=== simple ===
+(Int 5)
+=== record ===
+(Map ((a (Int 5))))
+=== multiple ===
+(List ((Int 5) (String 5) (Bool true)))
+=== reference ===
+(Map ((a (Map ((a (Int 5)))))))
+=== recursive ===
+(Map ((c (Map ((b (Map ((a (Int 5))))))))))
+=== Simple ===
+(List
+ ((List ((String A))) (List ((String B) (Int 5)))
+  (List ((String C) (Int 6) (Int 7))) (List ((String D) (Int 8) (Int 9)))))
+=== Tree ===
+(List
+ ((String Node)
+  (List
+   ((String Node) (List ((String Leaf))) (Int 3) (List ((String Leaf)))))
+  (Int 10) (List ((String Leaf)))))
+=== MutualRecursion ===
+(List
+ ((String T1)
+  (List
+   ((String V)
+    (List
+     ((String T)
+      (List
+       ((String V)
+        (List
+         ((String V1)
+          (List
+           ((String V1) (List ((String V1) (List ((String V0) (Int 5)))))))))))))))))
+=== InsideRec ===
+(Map ((c (String c)) (V (List ((String A)))) (a (String a))))
+=== Tuple ===
+(List
+ ((List
+   ((Int 10) (List ((Int 20) (Int 30) (Int 40)))
+    (List ((String s50) (String s60) (String s70)))
+    (List
+     ((List ((Int 100) (Int 200))) (List ((Int 300) (Int 400)))
+      (List ((Int 500) (Int 600)))))))
+  (List
+   ((Int 11) (List ((Int 21) (Int 31) (Int 41)))
+    (List ((String s51) (String s61) (String s71)))
+    (List
+     ((List ((Int 101) (Int 201))) (List ((Int 301) (Int 401)))
+      (List ((Int 501) (Int 601)))))))
+  (List
+   ((Int 12) (List ((Int 22) (Int 32) (Int 42)))
+    (List ((String s52) (String s62) (String s72)))
+    (List
+     ((List ((Int 102) (Int 202))) (List ((Int 302) (Int 402)))
+      (List ((Int 502) (Int 602)))))))
+  (List
+   ((Int 13) (List ((Int 23) (Int 33) (Int 43)))
+    (List ((String s53) (String s63) (String s73)))
+    (List
+     ((List ((Int 103) (Int 203))) (List ((Int 303) (Int 403)))
+      (List ((Int 503) (Int 603)))))))))
+=== Any ===
+(Map
+ ((z (Int 101)) (record (Map ((y (String string)) (x (Int 5)))))
+  (varray
+   (List
+    ((List
+      ((String B) (List ((Int 5) (Int 6) (Int 7)))
+       (List ((Int 10) (Int 11) (Int 12)))))
+     (List
+      ((String B) (List ((Int 5) (Int 6) (Int 7)))
+       (List ((Int 10) (Int 11) (Int 12)))))
+     (List
+      ((String B) (List ((Int 5) (Int 6) (Int 7)))
+       (List ((Int 10) (Int 11) (Int 12))))))))
+  (vlist
+   (List
+    ((List
+      ((String B) (List ((Int 5) (Int 6) (Int 7)))
+       (List ((Int 10) (Int 11) (Int 12)))))
+     (List
+      ((String B) (List ((Int 5) (Int 6) (Int 7)))
+       (List ((Int 10) (Int 11) (Int 12)))))
+     (List
+      ((String B) (List ((Int 5) (Int 6) (Int 7)))
+       (List ((Int 10) (Int 11) (Int 12))))))))
+  (tuple (List ((Int 5) (String protocol) (Bool false)))) (intref (Int 4))
+  (intoption (Option ((Int 100)))) (intlist (List ((Int 3) (Int 4) (Int 5))))
+  (string (String string)) (float (Float 3.14)) (int64 (Int64 10))
+  (int32 (Int32 5)) (int (Int 2)) (char (Char x)) (bool (Bool true))))
+=== Record ===
+(Map
+ ((t_il (List ((Int 1000) (Int 1001) (Int 1002))))
+  (t_tl
+   (List
+    ((List ((Int 100) (Int 101) (List ((String s100) (String s101)))))
+     (List ((Int 110) (Int 111) (List ((String s110) (String s111)))))
+     (List ((Int 120) (Int 121) (List ((String s120) (String s121)))))
+     (List ((Int 130) (Int 131) (List ((String s130) (String s131)))))
+     (List ((Int 140) (Int 141) (List ((String s140) (String s141))))))))
+  (t_t (List ((Int 100) (Int 101) (List ((String s100) (String s101))))))
+  (t_i (Int 1000)) (t_bl (List ()))
+  (t_b
+   (Map
+    ((b_al
+      (List
+       ((Map ((a_string (String s7)) (a_int (Int 7))))
+        (Map ((a_string (String s8)) (a_int (Int 8))))
+        (Map ((a_string (String s9)) (a_int (Int 9)))))))
+     (b_a (Map ((a_string (String s6)) (a_int (Int 6)))))
+     (b_string (String s5)) (b_int (Int 5)))))
+  (t_al
+   (List
+    ((Map ((a_string (String s2)) (a_int (Int 2))))
+     (Map ((a_string (String s3)) (a_int (Int 3))))
+     (Map ((a_string (String s4)) (a_int (Int 4)))))))
+  (t_a (Map ((a_string (String s1)) (a_int (Int 1)))))))
+=== list ===
+(Map ((a (List ((Int 1) (Int 2) (Int 3))))))
+=== Lists ===
+(Map
+ ((l
+   (List
+    ((List ((String A) (List ((Int 1) (Int 2) (Int 3)))))
+     (List
+      ((String B)
+       (List
+        ((List ((Int 1) (Int 2))) (List ((Int 3) (Int 4) (Int 5)))
+         (List ((Int 2)))))
+       (List ((Int 3) (Int 1))) (Int 5)))
+     (List
+      ((String C) (List ((Int 1) (Int 2) (Int 3)))
+       (List ((Int 3) (Int 4) (Int 5))))))))
+  (c (List ((Int 100) (Int 101) (Int 102) (Int 103))))
+  (b
+   (List
+    ((List ((Int 8) (Int 9))) (List ((Int 10) (Int 20) (Int 30) (Int 40))))))
+  (a
+   (List
+    ((List ((Int 1) (Int 2) (Int 3))) (List ())
+     (List ((Int 10) (Int 20) (Int 30) (Int 40)))
+     (List ((Int 100) (Int 101))))))))
+=== array ===
+(Map ((a (List ((Int 1) (Int 2) (Int 3))))))

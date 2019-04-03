@@ -4,8 +4,14 @@
  (preprocess (pps ppx_sexp_conv))
 )
 
+(rule
+ (targets test.out)
+ (deps    unittest.exe)
+ (action  (run %{deps} -runner sequential))
+)
+
 (alias
- (name   runtest)
+ (name runtest)
  (package ppx_protocol_conv)
- (action (run %{exe:unittest.exe}))
+ (action (diff tests.expected test.out))
 )

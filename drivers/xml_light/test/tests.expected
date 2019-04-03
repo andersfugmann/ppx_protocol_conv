@@ -1,0 +1,809 @@
+=== Some Some Some true ===
+<p>true</p>
+=== Some Some None ===
+<__option>
+  <__option>
+    <__option/>
+  </__option>
+</__option>
+=== Some None ===
+<__option>
+  <__option/>
+</__option>
+=== None ===
+<__option/>
+=== Some Some Some true ===
+<record>
+  <a>true</a>
+</record>
+=== Some Some None ===
+<record>
+  <a>
+    <__option>
+      <__option/>
+    </__option>
+  </a>
+</record>
+=== Some None ===
+<record>
+  <a>
+    <__option/>
+  </a>
+</record>
+=== None ===
+<record>
+  <a/>
+</record>
+=== unit option option list option option ===
+<l>
+  <p>()</p>
+  <__option>
+    <__option/>
+  </__option>
+  <__option/>
+</l>
+=== confuse deserialization by using reserved word ===
+<record>
+  <o>
+    <option>true</option>
+  </o>
+</record>
+=== S3 ===
+<record>
+  <Contents>
+    <ETag>Etag</ETag>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Prefix>prefix</Prefix>
+</record>
+=== Types ===
+<record>
+  <baz>
+    <y_yd>
+Variant_two1
+      <p>1</p>
+    </y_yd>
+    <y_yc>
+      <t1>100</t1>
+      <t1>200</t1>
+      <t1>300</t1>
+      <t0>three</t0>
+    </y_yc>
+    <y_b>
+      <t1>10</t1>
+      <t1>20</t1>
+      <t1>30</t1>
+      <t0>two</t0>
+    </y_b>
+    <y_a>2</y_a>
+  </baz>
+  <bar>one</bar>
+  <foo>1</foo>
+</record>
+=== Simple ===
+<l>
+  <variant>A</variant>
+  <variant>
+B
+    <p>5</p>
+  </variant>
+  <variant>
+C
+    <p>6</p>
+    <p>7</p>
+  </variant>
+  <variant>
+D
+    <p>8</p>
+    <p>9</p>
+  </variant>
+</l>
+=== Tuple ===
+<variant>
+A
+  <p>3</p>
+  <p>4</p>
+</variant>
+=== Tree ===
+<variant>
+Node
+  <variant>
+Node
+    <variant>Leaf</variant>
+    <p>3</p>
+    <variant>Leaf</variant>
+  </variant>
+  <p>10</p>
+  <variant>Leaf</variant>
+</variant>
+=== MutualRecursion ===
+<variant>
+T1
+  <variant>
+V
+    <variant>
+T
+      <variant>
+V
+        <variant>
+V1
+          <variant>
+V1
+            <variant>
+V1
+              <variant>
+V0
+                <p>5</p>
+              </variant>
+            </variant>
+          </variant>
+        </variant>
+      </variant>
+    </variant>
+  </variant>
+</variant>
+=== InsideRec ===
+<record>
+  <c>c</c>
+  <V>A</V>
+  <a>a</a>
+</record>
+=== Inline Record ===
+<variant>
+A
+  <record>
+    <a>a</a>
+  </record>
+</variant>
+=== Inline Record ===
+<variant>
+aa
+  <record>
+    <b>
+aa
+      <record>
+        <b>
+B
+          <p>5</p>
+        </b>
+        <A>a</A>
+      </record>
+    </b>
+    <A>a</A>
+  </record>
+</variant>
+=== Polymoric variants ===
+<variant>
+a
+  <p>5</p>
+</variant>
+=== Nonrec ===
+<variant>
+A
+  <variant>
+Cons
+    <p>4</p>
+    <variant>
+Cons
+      <p>3</p>
+      <variant>Nil</variant>
+    </variant>
+  </variant>
+</variant>
+=== Nonrec2 ===
+<variant>
+Cons
+  <p>4</p>
+  <variant>
+Cons
+    <p>3</p>
+    <variant>Nil</variant>
+  </variant>
+</variant>
+=== None ===
+<__option/>
+=== Some None ===
+<__option>
+  <__option/>
+</__option>
+=== Some Some None ===
+<__option>
+  <__option>
+    <__option/>
+  </__option>
+</__option>
+=== Some Some Some Unit ===
+<p>()</p>
+=== SingleElem ===
+<l/>
+=== SingleElem ===
+<l>
+  <p>2</p>
+</l>
+=== Longlist ===
+<l>
+  <p>4</p>
+  <p>2</p>
+  <p>3</p>
+  <p>1</p>
+</l>
+=== EmptyInsideRec ===
+<record>
+  <c>c</c>
+  <a>a</a>
+</record>
+=== SingleInsideRec ===
+<record>
+  <c>c</c>
+  <V>2</V>
+  <a>a</a>
+</record>
+=== MultiInsideRec ===
+<record>
+  <c>c</c>
+  <V>4</V>
+  <V>2</V>
+  <V>3</V>
+  <V>1</V>
+  <a>a</a>
+</record>
+=== ListOfLists ===
+<record>
+  <a>
+    <p>2</p>
+    <p>3</p>
+  </a>
+  <a>
+    <p>4</p>
+    <p>5</p>
+  </a>
+</record>
+=== ListOfLists2 ===
+<l>
+  <l/>
+  <l>
+    <l/>
+    <l>
+      <p>2</p>
+    </l>
+    <l>
+      <p>3</p>
+      <p>4</p>
+    </l>
+  </l>
+  <l>
+    <l/>
+  </l>
+  <l>
+    <l>
+      <p>2</p>
+    </l>
+  </l>
+</l>
+=== SingleElem ===
+<l/>
+=== SingleElem ===
+<l>
+  <p>2</p>
+</l>
+=== Longarray ===
+<l>
+  <p>4</p>
+  <p>2</p>
+  <p>3</p>
+  <p>1</p>
+</l>
+=== EmptyInsideRec ===
+<record>
+  <c>c</c>
+  <a>a</a>
+</record>
+=== SingleInsideRec ===
+<record>
+  <c>c</c>
+  <V>2</V>
+  <a>a</a>
+</record>
+=== MultiInsideRec ===
+<record>
+  <c>c</c>
+  <V>4</V>
+  <V>2</V>
+  <V>3</V>
+  <V>1</V>
+  <a>a</a>
+</record>
+=== ArrayOfArrays ===
+<record>
+  <a>
+    <p>2</p>
+    <p>3</p>
+  </a>
+  <a>
+    <p>4</p>
+    <p>5</p>
+  </a>
+</record>
+=== ArrayOfArrays2 ===
+<l>
+  <l/>
+  <l>
+    <l/>
+    <l>
+      <p>2</p>
+    </l>
+    <l>
+      <p>3</p>
+      <p>4</p>
+    </l>
+  </l>
+  <l>
+    <l/>
+  </l>
+  <l>
+    <l>
+      <p>2</p>
+    </l>
+  </l>
+</l>
+=== RecordList ===
+<record>
+  <objects>
+    <key>1</key>
+  </objects>
+  <objects>
+    <key>2</key>
+  </objects>
+</record>
+=== SimpleRecord ===
+<record>
+  <HostId>SDsd</HostId>
+  <RequestId>sdfsd</RequestId>
+  <Endpoint/>
+  <Bucket/>
+  <Message>Message</Message>
+  <Code>Error</Code>
+</record>
+=== simple ===
+<p>5</p>
+=== record ===
+<record>
+  <a>5</a>
+</record>
+=== multiple ===
+<record>
+  <t2>true</t2>
+  <t1>5</t1>
+  <t0>5</t0>
+</record>
+=== reference ===
+<record>
+  <a>
+    <a>5</a>
+  </a>
+</record>
+=== recursive ===
+<record>
+  <c>
+    <b>
+      <a>5</a>
+    </b>
+  </c>
+</record>
+=== Simple ===
+<l>
+  <variant>A</variant>
+  <variant>
+B
+    <p>5</p>
+  </variant>
+  <variant>
+C
+    <p>6</p>
+    <p>7</p>
+  </variant>
+  <variant>
+D
+    <p>8</p>
+    <p>9</p>
+  </variant>
+</l>
+=== Tree ===
+<variant>
+Node
+  <variant>
+Node
+    <variant>Leaf</variant>
+    <p>3</p>
+    <variant>Leaf</variant>
+  </variant>
+  <p>10</p>
+  <variant>Leaf</variant>
+</variant>
+=== MutualRecursion ===
+<variant>
+T1
+  <variant>
+V
+    <variant>
+T
+      <variant>
+V
+        <variant>
+V1
+          <variant>
+V1
+            <variant>
+V1
+              <variant>
+V0
+                <p>5</p>
+              </variant>
+            </variant>
+          </variant>
+        </variant>
+      </variant>
+    </variant>
+  </variant>
+</variant>
+=== InsideRec ===
+<record>
+  <c>c</c>
+  <V>A</V>
+  <a>a</a>
+</record>
+=== Tuple ===
+<l>
+  <record>
+    <t3>
+      <t1>200</t1>
+      <t0>100</t0>
+    </t3>
+    <t3>
+      <t1>400</t1>
+      <t0>300</t0>
+    </t3>
+    <t3>
+      <t1>600</t1>
+      <t0>500</t0>
+    </t3>
+    <t2>s50</t2>
+    <t2>s60</t2>
+    <t2>s70</t2>
+    <t1>20</t1>
+    <t1>30</t1>
+    <t1>40</t1>
+    <t0>10</t0>
+  </record>
+  <record>
+    <t3>
+      <t1>201</t1>
+      <t0>101</t0>
+    </t3>
+    <t3>
+      <t1>401</t1>
+      <t0>301</t0>
+    </t3>
+    <t3>
+      <t1>601</t1>
+      <t0>501</t0>
+    </t3>
+    <t2>s51</t2>
+    <t2>s61</t2>
+    <t2>s71</t2>
+    <t1>21</t1>
+    <t1>31</t1>
+    <t1>41</t1>
+    <t0>11</t0>
+  </record>
+  <record>
+    <t3>
+      <t1>202</t1>
+      <t0>102</t0>
+    </t3>
+    <t3>
+      <t1>402</t1>
+      <t0>302</t0>
+    </t3>
+    <t3>
+      <t1>602</t1>
+      <t0>502</t0>
+    </t3>
+    <t2>s52</t2>
+    <t2>s62</t2>
+    <t2>s72</t2>
+    <t1>22</t1>
+    <t1>32</t1>
+    <t1>42</t1>
+    <t0>12</t0>
+  </record>
+  <record>
+    <t3>
+      <t1>203</t1>
+      <t0>103</t0>
+    </t3>
+    <t3>
+      <t1>403</t1>
+      <t0>303</t0>
+    </t3>
+    <t3>
+      <t1>603</t1>
+      <t0>503</t0>
+    </t3>
+    <t2>s53</t2>
+    <t2>s63</t2>
+    <t2>s73</t2>
+    <t1>23</t1>
+    <t1>33</t1>
+    <t1>43</t1>
+    <t0>13</t0>
+  </record>
+</l>
+=== Any ===
+<record>
+  <z>101</z>
+  <record>
+    <y>string</y>
+    <x>5</x>
+  </record>
+  <varray>
+B
+    <l>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+    </l>
+    <l>
+      <p>10</p>
+      <p>11</p>
+      <p>12</p>
+    </l>
+  </varray>
+  <varray>
+B
+    <l>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+    </l>
+    <l>
+      <p>10</p>
+      <p>11</p>
+      <p>12</p>
+    </l>
+  </varray>
+  <varray>
+B
+    <l>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+    </l>
+    <l>
+      <p>10</p>
+      <p>11</p>
+      <p>12</p>
+    </l>
+  </varray>
+  <vlist>
+B
+    <l>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+    </l>
+    <l>
+      <p>10</p>
+      <p>11</p>
+      <p>12</p>
+    </l>
+  </vlist>
+  <vlist>
+B
+    <l>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+    </l>
+    <l>
+      <p>10</p>
+      <p>11</p>
+      <p>12</p>
+    </l>
+  </vlist>
+  <vlist>
+B
+    <l>
+      <p>5</p>
+      <p>6</p>
+      <p>7</p>
+    </l>
+    <l>
+      <p>10</p>
+      <p>11</p>
+      <p>12</p>
+    </l>
+  </vlist>
+  <tuple>
+    <t2>false</t2>
+    <t1>protocol</t1>
+    <t0>5</t0>
+  </tuple>
+  <intref>4</intref>
+  <intoption>100</intoption>
+  <intlist>3</intlist>
+  <intlist>4</intlist>
+  <intlist>5</intlist>
+  <string>string</string>
+  <float>3.14</float>
+  <int64>10</int64>
+  <int32>5</int32>
+  <int>2</int>
+  <char>x</char>
+  <bool>true</bool>
+</record>
+=== Record ===
+<record>
+  <t_il>1000</t_il>
+  <t_il>1001</t_il>
+  <t_il>1002</t_il>
+  <t_tl>
+    <t2>s100</t2>
+    <t2>s101</t2>
+    <t1>101</t1>
+    <t0>100</t0>
+  </t_tl>
+  <t_tl>
+    <t2>s110</t2>
+    <t2>s111</t2>
+    <t1>111</t1>
+    <t0>110</t0>
+  </t_tl>
+  <t_tl>
+    <t2>s120</t2>
+    <t2>s121</t2>
+    <t1>121</t1>
+    <t0>120</t0>
+  </t_tl>
+  <t_tl>
+    <t2>s130</t2>
+    <t2>s131</t2>
+    <t1>131</t1>
+    <t0>130</t0>
+  </t_tl>
+  <t_tl>
+    <t2>s140</t2>
+    <t2>s141</t2>
+    <t1>141</t1>
+    <t0>140</t0>
+  </t_tl>
+  <t_t>
+    <t2>s100</t2>
+    <t2>s101</t2>
+    <t1>101</t1>
+    <t0>100</t0>
+  </t_t>
+  <t_i>1000</t_i>
+  <t_b>
+    <b_al>
+      <a_string>s7</a_string>
+      <a_int>7</a_int>
+    </b_al>
+    <b_al>
+      <a_string>s8</a_string>
+      <a_int>8</a_int>
+    </b_al>
+    <b_al>
+      <a_string>s9</a_string>
+      <a_int>9</a_int>
+    </b_al>
+    <b_a>
+      <a_string>s6</a_string>
+      <a_int>6</a_int>
+    </b_a>
+    <b_string>s5</b_string>
+    <b_int>5</b_int>
+  </t_b>
+  <t_al>
+    <a_string>s2</a_string>
+    <a_int>2</a_int>
+  </t_al>
+  <t_al>
+    <a_string>s3</a_string>
+    <a_int>3</a_int>
+  </t_al>
+  <t_al>
+    <a_string>s4</a_string>
+    <a_int>4</a_int>
+  </t_al>
+  <t_a>
+    <a_string>s1</a_string>
+    <a_int>1</a_int>
+  </t_a>
+</record>
+=== list ===
+<record>
+  <a>1</a>
+  <a>2</a>
+  <a>3</a>
+</record>
+=== Lists ===
+<record>
+  <l>
+A
+    <l>
+      <p>1</p>
+      <p>2</p>
+      <p>3</p>
+    </l>
+  </l>
+  <l>
+B
+    <l>
+      <l>
+        <p>1</p>
+        <p>2</p>
+      </l>
+      <l>
+        <p>3</p>
+        <p>4</p>
+        <p>5</p>
+      </l>
+      <l>
+        <p>2</p>
+      </l>
+    </l>
+    <l>
+      <p>3</p>
+      <p>1</p>
+    </l>
+    <p>5</p>
+  </l>
+  <l>
+C
+    <l>
+      <p>1</p>
+      <p>2</p>
+      <p>3</p>
+    </l>
+    <l>
+      <p>3</p>
+      <p>4</p>
+      <p>5</p>
+    </l>
+  </l>
+  <c>100</c>
+  <c>101</c>
+  <c>102</c>
+  <c>103</c>
+  <b>
+    <t1>10</t1>
+    <t1>20</t1>
+    <t1>30</t1>
+    <t1>40</t1>
+    <t0>8</t0>
+    <t0>9</t0>
+  </b>
+  <a>
+    <p>1</p>
+    <p>2</p>
+    <p>3</p>
+  </a>
+  <a/>
+  <a>
+    <p>10</p>
+    <p>20</p>
+    <p>30</p>
+    <p>40</p>
+  </a>
+  <a>
+    <p>100</p>
+    <p>101</p>
+  </a>
+</record>
+=== array ===
+<record>
+  <a>1</a>
+  <a>2</a>
+  <a>3</a>
+</record>

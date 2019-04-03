@@ -1,7 +1,6 @@
 open OUnit2
 
 let verbose = false
-
 module Make(Driver : Testable.Driver) = struct
 
   let run ?(extra = []) ~name () =
@@ -31,5 +30,6 @@ module Make(Driver : Testable.Driver) = struct
         Driver.unittest;
       ] @ extra
     in
-  run_test_tt_main suite
+    open_out "test.out" |> close_out;
+    run_test_tt_main suite
 end

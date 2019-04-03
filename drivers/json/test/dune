@@ -5,10 +5,16 @@
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect))
 )
 
+(rule
+ (targets test.out)
+ (deps    unittest.exe)
+ (action  (run %{deps} -runner sequential))
+)
+
 (alias
- (name   runtest)
+ (name runtest)
  (package ppx_protocol_conv_json)
- (action (run %{exe:unittest.exe}))
+ (action (diff tests.expected test.out))
 )
 
 (executable
@@ -25,4 +31,5 @@
  (inline_tests)
  (optional)
  (libraries   ppx_protocol_conv_json)
- (preprocess (pps ppx_protocol_conv ppx_inline_test ppx_expect)))
+ (preprocess (pps ppx_protocol_conv ppx_inline_test ppx_expect))
+)
