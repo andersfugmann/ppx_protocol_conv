@@ -1,3 +1,5 @@
+open Base
+
 module Record_in = struct
   type (_, _, _) t =
     | Cons : (string * ('t -> 'a) * 'a option) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
@@ -82,10 +84,10 @@ end
 module Helper = struct
   exception Protocol_error of string
 
-  (** / **)
+  (**/**)
+  type 'a stringmap = (string, 'a, String.comparator_witness) Map.t
   let raise_errorf: ('a, unit, string, 'b) format4 -> 'a = fun fmt -> Printf.ksprintf (fun s -> raise (Protocol_error s)) fmt
-  module StringMap = Map.Make(String)
-  (** / **)
+  (**/**)
 
   type 'a variant = Record of (string * 'a) list | Tuple of 'a list | Nil
 
@@ -100,12 +102,12 @@ module Helper = struct
       If default is set, then this value is used if the field name is not in [ts]
   *)
   let to_record: type t constr b. ?strict:bool -> ?default:t -> (t, constr, b) Record_in.t -> constr -> (string * t) list -> b = fun ?(strict=false) ?default ->
-    let rec inner: type constr. (t, constr, b) Record_in.t -> constr -> t StringMap.t -> b = function
+    let rec inner: type constr. (t, constr, b) Record_in.t -> constr -> t stringmap -> b = function
       | Record_in.Cons ((field, to_value_func, Some default), xs) ->
         let cont = inner xs in
         fun constr map ->
           let t = ref None in
-          let map = StringMap.update field (fun a -> t := a; None) map in
+          let map = Map.change map field ~f:(fun a -> t := a; None) in
           let v = match !t with
             | Some t -> to_value_func t
             | None -> default
@@ -115,7 +117,7 @@ module Helper = struct
         let cont = inner xs in
         fun constr map ->
           let t = ref None in
-          let map = StringMap.update field (fun a -> t := a; None) map in
+          let map = Map.change map field ~f:(fun a -> t := a; None) in
           let v = match !t with
             | Some t -> to_value_func t
             | None -> begin
@@ -126,20 +128,21 @@ module Helper = struct
           in
           cont (constr v) map
       | Record_in.Nil when strict -> fun a map -> begin
-          match StringMap.is_empty map with
+          match Map.is_empty map with
           | true -> a
-          | false -> raise_errorf "Superfluous fields for map: [%s]" (StringMap.bindings map |> List.map fst |> String.concat "; ")
+          | false -> raise_errorf "Superfluous fields for map: [%s]" (Map.keys map |> String.concat ~sep:"; ")
         end
       | Record_in.Nil -> fun a _map -> a
     in
     fun spec constr ->
       let f = inner spec constr in
       fun elements ->
-        let map = List.fold_left (fun acc (field, t) ->
-            StringMap.update field (function
-                | Some _ -> raise_errorf "Duplicate fields found: %s" field
-                | None -> Some t) acc
-          ) StringMap.empty elements
+        let map = List.fold_left ~init:(Map.empty (module String))
+            ~f:(fun acc (field, t) ->
+                match Map.add acc ~key:field ~data:t with
+                | `Ok map -> map
+                | `Duplicate -> raise_errorf "Duplicate fields found: %s" field
+          ) elements
         in
         f map
 
@@ -155,7 +158,7 @@ module Helper = struct
       let f = match omit_default, default with
         | true, Some d -> begin
             fun acc -> function
-              | v when v = d -> cont acc
+              | v when Poly.equal v d -> cont acc
               | v -> cont ((field, to_t v) :: acc)
           end
         | _, _ -> fun acc v -> cont ((field, to_t v) :: acc)
@@ -213,7 +216,7 @@ module Helper = struct
   (** Map field names in all inline records of the spec *)
   let map_variant_in: field:(string -> string) -> constructor:(string -> string) -> (string * ('a,'b) Variant_in.t) list -> (string * ('a,'b) Variant_in.t) list =
     fun ~field ~constructor variants ->
-    List.map (fun (name, spec) ->
+    List.map ~f:(fun (name, spec) ->
         let name = constructor name in
         let spec = match spec with
           | Variant_in.Record (spec, v) -> Variant_in.Record (map_record_in ~field spec, v)
@@ -248,12 +251,12 @@ module Helper = struct
           fun t -> f t
         end
     in
-    let map = List.fold_left (fun acc (name, spec) ->
-        StringMap.add name (map_variant_constr spec) acc
-      ) StringMap.empty spec
+    let map = List.fold_left ~init:(Map.empty (module String)) ~f:(fun acc (name, spec) ->
+        Map.add_exn acc ~key:name ~data:(map_variant_constr spec)
+      ) spec
     in
     fun name t ->
-      match StringMap.find name map with
-      | f -> f t
-      | exception Not_found -> raise_errorf "Unknown constructor name: %s" name
+      match Map.find map name with
+      | Some f -> f t
+      | None -> raise_errorf "Unknown constructor name: %s" name
 end

@@ -1,5 +1,6 @@
 (library
  (name protocol_conv)
  (public_name ppx_protocol_conv.runtime)
+ (libraries base)
  (synopsis "runtime library for ppx_protocol_conv")
 )
