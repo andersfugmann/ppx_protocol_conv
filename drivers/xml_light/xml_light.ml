@@ -64,6 +64,20 @@ let xml_to_record = function
 
 (* We need to create a record. Dont we have a function for that?? *)
 let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name spec ->
+  (*
+  let rewrite: type a. (t, a, t) Variant_out.t -> (t, a, t) Variant_out.t = function
+    | Variant_out.Tuple Tuple_out.Nil -> Variant_out.Tuple Tuple_out.Nil
+    | Variant_out.Tuple spec ->
+      let rec inner: type a. int -> (t, a, t) Tuple_out.t ->  (t, a, t) Record_out.t = fun cnt -> function
+        | Tuple_out.Cons (f, fs) -> Record_out.Cons ((Printf.sprintf "t%d" cnt, f, None), inner (cnt+1) fs)
+        | Tuple_out.Nil -> Record_out.Nil
+      in
+      Variant_out.Record (inner 0 spec)
+    | Variant_out.Record spec -> Variant_out.Record spec
+  in
+  let spec = rewrite spec in
+  *)
+
   let to_t = function
     | Helper.Nil -> Xml.Element("variant", [], [Xml.PCData name])
     | Helper.Tuple l -> Xml.Element("variant", [], Xml.PCData name :: l)
@@ -72,6 +86,22 @@ let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name spec ->
   Helper.of_variant to_t spec
 
 let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
+  (*
+  let rewrite spec =
+    let inner: type c. (t, c) Variant_in.t -> (t, c) Variant_in.t = function
+      | Variant_in.Tuple (Tuple_in.Nil, b) -> Variant_in.Tuple (Tuple_in.Nil, b)
+      | Variant_in.Tuple (spec, b) ->
+      let rec inner: type a b. int -> (t, a, b) Tuple_in.t -> (t, a, b) Record_in.t = fun cnt -> function
+        | Tuple_in.Cons (f, fs) -> Record_in.Cons ((Printf.sprintf "t%d" cnt, f, None), inner (cnt+1) fs)
+        | Tuple_in.Nil -> Record_in.Nil
+      in
+      Variant_in.Record ((inner 0 spec), b)
+    | Variant_in.Record (spec, b) -> Variant_in.Record (spec, b)
+    in
+    List.map ~f:(fun (field, spec) -> (field, inner spec)) spec
+  in
+  let spec = rewrite spec in
+  *)
   let f = Helper.to_variant xml_to_record spec in
   function
   | Xml.Element(_, _, Xml.PCData s :: es) as t ->
