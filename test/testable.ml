@@ -15,7 +15,15 @@ module Make (Driver: Driver) = struct
 
   let test (module T : Testable) =
     let f _ =
-      let t' = T.to_driver T.t |> T.of_driver in
+      let serialized = T.to_driver T.t in
+      let t' =
+        try T.to_driver T.t |> T.of_driver with
+        | exn -> Printf.printf "\n%s: Failed parsing:\n>>>>>\n%s\n======\n%s\n<<<<<<\n"
+                   T.name
+                   (Driver.to_string_hum serialized)
+                   (Base.Sexp.to_string_hum (T.sexp_of_t T.t));
+          raise exn
+      in
       let printer t = Base.Sexp.to_string_hum (T.sexp_of_t t) in
       assert_equal ~printer ~msg:T.name T.t t';
       ()

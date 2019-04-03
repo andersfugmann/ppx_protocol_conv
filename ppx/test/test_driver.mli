@@ -1,8 +1,8 @@
-type v =
- | Map of (string * v) list
-  | Tuple of v list
-  | Option of v option
-  | List of v list
+type t =
+  | Map of (string * t) list
+  | Tuple of t list
+  | Option of t option
+  | List of t list
   | Int of int
   | Int32 of int32
   | Int64 of int64
@@ -12,6 +12,6 @@ type v =
   | Bool of bool
   | Unit
 
-include Protocol_conv.Runtime.Driver with type t = v
+include Protocol_conv.Runtime.Driver with type  t := t
 val t_of_test: t -> t
 val t_to_test: t -> t

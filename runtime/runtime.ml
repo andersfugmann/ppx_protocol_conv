@@ -45,9 +45,9 @@ module type Driver = sig
 
   val to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c
   val of_variant: string -> (t, 'a, t) Variant_out.t -> 'a
-  val to_record:  (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b
+  val to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b
   val of_record:  (t, 'a, t) Record_out.t -> 'a
-  val to_tuple:   (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b
+  val to_tuple:   (t, 'constr, 'b) Tuple_in.t -> 'constr -> t -> 'b
   val of_tuple:   (t, 'a, t) Tuple_out.t -> 'a
 
   val to_option:  (t -> 'a) -> t -> 'a option
@@ -82,7 +82,6 @@ end
 module Helper = struct
   exception Protocol_error of string
 
-
   (** / **)
   let raise_errorf: ('a, unit, string, 'b) format4 -> 'a = fun fmt -> Printf.ksprintf (fun s -> raise (Protocol_error s)) fmt
   module StringMap = Map.Make(String)
@@ -96,10 +95,12 @@ module Helper = struct
       Record_in.Cons ((field field_name, to_value_func, default), map_record_in ~field xs)
     | Record_in.Nil -> Record_in.Nil
 
-  (** {to_record spec constructor get_function} returns the constructed value.
-        [get_function] is a function that maps a record field name to a value. *)
-  let to_record: type t a b. ?strict:bool -> (t, a, b) Record_in.t -> a -> (string * t) list -> b = fun ?(strict=false) ->
-    let rec inner: type t a b. (t, a, b) Record_in.t -> a -> t StringMap.t -> b = function
+  (** {to_record spec constructor ts} returns the constructed value.
+       [ts] is a associative array of (fieldname, t)
+      If default is set, then this value is used if the field name is not in [ts]
+  *)
+  let to_record: type t constr b. ?strict:bool -> ?default:t -> (t, constr, b) Record_in.t -> constr -> (string * t) list -> b = fun ?(strict=false) ?default ->
+    let rec inner: type constr. (t, constr, b) Record_in.t -> constr -> t StringMap.t -> b = function
       | Record_in.Cons ((field, to_value_func, Some default), xs) ->
         let cont = inner xs in
         fun constr map ->
@@ -117,7 +118,11 @@ module Helper = struct
           let map = StringMap.update field (fun a -> t := a; None) map in
           let v = match !t with
             | Some t -> to_value_func t
-            | None -> raise_errorf "Field not found: %s" field
+            | None -> begin
+                match default with
+                | None -> raise_errorf "Field not found: %s" field
+                | Some t -> to_value_func t
+              end
           in
           cont (constr v) map
       | Record_in.Nil when strict -> fun a map -> begin
@@ -127,16 +132,16 @@ module Helper = struct
         end
       | Record_in.Nil -> fun a _map -> a
     in
-    fun spec ->
-      let f = inner spec in
-      fun constr elements ->
+    fun spec constr ->
+      let f = inner spec constr in
+      fun elements ->
         let map = List.fold_left (fun acc (field, t) ->
             StringMap.update field (function
                 | Some _ -> raise_errorf "Duplicate fields found: %s" field
                 | None -> Some t) acc
           ) StringMap.empty elements
         in
-        f constr map
+        f map
 
   (** Map fields names of a {Record_out} structure *)
   let rec map_record_out: type t a. field:(string -> string) -> (t, a, t) Record_out.t -> (t, a, t) Record_out.t = fun ~field -> function

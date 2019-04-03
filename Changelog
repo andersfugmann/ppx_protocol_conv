@@ -3,7 +3,7 @@
 Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support extensible polymorphic variants
 
-4.1.0 (unreleased)
+5.0.0 (unreleased)
 [ ] Add option make make lazy type indeed lazy
 [x] Add option to mangle variant names
 [x] Refactor tuple, variant and record code to be more efficient
@@ -13,7 +13,8 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Cache partial results for recursive types
 [ ] Fix signatures for parameterized types
 [x] Create helper module for tuple, record and variant.
-[ ] Add strict option
+[x] Add strict option
+[ ] create t_to_driver and t_to_driver_exn
 
 4.0.0 (released 2019-03-26)
 [*] Support "@default" argument on record fields. #9

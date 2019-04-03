@@ -20,8 +20,6 @@ let raise_errorf t fmt =
 let to_string_hum xml =
   Xml.to_string_fmt xml
 
-(* We are actually able to determine if we should inline by looking at the node name.
-   Alternativly, we need to wrap records into yet another level *)
 let rec element_to_map m = function
   | (Xml.Element(name, _, _) as x) :: xs ->
     let m =
@@ -34,112 +32,80 @@ let rec element_to_map m = function
 
 let element name t = Xml.Element (name, [], t)
 
-let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun _ -> failwith "Not implemented"
+let wrap f t x = try f x with Helper.Protocol_error s -> raise_errorf (Some t) "%s" s
 
-      (*
-      ('a -> string * t list) -> 'a -> t = fun destruct t ->
-  let (s, ts) = destruct t in
-  Xml.Element("variant", [], Xml.PCData s :: ts)
-*)
-let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun _ -> failwith "Not implemented"
-      (*
-
-let to_variant: string -> (t -> 'a) -> t -> 'a = fun name constr -> function
-  | Xml.Element(_, _, Xml.PCData s :: es) -> constr (s, es)
-  | Xml.Element(name, _, []) as d -> raise_errorf d "No contents for variant type: %s" name
-  | d -> raise_errorf d "Wrong variant data"
-*)
-(* Records could be optimized by first creating a map of existing
-   usable labels -> id's (at startup). Then map the input data to an
-   array of lists (mutable). Then do the decoding. That would be O(n
-   log n) (n = fields), but its almost the same as the current, which
-   does two lookups: O(2 * n log n) = O(n log n) where n is the number
-   of fields in the input data. There is hardly anypoint to
-   that. Although it would be fun to create.
-*)
-let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec ->
-  let rec inner: type a b. (t, a, b) Record_in.t -> a -> 't -> b =
-    let open Record_in in
+let record_to_xml assoc =
+  List.map ~f:(
     function
-    | Cons ((field, to_value_func, default), xs) ->
-      let cont = inner xs in
-      fun constr t ->
-        let v =
-          match StringMap.find field t |> List.rev with
-          | v -> `Values v
-          | exception Not_found -> begin
-              match default with
-              | Some v -> `Default v
-              | None -> `Values []
-            end
-        in
-        let v =
-          match v with
-          | `Values values ->
-            let arg = match values with
-              | [ Xml.Element (name, _, xs) ] -> Xml.Element (name, ["record", "unwrapped"], xs)
-              | [ Xml.PCData _ as d ] -> d
-              | xs -> Xml.Element (field, [], xs)
-            in
-            to_value_func arg
-          | `Default v -> v
-        in
-        cont (constr v) t
-    | Nil -> fun a _t -> a
+    | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+    | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+    | (field, Xml.Element ("__option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
+    | (field, Xml.Element (_, _, xs)) ->
+      List.map ~f:(function
+          | Xml.Element(_, attrs, xs) -> Xml.Element(field, attrs, xs)
+          | PCData _ as p -> Xml.Element(field, [], [p])
+        ) xs (* why xs here. Or do we need to extend the option one level *)
+    | (field, e) -> raise_errorf (Some e) "Must be an element: %s" field
+  ) assoc
+  |> List.flatten |> element "record"
+
+let xml_to_record = function
+  | Xml.Element (_, _, xs) ->
+    let map = element_to_map StringMap.empty xs in
+    StringMap.bindings map
+    |> List.map ~f:(function
+        | field, [ Xml.Element (name, _, xs) ] -> field, Xml.Element (name, ["record", "unwrapped"], xs)
+        | field, [ Xml.PCData _ as d ] -> field, d
+        | field, xs -> field, Xml.Element (field, [], List.rev xs)
+      )
+    |> (fun x -> Some x)
+  | _ -> None
+
+
+(* We need to create a record. Dont we have a function for that?? *)
+let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name spec ->
+  let to_t = function
+    | Helper.Nil -> Xml.Element("variant", [], [Xml.PCData name])
+    | Helper.Tuple l -> Xml.Element("variant", [], Xml.PCData name :: l)
+    | Helper.Record r -> Xml.Element("variant", [], [Xml.PCData name; (record_to_xml r)])
   in
-  let f = inner spec in
-  fun constr -> function
-    | Xml.Element (_, _, t) ->
-      let m = StringMap.empty in
-      f constr (element_to_map m t)
-    | e -> raise_errorf e "Not a record superstruture"
+  Helper.of_variant to_t spec
 
-let rec of_record: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
-  | Record_out.Cons ((field, to_t, default), xs) ->
-    let cont = of_record xs in
-    fun acc v -> begin
-        match default with
-        | Some d when d = v -> cont acc
-        | _ -> cont ((field, to_t v) :: acc)
-      end
-  | Record_out.Nil -> begin
-      fun assoc ->
-        List.map ~f:(
-          function
-          | (field, Xml.Element ("record", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-          | (field, Xml.Element ("variant", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-          | (field, Xml.Element ("__option", attrs, xs)) -> [Xml.Element (field, attrs, xs)]
-          | (field, Xml.Element (_, _, xs)) ->
-            List.map ~f:(function
-                | Xml.Element(_, attrs, xs) ->
-                  Xml.Element(field, attrs, xs)
-                | PCData _ as p -> Xml.Element(field, [], [p])
-              ) xs (* why xs here. Or do we need to extend the option one level *)
-          | (field, e) -> raise_errorf (Some e) "Must be an element: %s" field
-        ) assoc
-        |> List.flatten |> element "record"
-    end
+let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
+  let f = Helper.to_variant xml_to_record spec in
+  function
+  | Xml.Element(_, _, Xml.PCData s :: es) as t ->
+    begin try f s es with Helper.Protocol_error s -> raise_errorf (Some t) "%s" s end
+  | Xml.Element(name, _, []) as t -> raise_errorf (Some t) "No contents for variant type: %s" name
+  | t -> raise_errorf (Some t) "Wrong variant data"
 
-let of_record t = of_record t []
+let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec constr->
+  let f = Helper.to_record ~default:(Xml.Element ("", [], [])) spec constr in
+  fun t -> match xml_to_record t with
+    | Some ts -> wrap f t ts
+    | None -> raise_errorf (Some t) "Expected record"
 
-let of_tuple constr =
+let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
+  Helper.of_record record_to_xml spec
+
+let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
   let rec inner: type a b c. int -> (a, b, c) Tuple_out.t -> (a, b, c) Record_out.t = fun i -> function
     | Tuple_out.Cons (f, xs) ->
       let tail = inner (i+1) xs in
       Record_out.Cons ( (Printf.sprintf "t%d" i, f, None), tail)
     | Tuple_out.Nil -> Record_out.Nil
   in
-  of_record (inner 0 constr)
+  of_record (inner 0 spec)
 
-let to_tuple constr =
+let to_tuple: type constr b. (t, constr, b) Tuple_in.t -> constr -> t -> b = fun spec constr ->
   let rec inner: type a b c. int -> (a, b, c) Tuple_in.t -> (a, b, c) Record_in.t = fun i -> function
     | Tuple_in.Cons (f, xs) ->
       let tail = inner (i+1) xs in
       Record_in.Cons ( (Printf.sprintf "t%d" i, f, None), tail)
     | Tuple_in.Nil -> Record_in.Nil
   in
-  let constr = inner 0 constr in
-  to_record constr
+  let spec = inner 0 spec in
+  to_record spec constr
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   (* Not allowed to throw out the unwrap. *)
@@ -229,8 +195,8 @@ let of_float = of_value string_of_float
 let to_string = to_value "string" (fun x -> x)
 let of_string = of_value (fun x -> x)
 
-let to_char t = to_value "char" (function s when String.length s = 1 -> s.[0]
-                                        | _ -> raise_errorf (Some t) "Expected char")
+let to_char = to_value "char" (function s when String.length s = 1 -> s.[0]
+                                      | s -> raise_errorf None "Expected char, got %s" s)
 let of_char = of_value (fun c -> (String.make 1 c))
 
 
