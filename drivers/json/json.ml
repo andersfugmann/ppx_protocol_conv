@@ -52,7 +52,7 @@ module Yojson = struct
   include Make(struct
       include Ppx_protocol_driver.Default_parameters
       let omit_default_values = true
-      let singleton_constr_as_string = false
+      let constructors_without_arguments_as_string = false
       let eager = true
       let strict = true
     end)

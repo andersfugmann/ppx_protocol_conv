@@ -4,7 +4,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support extensible polymorphic variants
 
 5.0.0 (unreleased)
-[ ] Add option make make lazy type indeed lazy
+[x] Add option make make lazy type indeed lazy
 [x] Add option to mangle variant names
 [x] Refactor tuple, variant and record code to be more efficient
 [x] Reduce amount of closures in generated code

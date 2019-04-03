@@ -7,7 +7,7 @@ module StringMap = Map.Make(String)
 module type Parameters = sig
   val field_name: string -> string
   val variant_name: string -> string
-  val singleton_constr_as_string: bool
+  val constructors_without_arguments_as_string: bool
   val omit_default_values: bool
   val eager: bool
   val strict: bool
@@ -16,7 +16,7 @@ end
 module Default_parameters : Parameters = struct
   let field_name name = name
   let variant_name name = name
-  let singleton_constr_as_string = true
+  let constructors_without_arguments_as_string = true
   let omit_default_values = true
   let eager = true
   let strict = false
@@ -128,7 +128,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     let to_result = function
       | Helper.Tuple l -> Driver.of_list (name :: l)
       | Helper.Record alist -> Driver.of_list [name; Driver.of_alist alist]
-      | Helper.Nil when P.singleton_constr_as_string -> name
+      | Helper.Nil when P.constructors_without_arguments_as_string -> name
       | Helper.Nil -> Driver.of_list [name]
     in
     Helper.of_variant ~omit_default:P.omit_default_values to_result spec
@@ -149,10 +149,10 @@ module Make(Driver: Driver)(P: Parameters) = struct
         in
         f name args
       end
-    | t when P.singleton_constr_as_string && Driver.is_string t ->
+    | t when P.constructors_without_arguments_as_string && Driver.is_string t ->
       let name = Driver.to_string t in
       f name []
-    | t when P.singleton_constr_as_string ->
+    | t when P.constructors_without_arguments_as_string ->
       raise_errorf (Some t) "Expected list or string when deserialisating variant"
     | t ->
       raise_errorf (Some t) "Expected list when deserialisating variant"
@@ -201,8 +201,10 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let of_array: ('a -> t) -> 'a array -> t = fun  of_value_fun v ->
     Array.to_list v |> of_list of_value_fun
 
-  let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun  to_value_fun t ->
-    Lazy.from_fun (fun () -> to_value_fun t)
+  let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun ->
+    match P.eager with
+    | true -> fun t -> Lazy.from_val (to_value_fun t)
+    | false -> fun t -> Lazy.from_fun (fun () -> to_value_fun t)
 
   let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun  of_value_fun v ->
     Lazy.force v |> of_value_fun

@@ -47,7 +47,7 @@ module Test = struct
     module Json = Make(
       struct
         include Default_parameters
-        let singleton_constr_as_string = false
+        let constructors_without_arguments_as_string = false
       end)
     type u = A | B of int
     and t = {

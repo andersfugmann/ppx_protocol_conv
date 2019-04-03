@@ -1,14 +1,19 @@
 module type Parameters = sig
-  (** Map field names of records *)
+  (** Map field names of records
+      Mapping is done after applying [@key] attribute
+  *)
   val field_name: string -> string
 
-  (** Map variant and constructor names *)
+  (** Map variant and constructor names.
+      Mapping is done after applying [@name] attribute
+  *)
   val variant_name: string -> string
 
-  (** Map singleton constructors to a string.
+  (** Map constructors with no arguments to a string.
       If true, constructors without arguments are mapped to a string, instead of
-      than a list containing only the constructor / variant name *)
-  val singleton_constr_as_string: bool (* Stupid name. Find a better one *)
+      than a list containing only the constructor / variant name
+  *)
+  val constructors_without_arguments_as_string: bool
 
   (** Omit default values from output.
       If true, default values
@@ -20,7 +25,7 @@ module type Parameters = sig
   (** Lazy evaluate lazy fields.
       If true, lazy fields are parsed eagerly.
       If false, lazy fields are parsed first when forced, which means they
-      will hold the serialized structure untill forced, and forcing
+      will hold the serialized structure until forced, and forcing
       might raise a parse error *)
   val eager: bool
 
@@ -28,6 +33,7 @@ module type Parameters = sig
   val strict: bool
 end
 
+(** Set of default Parameters *)
 module Default_parameters : Parameters
 
 module type Driver = sig
