@@ -704,22 +704,51 @@ let mk_typ ~loc tydecl =
 let type_of_to_func ~loc driver tydecl =
   [%type: [%t mk_typ ~loc tydecl] -> [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] ]
 
-let serialization_signature ~loc driver tdecl =
+let type_of_of_func ~loc driver tydecl =
+  [%type: [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] -> [%t mk_typ ~loc tydecl]]
+
+let serialization_signature ~loc  ~as_sig driver tdecl =
   let type_of = type_of_to_func ~loc driver tdecl in
   let params =
     List.filter_map
       ~f:(function ({ ptyp_desc = Ptyp_var s; _ }, _variance) -> Some s
                  | _ -> None) tdecl.ptype_params
   in
-  List.fold_right params ~init:type_of ~f:(fun name acc ->
-      let typ =
-        ptyp_arrow ~loc Nolabel
-          (ptyp_var ~loc name)
-          (ptyp_constr ~loc {loc; txt = Ldot (driver, "t")} [])
-      in
-      ptyp_arrow ~loc Nolabel typ acc
-    )
-  |> ptyp_poly ~loc (List.map ~f:(fun txt -> { loc; txt }) params)
+  let signature =
+    List.fold_right params ~init:type_of ~f:(fun name acc ->
+        let typ =
+          ptyp_arrow ~loc Nolabel
+            (ptyp_var ~loc name)
+            (ptyp_constr ~loc {loc; txt = Ldot (driver, "t")} [])
+        in
+        ptyp_arrow ~loc Nolabel typ acc
+      )
+  in
+  match as_sig with
+  | true -> signature
+  | false -> ptyp_poly ~loc (List.map ~f:(fun txt -> { loc; txt }) params) signature
+
+let deserialization_signature ~loc ~as_sig driver tdecl =
+  let type_of = type_of_of_func ~loc driver tdecl in
+  let params =
+    List.filter_map
+      ~f:(function ({ ptyp_desc = Ptyp_var s; _ }, _variance) -> Some s
+                 | _ -> None) tdecl.ptype_params
+  in
+  let signature =
+    List.fold_right params ~init:type_of ~f:(fun name acc ->
+        let typ =
+          ptyp_arrow ~loc Nolabel
+            (ptyp_constr ~loc {loc; txt = Ldot (driver, "t")} [])
+            (ptyp_var ~loc name)
+        in
+        ptyp_arrow ~loc Nolabel typ acc
+      )
+  in
+  match as_sig with
+  | true -> signature
+  | false -> ptyp_poly ~loc (List.map ~f:(fun txt -> { loc; txt }) params) signature
+
 
 let make_recursive ~loc (e : expression) = function
   | false -> e
@@ -731,7 +760,6 @@ let make_recursive ~loc (e : expression) = function
                | Some f -> f t
             ))
     ]
-
 
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   let is_recursive = is_recursive tydecls rec_flag in
@@ -745,7 +773,7 @@ let to_protocol_str_type_decls t rec_flag ~loc tydecls =
               [%expr fun [%p patt] -> [%e expr] ]
             ) tdecl.ptype_params
         in
-        let signature = serialization_signature t.driver ~loc tdecl in
+        let signature = serialization_signature ~as_sig:false t.driver ~loc tdecl in
         (to_p, Some signature, expr_param)
       ) tydecls
     |> pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive)
@@ -763,8 +791,8 @@ let of_protocol_str_type_decls t rec_flag ~loc tydecls =
               [%expr fun [%p patt] -> [%e expr] ])
             tdecl.ptype_params
         in
-        let signature = None in
-        (of_p, signature, expr_param)
+        let signature = deserialization_signature ~as_sig:false t.driver ~loc tdecl in
+        (of_p, Some signature, expr_param)
       ) tydecls
   |> pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive)
   |> fun x -> [x]
@@ -776,10 +804,7 @@ let protocol_str_type_decls t rec_flag ~loc tydecls =
 let to_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_expr option) =
   let driver = ident_of_module ~loc driver in
   List.concat_map ~f:(fun tydecl ->
-      let signature = serialization_signature ~loc driver tydecl in
-      (*
-      let to_type = type_of_to_func ~loc driver tydecl in
-      *)
+      let signature = serialization_signature ~as_sig:true ~loc driver tydecl in
       let to_p = serialize_function_name ~loc ~driver tydecl.ptype_name in
       psig_value ~loc (value_description ~loc ~name:to_p ~type_:signature ~prim:[]) :: []
     ) tydecls
@@ -788,10 +813,8 @@ let of_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_
   let driver = ident_of_module ~loc driver in
   List.concat_map ~f:(fun tydecl ->
       let of_p = deserialize_function_name ~loc ~driver tydecl.ptype_name  in
-      let of_type = [%type:
-        [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ]
-        -> [%t mk_typ ~loc tydecl]] in
-      psig_value ~loc (value_description ~loc ~name:of_p ~type_:of_type ~prim:[]) :: []
+      let signature = deserialization_signature ~as_sig:true ~loc driver tydecl in
+      psig_value ~loc (value_description ~loc ~name:of_p ~type_:signature ~prim:[]) :: []
     ) tydecls
 
 let protocol_sig_type_decls ~loc ~path (rec_flag, tydecls) (driver:module_expr option) =

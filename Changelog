@@ -11,7 +11,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] support nativeint
 [x] Remove superfluous rec flag from generated code
 [x] Cache partial results for recursive types
-[ ] Fix signatures for parameterized types
+[x] Fix signatures for parameterized types
 [x] Create helper module for tuple, record and variant.
 [x] Add strict option
 [ ] create t_to_driver and t_to_driver_exn
