@@ -12,12 +12,12 @@ build: [
 ]
 depends: [
   "ocaml" {>= "4.04"}
-  "base"
+  "base" {< "v0.13"}
   "dune" {build & >= "1.2"}
   "ppxlib" {>= "0.3.0"}
-  "ppx_sexp_conv" {with-test}
-  "sexplib" {with-test}
-  "ounit" {with-test}
+  "ppx_sexp_conv" {with-test & < "v0.13"}
+  "sexplib" {with-test & < "v0.13"}
+  "ounit" {with-test & < "3.0.0" }
 ]
 synopsis:
   "Ppx for generating serialisation and de-serialisation functions of ocaml types"

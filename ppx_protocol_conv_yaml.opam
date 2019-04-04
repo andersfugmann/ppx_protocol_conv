@@ -15,9 +15,9 @@ depends: [
   "yaml"
   "yaml" {with-test & >= "2.0.0"}
   "dune" {build & >= "1.2"}
-  "ppx_sexp_conv" {with-test}
-  "sexplib" {with-test}
-  "ounit" {with-test}
+  "ppx_sexp_conv" {with-test & < "v0.13"}
+  "sexplib" {with-test & < "v0.13"}
+  "ounit" {with-test & < "3.0.0"}
 ]
 synopsis: "Json driver for Ppx_protocol_conv"
 description: """
