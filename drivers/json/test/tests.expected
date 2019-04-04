@@ -35,9 +35,9 @@ null
   "foo": 1
 }
 === Simple ===
-[ "A", [ "B", 5 ], [ "C", 6, 7 ], [ "D", 8, 9 ] ]
+[ "A", [ "B", 5 ], [ "C", 6, 7 ], [ "D", [ 8, 9 ] ] ]
 === Tuple ===
-[ "A", 3, 4 ]
+[ "A", [ 3, 4 ] ]
 === Tree ===
 [ "Node", [ "Node", "Leaf", 3, "Leaf" ], 10, "Leaf" ]
 === MutualRecursion ===
@@ -119,9 +119,9 @@ null
 === recursive ===
 { "c": { "b": { "a": 5 } } }
 === Simple ===
-[ "A", [ "B", 5 ], [ "C", 6, 7 ], [ "D", 8, 9 ] ]
+[ "A", [ "B", 5 ], [ "C", [ 6, 7 ] ], [ "D", [ 8, 9 ] ] ]
 === Tree ===
-[ "Node", [ "Node", "Leaf", 3, "Leaf" ], 10, "Leaf" ]
+[ "Node", [ [ "Node", [ "Leaf", 3, "Leaf" ] ], 10, "Leaf" ] ]
 === MutualRecursion ===
 [
   "T1",

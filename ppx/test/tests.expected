@@ -40,9 +40,10 @@
 === Simple ===
 (List
  ((List ((String A))) (List ((String B) (Int 5)))
-  (List ((String C) (Int 6) (Int 7))) (List ((String D) (Int 8) (Int 9)))))
+  (List ((String C) (Int 6) (Int 7)))
+  (List ((String D) (List ((Int 8) (Int 9)))))))
 === Tuple ===
-(List ((String A) (Int 3) (Int 4)))
+(List ((String A) (List ((Int 3) (Int 4)))))
 === Tree ===
 (List
  ((String Node)
@@ -150,13 +151,16 @@
 === Simple ===
 (List
  ((List ((String A))) (List ((String B) (Int 5)))
-  (List ((String C) (Int 6) (Int 7))) (List ((String D) (Int 8) (Int 9)))))
+  (List ((String C) (List ((Int 6) (Int 7)))))
+  (List ((String D) (List ((Int 8) (Int 9)))))))
 === Tree ===
 (List
  ((String Node)
   (List
-   ((String Node) (List ((String Leaf))) (Int 3) (List ((String Leaf)))))
-  (Int 10) (List ((String Leaf)))))
+   ((List
+     ((String Node)
+      (List ((List ((String Leaf))) (Int 3) (List ((String Leaf)))))))
+    (Int 10) (List ((String Leaf)))))))
 === MutualRecursion ===
 (List
  ((String T1)

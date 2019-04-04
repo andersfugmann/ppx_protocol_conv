@@ -94,15 +94,19 @@ C
   </variant>
   <variant>
 D
-    <p>8</p>
-    <p>9</p>
+    <record>
+      <t1>9</t1>
+      <t0>8</t0>
+    </record>
   </variant>
 </l>
 === Tuple ===
 <variant>
 A
-  <p>3</p>
-  <p>4</p>
+  <record>
+    <t1>4</t1>
+    <t0>3</t0>
+  </record>
 </variant>
 === Tree ===
 <variant>
@@ -399,26 +403,34 @@ B
   </variant>
   <variant>
 C
-    <p>6</p>
-    <p>7</p>
+    <record>
+      <t1>7</t1>
+      <t0>6</t0>
+    </record>
   </variant>
   <variant>
 D
-    <p>8</p>
-    <p>9</p>
+    <record>
+      <t1>9</t1>
+      <t0>8</t0>
+    </record>
   </variant>
 </l>
 === Tree ===
 <variant>
 Node
-  <variant>
+  <record>
+    <t2>Leaf</t2>
+    <t1>10</t1>
+    <t0>
 Node
-    <variant>Leaf</variant>
-    <p>3</p>
-    <variant>Leaf</variant>
-  </variant>
-  <p>10</p>
-  <variant>Leaf</variant>
+      <record>
+        <t2>Leaf</t2>
+        <t1>3</t1>
+        <t0>Leaf</t0>
+      </record>
+    </t0>
+  </record>
 </variant>
 === MutualRecursion ===
 <variant>

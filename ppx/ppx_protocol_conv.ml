@@ -243,11 +243,6 @@ let rec serialize_expr_of_type_descr t ~loc = function
           | Some key -> key
           | None -> name.txt
         in
-        (* If the inner type is a tuple, open it. *)
-        let core_types = match core_types with
-          | [ { ptyp_desc = Ptyp_tuple cts; _ } ] -> cts
-          | cts -> cts
-        in
         let f =
           let spec =
             List.map core_types ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
@@ -291,10 +286,6 @@ let rec deserialize_variant t ~loc ~typ name core_types =
   match core_types with
   | [] -> pexp_constr None, [%expr Protocol_conv.Runtime.Tuple_in.Nil]
   | core_types ->
-    let core_types = match core_types with
-      | [ { ptyp_desc = Ptyp_tuple cts; _ } ] -> cts
-      | cts -> cts
-    in
     let constructor =
       let arg_names = List.mapi ~f:(fun i _ -> {loc; txt = Lident (sprintf "v%d" i)}) core_types in
       let body =
@@ -484,10 +475,6 @@ let serialize_expr_of_tdecl t ~loc tdecl =
         binding, case ~lhs ~guard:None ~rhs
 
       | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
-        let core_types = match core_types with
-          | [ { ptyp_desc = Ptyp_tuple cts; _ } ] -> cts
-          | cts -> cts
-        in
         let f_name = { loc; txt = sprintf "_%s_of_tuple" pcd_name.txt } in
         let constr_name = match get_constr_name t constr with
           | Some key -> key
