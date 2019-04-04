@@ -66,7 +66,7 @@ let ident_of_module ~loc = function
   | Some _ -> raise_errorf ~loc "must be a module identifier"
   | None -> raise_errorf ~loc "~driver argument missing"
 
-(** Test is a type is considered primitive *)
+(** Test if a type is considered primitive *)
 let is_primitive_type = function
   | "string" | "int" | "int32" | "int64" | "nativeint" | "float" | "bool" | "char" | "unit" -> true
   | _ -> false
@@ -634,18 +634,6 @@ let name_of_core_type ~prefix = function
   | { ptyp_desc = Ptyp_package _; _} -> failwith "Ptyp_package "
   | { ptyp_desc = Ptyp_extension _; _} -> failwith "Ptyp_extension "
 
-(** Test if a type references itself, in which case we cannot do eager evaluation.
-    We could create a reference to the potentially evaluated function instead:
-    Its not as fast, but still much faster!
-
-    let rec of_driver =
-      let f = ref None in
-      fun t -> match !f with
-               | Some f -> f
-               | None ->
-                 f := ...;
-                 !f
-*)
 
 let rec is_recursive_ct types = function
   | { ptyp_desc = Ptyp_var var; _ } ->
@@ -681,15 +669,22 @@ let is_recursive types = function
     List.exists ~f:(fun { pld_type = ct; _} -> is_recursive_ct types ct) ldecls
   | Ptype_open -> false
 
+(** Test if a type references itself, in which case we cannot do eager evaluation,
+    and we create a reference cell to hold the evaluated function value for later.
+    In this case, we only modify the reference cell once, at which point the closure will be moved to the heap,
+    but thats ok, because all the closures will end up there anyways.
+
+    Return a function which will determin which of the tydecls references other types in the list of tydecls,
+    so only functions which needs this 'recursion optimization hack' will be wrapped.
+*)
 let is_recursive tydecls = function
-  | Nonrecursive -> false
+  | Nonrecursive -> fun _ -> false
   | Recursive ->
     let names = List.map ~f:(fun { ptype_name = { txt=name; _}; _ } -> name) tydecls in
-    List.exists ~f:(fun { ptype_kind; ptype_params = ctvl; ptype_manifest; _} ->
-        is_recursive names ptype_kind ||
-        List.exists ~f:(fun (ct, _var) -> is_recursive_ct names ct) ctvl ||
-        Option.value_map ptype_manifest ~default:false ~f:(is_recursive_ct names)
-      ) tydecls
+    fun { ptype_kind; ptype_params = ctvl; ptype_manifest; _} ->
+      is_recursive names ptype_kind ||
+      List.exists ~f:(fun (ct, _var) -> is_recursive_ct names ct) ctvl ||
+      Option.value_map ptype_manifest ~default:false ~f:(is_recursive_ct names)
 
 (* Add type parameters *)
 let mk_typ ~loc tydecl =
@@ -762,40 +757,46 @@ let make_recursive ~loc (e : expression) = function
     ]
 
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
-  let is_recursive = is_recursive tydecls rec_flag in
-  List.map
-    ~f:(fun tdecl ->
-        let to_p = serialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
-        let expr = make_recursive ~loc (serialize_expr_of_tdecl t ~loc tdecl) is_recursive in
-        let expr_param =
-          List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
-              let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"to" ct) in
-              [%expr fun [%p patt] -> [%e expr] ]
-            ) tdecl.ptype_params
-        in
-        let signature = serialization_signature ~as_sig:false t.driver ~loc tdecl in
-        (to_p, Some signature, expr_param)
-      ) tydecls
-    |> pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive)
-    |> fun x -> [ x ]
+  let (defs, is_recursive) =
+    let is_recursive_f = is_recursive tydecls rec_flag in
+    List.fold_right ~init:([], false)
+      ~f:(fun tdecl (acc, acc_recursive) ->
+          let is_recursive = is_recursive_f tdecl in
+          let to_p = serialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
+          let expr = make_recursive ~loc (serialize_expr_of_tdecl t ~loc tdecl) is_recursive in
+          let expr_param =
+            List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
+                let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"to" ct) in
+                [%expr fun [%p patt] -> [%e expr] ]
+              ) tdecl.ptype_params
+          in
+          let signature = serialization_signature ~as_sig:false t.driver ~loc tdecl in
+          (to_p, Some signature, expr_param) :: acc, (is_recursive || acc_recursive)
+        ) tydecls
+  in
+  pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive) defs
+  |> fun x -> [ x ]
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
-  let is_recursive = is_recursive tydecls rec_flag in
-  List.map
-    ~f:(fun tdecl ->
-        let of_p = deserialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
-        let expr = make_recursive ~loc (deserialize_expr_of_tdecl t ~loc tdecl) is_recursive in
-        let expr_param =
-          List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
-              let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"of" ct) in
-              [%expr fun [%p patt] -> [%e expr] ])
-            tdecl.ptype_params
-        in
-        let signature = deserialization_signature ~as_sig:false t.driver ~loc tdecl in
-        (of_p, Some signature, expr_param)
-      ) tydecls
-  |> pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive)
-  |> fun x -> [x]
+  let (defs, is_recursive) =
+    let is_recursive_f = is_recursive tydecls rec_flag in
+    List.fold_right ~init:([], false)
+      ~f:(fun tdecl (acc, acc_recursive) ->
+          let is_recursive = is_recursive_f tdecl in
+          let of_p = deserialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
+          let expr = make_recursive ~loc (deserialize_expr_of_tdecl t ~loc tdecl) is_recursive in
+          let expr_param =
+            List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
+                let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"of" ct) in
+                [%expr fun [%p patt] -> [%e expr] ])
+              tdecl.ptype_params
+          in
+          let signature = deserialization_signature ~as_sig:false t.driver ~loc tdecl in
+          (of_p, Some signature, expr_param) :: acc, (is_recursive || acc_recursive)
+        ) tydecls
+  in
+  pstr_value_of_funcs ~loc (if is_recursive then Recursive else Nonrecursive) defs
+  |> fun x -> [ x ]
 
 let protocol_str_type_decls t rec_flag ~loc tydecls =
   to_protocol_str_type_decls t rec_flag ~loc tydecls @
