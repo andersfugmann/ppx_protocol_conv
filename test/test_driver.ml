@@ -28,6 +28,7 @@ module Make(Driver: Testable.Driver) = struct
       int: int;
       int32: int32;
       int64: int64;
+      nativeint: nativeint;
       float: float;
       string: string;
       intlist: int list;
@@ -49,6 +50,7 @@ module Make(Driver: Testable.Driver) = struct
       int = 2;
       int32 = Int32.of_int_exn 5;
       int64 = Int64.of_int_exn 10;
+      nativeint = Nativeint.of_int 20;
       float = 3.14;
       string = "string";
       intlist = [3; 4; 5];

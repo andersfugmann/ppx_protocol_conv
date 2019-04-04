@@ -68,7 +68,7 @@ let ident_of_module ~loc = function
 
 (** Test is a type is considered primitive *)
 let is_primitive_type = function
-  | "string" | "int" | "int32" | "int64" | "float" | "bool" | "char" | "unit" -> true
+  | "string" | "int" | "int32" | "int64" | "nativeint" | "float" | "bool" | "char" | "unit" -> true
   | _ -> false
 
 (** Test if the type is a type modifier *)

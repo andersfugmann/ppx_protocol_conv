@@ -636,6 +636,7 @@ B
   <intlist>5</intlist>
   <string>string</string>
   <float>3.14</float>
+  <nativeint>20</nativeint>
   <int64>10</int64>
   <int32>5</int32>
   <int>2</int>

@@ -68,6 +68,8 @@ module type Driver = sig
   val of_int32:   int32 -> t
   val to_int64:   t -> int64
   val of_int64:   int64 -> t
+  val to_nativeint: t -> nativeint
+  val of_nativeint: nativeint -> t
   val to_char:    t -> char
   val of_char:    char -> t
   val to_string:  t -> string

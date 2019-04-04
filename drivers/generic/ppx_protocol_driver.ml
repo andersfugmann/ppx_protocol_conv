@@ -49,6 +49,9 @@ module type Driver = sig
   val to_int64: t -> int64
   val of_int64: int64 -> t
 
+  val to_nativeint: t -> nativeint
+  val of_nativeint: nativeint -> t
+
   val to_float: t -> float
   val of_float: float -> t
 
@@ -220,6 +223,9 @@ module Make(Driver: Driver)(P: Parameters) = struct
 
   let to_int64  t = try Driver.to_int64 t with _ -> raise_errorf (Some t) "int64 expected"
   let of_int64  v = Driver.of_int64 v
+
+  let to_nativeint  t = try Driver.to_nativeint t with _ -> raise_errorf (Some t) "nativeint expected"
+  let of_nativeint  v = Driver.of_nativeint v
 
   let to_string  t = try Driver.to_string t with _ -> raise_errorf (Some t) "string expected"
   let of_string  v = Driver.of_string v

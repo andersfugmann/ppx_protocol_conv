@@ -234,6 +234,9 @@ let of_char = of_value (fun c -> (String.make 1 c))
 let to_unit = to_value "unit" (function "()" -> () | _ -> raise_errorf None "Expected char")
 let of_unit = of_value (fun () -> "()")
 
+let to_nativeint = to_value "nativeint" Nativeint.of_string
+let of_nativeint = of_value Nativeint.to_string
+
 (*
 let to_unit t = to_tuple Nil () t
 let of_unit () = of_tuple []

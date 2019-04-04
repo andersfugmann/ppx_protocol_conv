@@ -25,6 +25,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warn
   let of_int64 i = Int64.to_int i |> of_int
   let to_int64 t = to_int t |> Int64.of_int
 
+  let of_nativeint i = Nativeint.to_int i |> of_int
+  let to_nativeint t = to_int t |> Nativeint.of_int
+
   let of_float f = `Float f
   let to_float t = U.to_float t
 

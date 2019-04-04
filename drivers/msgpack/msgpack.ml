@@ -33,6 +33,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Msgpck.t = struct
   let of_int64 = Msgpck.of_int64
   let to_int64 = Msgpck.to_int64
 
+  let of_nativeint v = Nativeint.to_int v |> of_int
+  let to_nativeint t = to_int t |> Nativeint.of_int
+
   let to_float = function Msgpck.Float f -> f
                         | Msgpck.Float32 i -> Int32.float_of_bits i
                         | _ -> failwith "float expected"

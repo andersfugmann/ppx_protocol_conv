@@ -130,6 +130,7 @@ for a description of possible options.
 |--------------------|---------------|---------------|
 | string, char,bytes | \`String      | \`String      |
 | int, int32, int64  | \`Int         | \`Int         |
+| nativeint          | \`Int         | \`Int         |
 | float              | \`Float       | \`Float       |
 | bool               | \`Bool        | \`Bool        |
 | unit               | \`List []     | \`List []     |
@@ -181,7 +182,7 @@ and record field naming convensions, by using the functor `Msgpack.Make(P:Parame
 | char               | String        | String, Bytes                     |
 | int                | Int           | Int, Int32, Int64, Uint32, Uint64 |
 | int32              | Int32         | Int32                             |
-| int64              | Int64         | Int64                             |
+| nativeint          | Nativeint     | Int, Int32, Int64, Uint32, Uint64 |
 | float              | Float64       | Float64, Float32                  |
 | unit               | List []       | List []                           |
 | bool               | Bool          | Bool                              |
@@ -207,6 +208,7 @@ and record field naming convensions, by using the functor `Yaml.Make(P:Parameter
 |---------------------|---------------|-----------|
 | string, char, bytes | \`String      | \`String  |
 | int,int32,int64     | \`Float       | \`Float*  |
+| nativeint           | \`Float       | \`Float*  |
 | float               | \`Float       | \`Float   |
 | bool                | \`Bool        | \`Boolt   |
 | unit                | \`List []     | \`List [] |

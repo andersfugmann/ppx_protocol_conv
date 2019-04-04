@@ -26,6 +26,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   let to_int64 = Ezjsonm.get_int64
   let of_int64 = Ezjsonm.int64
 
+  let of_nativeint i = Nativeint.to_int i |> of_int
+  let to_nativeint t = to_int t |> Nativeint.of_int
+
   let to_float = Ezjsonm.get_float
   let of_float = Ezjsonm.float
 

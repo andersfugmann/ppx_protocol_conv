@@ -225,8 +225,9 @@
        (List ((Int 10) (Int 11) (Int 12))))))))
   (tuple (List ((Int 5) (String protocol) (Bool false)))) (intref (Int 4))
   (intoption (Option ((Int 100)))) (intlist (List ((Int 3) (Int 4) (Int 5))))
-  (string (String string)) (float (Float 3.14)) (int64 (Int64 10))
-  (int32 (Int32 5)) (int (Int 2)) (char (Char x)) (bool (Bool true))))
+  (string (String string)) (float (Float 3.14)) (nativeint (Nativeint 20))
+  (int64 (Int64 10)) (int32 (Int32 5)) (int (Int 2)) (char (Char x))
+  (bool (Bool true))))
 === Record ===
 (Map
  ((t_il (List ((Int 1000) (Int 1001) (Int 1002))))

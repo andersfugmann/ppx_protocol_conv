@@ -32,6 +32,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   let of_int64 i = Int64.to_int i |> of_int
   let to_int64 t = to_int t |> Int64.of_int
 
+  let of_nativeint v = Nativeint.to_int v |> of_int
+  let to_nativeint t = to_int t |> Nativeint.of_int
+
   let of_float f = `Float f
   let to_float = function `Float f -> f
                         | _ -> failwith "Float expected"

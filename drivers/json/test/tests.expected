@@ -176,6 +176,7 @@ null
   "intlist": [ 3, 4, 5 ],
   "string": "string",
   "float": 3.14,
+  "nativeint": 20,
   "int64": 10,
   "int32": 5,
   "int": 2,

@@ -9,6 +9,7 @@ type t =
   | Int of int
   | Int32 of int32
   | Int64 of int64
+  | Nativeint of nativeint
   | String of string
   | Float of float
   | Char of char
@@ -113,6 +114,9 @@ let of_bool b = Bool b
 
 let to_unit = function Unit -> () | e -> raise_errorf e "Unit type not found"
 let of_unit () = Unit
+
+let to_nativeint = function Nativeint n -> n | e -> raise_errorf e "Nativeint not found"
+let of_nativeint n = Nativeint n
 
 let t_of_test t = t
 let t_to_test t = t

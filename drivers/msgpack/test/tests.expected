@@ -118,8 +118,8 @@
   [B, [5, 6, 7], [10, 11, 12]]], vlist:
  [[B, [5, 6, 7], [10, 11, 12]], [B, [5, 6, 7], [10, 11, 12]],
   [B, [5, 6, 7], [10, 11, 12]]], tuple: [5, protocol, false], intref: 4,
- intoption: 100, intlist: [3, 4, 5], string: string, float: 3.14, int64: 10,
- int32: 5, int: 2, char: x, bool: true}
+ intoption: 100, intlist: [3, 4, 5], string: string, float: 3.14, nativeint:
+ 20, int64: 10, int32: 5, int: 2, char: x, bool: true}
 === Record ===
 {t_il: [1000, 1001, 1002], t_tl:
  [[100, 101, [s100, s101]], [110, 111, [s110, s111]],

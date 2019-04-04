@@ -8,7 +8,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Add option to mangle variant names
 [x] Refactor tuple, variant and record code to be more efficient
 [x] Reduce amount of closures in generated code
-[ ] support nativeint
+[x] support nativeint
 [x] Remove superfluous rec flag from generated code
 [x] Cache partial results for recursive types
 [ ] Fix signatures for parameterized types
