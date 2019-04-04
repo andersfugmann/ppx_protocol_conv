@@ -11,7 +11,7 @@ build: [
 ]
 depends: [
   "ocaml" {>= "4.04.0"}
-  "ppx_protocol_conv" {= "4.0.0"}
+  "ppx_protocol_conv" {= "5.0.0"}
   "yojson" {>= "1.5.0" & < "2.0.0"}
   "dune" {build & >= "1.2"}
   "ppx_sexp_conv" {with-test & < "v0.13"}
