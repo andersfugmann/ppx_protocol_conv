@@ -104,7 +104,9 @@ module Helper = struct
       If default is set, then this value is used if the field name is not in [ts]
   *)
   let to_record: type t constr b. ?strict:bool -> ?default:t -> (t, constr, b) Record_in.t -> constr -> (string * t) list -> b = fun ?(strict=false) ?default ->
-    let rec inner: type constr. (t, constr, b) Record_in.t -> constr -> t stringmap -> b = function
+    let rec inner: type constr. (t, constr, b) Record_in.t -> constr -> t stringmap -> b =
+      Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
+      function
       | Record_in.Cons ((field, to_value_func, Some default), xs) ->
         let cont = inner xs in
         fun constr map ->
@@ -138,6 +140,7 @@ module Helper = struct
     in
     fun spec constr ->
       let f = inner spec constr in
+      Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
       fun elements ->
         let map = List.fold_left ~init:(Map.empty (module String))
             ~f:(fun acc (field, t) ->
@@ -154,7 +157,9 @@ module Helper = struct
       Record_out.Cons ((field field_name, to_t, default), map_record_out ~field xs)
     | Record_out.Nil -> Record_out.Nil
 
-  let rec of_record: type t a. omit_default:bool -> ((string * t) list -> t) -> (t, a, t) Record_out.t -> (string * t) list -> a = fun ~omit_default map -> function
+  let rec of_record: type t a. omit_default:bool -> ((string * t) list -> t) -> (t, a, t) Record_out.t -> (string * t) list -> a = fun ~omit_default map ->
+    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
+    function
     | Record_out.Cons ((field, to_t, default), xs) ->
       let cont = of_record ~omit_default map xs in
       let f = match omit_default, default with
@@ -175,9 +180,9 @@ module Helper = struct
   *)
   let of_record ?(omit_default=false) map_f spec = of_record ~omit_default map_f spec []
 
-
   (** {to_tuple spec tlist} produces a tuple from the serialized values in [tlist] *)
   let rec to_tuple: type t a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
+    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
     function
     | Tuple_in.Cons (to_value_func, xs) ->
       let cont = to_tuple xs in
@@ -191,7 +196,9 @@ module Helper = struct
       | [] -> a
       | _ -> raise_errorf "Too many elements when parsing tuple"
 
-  let rec of_tuple: type t a. (t list -> t) -> (t, a, t) Tuple_out.t -> t list -> a = fun map -> function
+  let rec of_tuple: type t a. (t list -> t) -> (t, a, t) Tuple_out.t -> t list -> a = fun map ->
+    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
+    function
     | Tuple_out.Cons (to_t, xs) ->
       let cont = of_tuple map xs in
       fun acc v ->
@@ -208,7 +215,9 @@ module Helper = struct
     | Variant_out.Tuple spec -> Variant_out.Tuple spec
 
   (** {of_variant spec v} serialises v and returns the serialized values as a list or map *)
-  let of_variant: type t a. ?omit_default:bool -> (t variant -> t) -> (t, a, t) Variant_out.t -> a = fun ?(omit_default=false) map_f -> function
+  let of_variant: type t a. ?omit_default:bool -> (t variant -> t) -> (t, a, t) Variant_out.t -> a = fun ?(omit_default=false) map_f ->
+    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
+    function
     | Variant_out.Record spec ->
       of_record ~omit_default (fun x -> Record x |> map_f) spec
     | Variant_out.Tuple Tuple_out.Nil -> of_tuple (fun _ -> map_f Nil) Tuple_out.Nil
@@ -228,6 +237,7 @@ module Helper = struct
       ) variants
 
   let to_variant: type t c. ?strict:bool -> (t -> (string * t) list option) -> (string * (t, c) Variant_in.t) list -> string -> t list -> c = fun ?strict to_alist spec ->
+    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
     let map_variant_constr: type c. (t, c) Variant_in.t -> t list -> c = function
       | Variant_in.Record (spec, constructor) ->
         begin
@@ -253,12 +263,15 @@ module Helper = struct
           fun t -> f t
         end
     in
-    let map = List.fold_left ~init:(Map.empty (module String)) ~f:(fun acc (name, spec) ->
+    let hash = Hashtbl.create ~growth_allowed:false ~size:10000000 (module String) in
+    let _map = List.fold_left ~init:(Map.empty (module String)) ~f:(fun acc (name, spec) ->
         Map.add_exn acc ~key:name ~data:(map_variant_constr spec)
       ) spec
     in
+    List.iter ~f:(fun (name, spec) -> Hashtbl.add_exn hash ~key:name  ~data:(map_variant_constr spec)) spec;
+    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
     fun name t ->
-      match Map.find map name with
+      match Hashtbl.find hash name with
       | Some f -> f t
       | None -> raise_errorf "Unknown constructor name: %s" name
 end

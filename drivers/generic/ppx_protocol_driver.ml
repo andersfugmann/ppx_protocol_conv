@@ -156,9 +156,9 @@ module Make(Driver: Driver)(P: Parameters) = struct
       let name = Driver.to_string t in
       f name []
     | t when P.constructors_without_arguments_as_string ->
-      raise_errorf (Some t) "Expected list or string when deserialisating variant"
+      raise_errorf (Some t) "Expected list or string when deserialising variant"
     | t ->
-      raise_errorf (Some t) "Expected list when deserialisating variant"
+      raise_errorf (Some t) "Expected list when deserialising variant"
 
   let get_option = function
     | t when Driver.is_alist t -> begin
@@ -195,6 +195,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
 
   let to_list: (t -> 'a) -> t -> 'a list = fun  to_value_fun t ->
     List.map ~f:to_value_fun (Driver.to_list t)
+
   let of_list: ('a -> t) -> 'a list -> t = fun  of_value_fun v ->
     List.map ~f:of_value_fun v |> Driver.of_list
 

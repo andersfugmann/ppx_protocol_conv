@@ -15,6 +15,9 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Create helper module for tuple, record and variant.
 [x] Add strict option
 [ ] create t_to_driver and t_to_driver_exn
+[ ] Move some documentation to wiki pages
+[ ] Add a TLDR to the README, including dune build instructions
+[ ] Allow core < v.013
 
 4.0.0 (released 2019-03-26)
 [*] Support "@default" argument on record fields. #9
