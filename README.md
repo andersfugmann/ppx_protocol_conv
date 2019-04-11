@@ -117,7 +117,7 @@ module Json = Json.Make(
   struct
     let field_name str = str
     let singleton_constr_as_string = false
-    let omit_default_values: true
+    let omit_default_values = true
   end)
 ```
 See [Parameters](https://andersfugmann.github.io/ppx_protocol_conv/ppx_protocol_conv/Ppx_protocol_driver/module-type-Parameters/index.html)
