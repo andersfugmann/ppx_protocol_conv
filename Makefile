@@ -42,12 +42,16 @@ gh-pages: doc
 	git -C .gh-pages push origin gh-pages -f
 	rm -rf .gh-pages
 
+.PHONY: bench
+bench:
+	dune exec drivers/json/test/bench.exe
+
 debug:
 	dumpast type.ml
 	_build/default/.ppx/ppx_protocol_conv+ppx_sexp_conv+ppx_driver.runner/ppx.exe type.ml
 
 drivers/json/test/types.ml: force
-	./_build/default/.ppx/40ba31c2c2fdb938f34c2041ffe28e6b/ppx.exe  -pretty type.ml | ocamlformat - --name=b | sed 's/\[@@[^\]*\]//'  > drivers/json/test/types.ml
+	./_build/default/.ppx/9f9eea5d5804b6e3d527fb158983e793/ppx.exe  -pretty type.ml | ocamlformat - --name=b | sed 's/\[@@[^\]*\]//'  > drivers/json/test/types.ml
 
 .PHONY: force
 force:

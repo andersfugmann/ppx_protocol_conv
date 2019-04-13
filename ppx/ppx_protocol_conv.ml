@@ -197,10 +197,10 @@ let rec serialize_record t ~loc labels =
   spec,
   ppat_record ~loc
      (List.map ~f:(fun id ->
-        { loc; txt=Lident id.txt }, ppat_var ~loc id)
+        { loc; txt=Lident id.txt }, ppat_var ~loc { loc; txt = "r_" ^ id.txt})
         (List.map ~f:(fun ld -> ld.pld_name) labels)
      ) Closed,
-  List.map ~f:(fun label -> Nolabel, pexp_ident ~loc { loc; txt=Lident label.pld_name.txt }) labels
+  List.map ~f:(fun label -> Nolabel, pexp_ident ~loc { loc; txt=Lident ("r_" ^ label.pld_name.txt) }) labels
 
 and serialize_tuple t ~loc core_types =
   let spec =
@@ -236,7 +236,7 @@ and serialize_variant t ~loc type_ ~name ~alias pcstr  =
   match pcstr with
   | Pcstr_record labels ->
     let spec, patt, args = serialize_record t ~loc labels in
-    let patt_tuple = List.map ~f:(fun label -> ppat_var ~loc label.pld_name) labels |> ppat_tuple ~loc in
+    let patt_tuple = List.map ~f:(fun label -> ppat_var ~loc { loc; txt = "r_" ^ label.pld_name.txt}) labels |> ppat_tuple ~loc in
     let f = [%expr
       let f = [%e driver_func t ~loc "of_record"] [%e spec] in
       let f [%p patt_tuple] = [%e pexp_apply ~loc (pexp_ident ~loc {loc; txt = Lident "f"}) args] in
