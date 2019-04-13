@@ -115,7 +115,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     fun t -> f (Driver.to_alist t)
 
   let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
-    let spec = Helper.map_record_out ~field:P.field_name spec in
+    let spec = Helper.map_record_out P.field_name spec in
     Helper.of_record ~omit_default:P.omit_default_values Driver.of_alist spec
 
   let to_tuple: (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b = fun spec constr ->
@@ -125,40 +125,39 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
     Helper.of_tuple Driver.of_list spec
 
-  let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name spec ->
-    let spec = Helper.map_variant_out ~field:P.field_name spec in
-    let name = P.variant_name name |> Driver.of_string in
-    let to_result = function
-      | Helper.Tuple l -> Driver.of_list (name :: l)
-      | Helper.Record alist -> Driver.of_list [name; Driver.of_alist alist]
-      | Helper.Nil when P.constructors_without_arguments_as_string -> name
-      | Helper.Nil -> Driver.of_list [name]
+  let of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a =
+    let of_variant name =
+      let name = P.variant_name name |> Driver.of_string in
+      function
+      | [] when P.constructors_without_arguments_as_string -> name
+      | ts -> Driver.of_list (name :: ts)
     in
-    Helper.of_variant ~omit_default:P.omit_default_values to_result spec
+    fun name spec -> Helper.of_variant of_variant name spec
 
-  let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
-    let spec = Helper.map_variant_in ~field:P.field_name ~constructor:P.variant_name spec in
-    let to_alist t = match Driver.is_alist t with
-      | true -> Some (Driver.to_alist t)
-      | false -> None
-    in
-    let f = Helper.to_variant ~strict:P.strict to_alist spec in
-    function
-    | t when Driver.is_list t -> begin
-        let name, args = match Driver.to_list t with
-          | name :: args when Driver.is_string name -> Driver.to_string name, args
-          | _ :: _ -> raise_errorf (Some t) "First elements in the list must be the constructor name when name when deserialising variant"
-          | [] -> raise_errorf (Some t) "Empty list found when deserialising variant"
-        in
-        f name args
+  let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec ->
+    let f = Helper.to_variant (Helper.map_constructor_names P.variant_name spec) in
+    match P.constructors_without_arguments_as_string with
+    | true -> begin
+        function
+        | t when Driver.is_string t -> f (Driver.to_string t) []
+        | t when Driver.is_list t -> begin
+            match Driver.to_list t with
+            | name :: args when Driver.is_string name -> f (Driver.to_string name) args
+            | _ :: _ -> raise_errorf (Some t) "First element in the list must be the constructor name when name when deserialising variant"
+            | [] -> raise_errorf (Some t) "Empty list found when deserialising variant"
+          end
+        | t -> raise_errorf (Some t) "Expected list or string when deserialising variant"
       end
-    | t when P.constructors_without_arguments_as_string && Driver.is_string t ->
-      let name = Driver.to_string t in
-      f name []
-    | t when P.constructors_without_arguments_as_string ->
-      raise_errorf (Some t) "Expected list or string when deserialising variant"
-    | t ->
-      raise_errorf (Some t) "Expected list when deserialising variant"
+    | false -> begin
+        function
+        | t when Driver.is_list t -> begin
+            match Driver.to_list t with
+            | name :: args when Driver.is_string name -> f (Driver.to_string name) args
+            | _ :: _ -> raise_errorf (Some t) "First element in the list must be the constructor name when name when deserialising variant"
+            | [] -> raise_errorf (Some t) "Empty list found when deserialising variant"
+          end
+        | t -> raise_errorf (Some t) "Expected list when deserialising variant"
+      end
 
   let get_option = function
     | t when Driver.is_alist t -> begin

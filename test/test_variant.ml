@@ -15,7 +15,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module Tuple : M.Testable = struct
-    let name = "Tuple"
+    let name = __MODULE__ ^ ".Tuple"
     type t = A of (int * int)
            | B of int * int
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -24,7 +24,7 @@ module Make(Driver: Testable.Driver) = struct
 
 
   module Tree : M.Testable = struct
-    let name = "Tree"
+    let name = __MODULE__ ^ ".Tree"
     type t =
       | Node of t * int * t
       | Leaf
@@ -34,7 +34,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module MutualRecursion : M.Testable = struct
-    let name = "MutualRecursion"
+    let name = __MODULE__ ^ ".MutualRecursion"
     type v = V1 of v
            | V0 of int
            | T of t
@@ -47,7 +47,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module InsideRec : M.Testable = struct
-    let name = "InsideRec"
+    let name = __MODULE__ ^ ".InsideRec"
     type v = V0 [@key "A"]
            | V1 [@key "B"]
 
@@ -61,7 +61,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module InlineRecord : M.Testable = struct
-    let name = "Inline Record"
+    let name = __MODULE__ ^ ".InlineRecord"
     type t = A of { a : string; }
            | B of int
            | C of { x : int; y: int; }
@@ -71,7 +71,7 @@ module Make(Driver: Testable.Driver) = struct
 
 
   module InlineRecord2 : M.Testable = struct
-    let name = "Inline Record"
+    let name = __MODULE__ ^ ".InlineRecord2"
     type t = A of { a : string [@key "A"]; b: t} [@key "aa"]
            | B of int
            | C of { x : int [@key "X"]; y: int [@key "Y"]; }
@@ -80,8 +80,8 @@ module Make(Driver: Testable.Driver) = struct
   end
 
 module Poly : M.Testable = struct
-  let name = "Polymoric variants"
-  type t = [ `A of int [@key "a"]| `B of string ]
+  let name = __MODULE__ ^ ".Poly"
+  type t = [ `A of int [@key "aaa"]| `B of string ]
   [@@deriving protocol ~driver:(module Driver), sexp]
   let t = `A 5
 end

@@ -41,11 +41,11 @@ foo: 1
 
 === Simple ===
 
-=== Tuple ===
+=== Test__Test_variant.Tuple ===
 
-=== Tree ===
+=== Test__Test_variant.Tree ===
 
-=== MutualRecursion ===
+=== Test__Test_variant.MutualRecursion ===
 - T1
 - - V
   - - T
@@ -56,13 +56,13 @@ foo: 1
             - - V0
               - 5
 
-=== InsideRec ===
+=== Test__Test_variant.InsideRec ===
 
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord ===
 
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord2 ===
 
-=== Polymoric variants ===
+=== Test__Test_variant.Poly ===
 
 === Nonrec ===
 
@@ -76,37 +76,37 @@ foo: 1
 
 === Some Some Some Unit ===
 
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
+
+=== Test__Test_lists.SingleElem ===
+
+=== Test__Test_lists.Longlist ===
+
+=== Test__Test_lists.EmptyInsideRec ===
+
+=== Test__Test_lists.SingleInsideRec ===
+
+=== Test__Test_lists.MultiInsideRec ===
+
+=== Test__Test_lists.ListOfLists ===
+
+=== Test__Test_lists.ListOfLists2 ===
 
 === SingleElem ===
 
-=== Longlist ===
+=== Test__Test_arrays.SingleElem ===
 
-=== EmptyInsideRec ===
+=== Test__Test_arrays.Longarray ===
 
-=== SingleInsideRec ===
+=== Test__Test_arrays.EmptyInsideRec ===
 
-=== MultiInsideRec ===
+=== Test__Test_arrays.SingleInsideRec ===
 
-=== ListOfLists ===
+=== Test__Test_arrays.MultiInsideRec ===
 
-=== ListOfLists2 ===
+=== Test__Test_arrays.ArrayOfArrays ===
 
-=== SingleElem ===
-
-=== SingleElem ===
-
-=== Longarray ===
-
-=== EmptyInsideRec ===
-
-=== SingleInsideRec ===
-
-=== MultiInsideRec ===
-
-=== ArrayOfArrays ===
-
-=== ArrayOfArrays2 ===
+=== Test__Test_arrays.ArrayOfArrays2 ===
 
 === RecordList ===
 
@@ -128,11 +128,11 @@ Code: Error
 
 === recursive ===
 
-=== Simple ===
+=== Test__Test_poly.Simple ===
 
-=== Tree ===
+=== Test__Test_poly.Tree ===
 
-=== MutualRecursion ===
+=== Test__Test_poly.MutualRecursion ===
 - T1
 - - V
   - - T
@@ -143,7 +143,7 @@ Code: Error
             - - V0
               - 5
 
-=== InsideRec ===
+=== Test__Test_poly.InsideRec ===
 
 === Tuple ===
 - - 10

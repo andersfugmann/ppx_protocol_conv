@@ -36,23 +36,23 @@ null
 }
 === Simple ===
 [ "A", [ "B", 5 ], [ "C", 6, 7 ], [ "D", [ 8, 9 ] ] ]
-=== Tuple ===
+=== Test__Test_variant.Tuple ===
 [ "A", [ 3, 4 ] ]
-=== Tree ===
+=== Test__Test_variant.Tree ===
 [ "Node", [ "Node", "Leaf", 3, "Leaf" ], 10, "Leaf" ]
-=== MutualRecursion ===
+=== Test__Test_variant.MutualRecursion ===
 [
   "T1",
   [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
 ]
-=== InsideRec ===
+=== Test__Test_variant.InsideRec ===
 { "c": "c", "V": "A", "a": "a" }
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord ===
 [ "A", { "a": "a" } ]
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord2 ===
 [ "aa", { "b": [ "aa", { "b": [ "B", 5 ], "A": "a" } ], "A": "a" } ]
-=== Polymoric variants ===
-[ "a", 5 ]
+=== Test__Test_variant.Poly ===
+[ "aaa", 5 ]
 === Nonrec ===
 [ "A", [ "Cons", 4, [ "Cons", 3, "Nil" ] ] ]
 === Nonrec2 ===
@@ -65,37 +65,37 @@ null
 { "__option": { "__option": null } }
 === Some Some Some Unit ===
 { "__option": { "__option": { "__option": { "__option": null } } } }
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
 []
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
 [ 2 ]
-=== Longlist ===
+=== Test__Test_lists.Longlist ===
 [ 4, 2, 3, 1 ]
-=== EmptyInsideRec ===
+=== Test__Test_lists.EmptyInsideRec ===
 { "c": "c", "V": [], "a": "a" }
-=== SingleInsideRec ===
+=== Test__Test_lists.SingleInsideRec ===
 { "c": "c", "V": [ 2 ], "a": "a" }
-=== MultiInsideRec ===
+=== Test__Test_lists.MultiInsideRec ===
 { "c": "c", "V": [ 4, 2, 3, 1 ], "a": "a" }
-=== ListOfLists ===
+=== Test__Test_lists.ListOfLists ===
 { "a": [ [ 2, 3 ], [ 4, 5 ] ] }
-=== ListOfLists2 ===
+=== Test__Test_lists.ListOfLists2 ===
 [ [], [ [], [ 2 ], [ 3, 4 ] ], [ [] ], [ [ 2 ] ] ]
 === SingleElem ===
 []
-=== SingleElem ===
+=== Test__Test_arrays.SingleElem ===
 [ 2 ]
-=== Longarray ===
+=== Test__Test_arrays.Longarray ===
 [ 4, 2, 3, 1 ]
-=== EmptyInsideRec ===
+=== Test__Test_arrays.EmptyInsideRec ===
 { "c": "c", "V": [], "a": "a" }
-=== SingleInsideRec ===
+=== Test__Test_arrays.SingleInsideRec ===
 { "c": "c", "V": [ 2 ], "a": "a" }
-=== MultiInsideRec ===
+=== Test__Test_arrays.MultiInsideRec ===
 { "c": "c", "V": [ 4, 2, 3, 1 ], "a": "a" }
-=== ArrayOfArrays ===
+=== Test__Test_arrays.ArrayOfArrays ===
 { "a": [ [ 2, 3 ], [ 4, 5 ] ] }
-=== ArrayOfArrays2 ===
+=== Test__Test_arrays.ArrayOfArrays2 ===
 [ [], [ [], [ 2 ], [ 3, 4 ] ], [ [] ], [ [ 2 ] ] ]
 === RecordList ===
 { "objects": [ { "key": 1 }, { "key": 2 } ] }
@@ -118,16 +118,16 @@ null
 { "a": { "a": 5 } }
 === recursive ===
 { "c": { "b": { "a": 5 } } }
-=== Simple ===
+=== Test__Test_poly.Simple ===
 [ "A", [ "B", 5 ], [ "C", [ 6, 7 ] ], [ "D", [ 8, 9 ] ] ]
-=== Tree ===
+=== Test__Test_poly.Tree ===
 [ "Node", [ [ "Node", [ "Leaf", 3, "Leaf" ] ], 10, "Leaf" ] ]
-=== MutualRecursion ===
+=== Test__Test_poly.MutualRecursion ===
 [
   "T1",
   [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
 ]
-=== InsideRec ===
+=== Test__Test_poly.InsideRec ===
 { "c": "c", "V": "A", "a": "a" }
 === Tuple ===
 [

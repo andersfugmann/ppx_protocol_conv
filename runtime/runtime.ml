@@ -29,15 +29,7 @@ module Tuple_out = struct
 end
 
 module Variant_in = struct
-  type  (_, _) t =
-    | Tuple:  ('a, 'b, 'c) Tuple_in.t  * 'b -> ('a, 'c) t
-    | Record: ('a, 'b, 'c) Record_in.t * 'b -> ('a, 'c) t
-end
-
-module Variant_out = struct
-  type ('a, 'b, 'c) t =
-    | Tuple of ('a, 'b, 'c) Tuple_out.t
-    | Record of ('a, 'b, 'c) Record_out.t
+  type (_, _) t = Variant: string * ('a, 'constr, 'c) Tuple_in.t  * 'constr -> ('a, 'c) t
 end
 
 module type Driver = sig
@@ -45,8 +37,8 @@ module type Driver = sig
   exception Protocol_error of string * t option
   val to_string_hum: t -> string
 
-  val to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c
-  val of_variant: string -> (t, 'a, t) Variant_out.t -> 'a
+  val to_variant: (t, 'a) Variant_in.t list -> t -> 'a
+  val of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a
   val to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b
   val of_record:  (t, 'a, t) Record_out.t -> 'a
   val to_tuple:   (t, 'constr, 'b) Tuple_in.t -> 'constr -> t -> 'b
@@ -82,12 +74,10 @@ module type Driver = sig
   val of_unit:    unit -> t
 end
 
-
 module Helper = struct
   exception Protocol_error of string
 
   (**/**)
-  type 'a stringmap = (string, 'a, String.comparator_witness) Map.t
   let raise_errorf: ('a, unit, string, 'b) format4 -> 'a = fun fmt -> Printf.ksprintf (fun s -> raise (Protocol_error s)) fmt
   (**/**)
 
@@ -102,87 +92,92 @@ module Helper = struct
   (** {to_record spec constructor ts} returns the constructed value.
        [ts] is a associative array of (fieldname, t)
       If default is set, then this value is used if the field name is not in [ts]
+
+      Create a map -> key -> idx
+      When getting input, create an array of t option.
   *)
-  let to_record: type t constr b. ?strict:bool -> ?default:t -> (t, constr, b) Record_in.t -> constr -> (string * t) list -> b = fun ?(strict=false) ?default ->
-    let rec inner: type constr. (t, constr, b) Record_in.t -> constr -> t stringmap -> b =
-      Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
+  let to_record: type t constr b. ?strict:bool -> (t, constr, b) Record_in.t -> constr -> (string * t) list -> b =
+    let rec to_alist : type a b c. int -> (a, b, c) Record_in.t -> (string * int) list = fun idx -> function
+      | Record_in.Cons ((field, _, _), xs) ->
+        (field, idx) :: to_alist (idx + 1) xs
+      | Record_in.Nil -> []
+    in
+    let rec inner: type constr. int -> (t, constr, b) Record_in.t -> constr -> t option array -> b = fun idx ->
       function
-      | Record_in.Cons ((field, to_value_func, Some default), xs) ->
-        let cont = inner xs in
-        fun constr map ->
-          let t = ref None in
-          let map = Map.change map field ~f:(fun a -> t := a; None) in
-          let v = match !t with
-            | Some t -> to_value_func t
+      | Record_in.Cons ((_field, to_value_func, Some default), xs) ->
+        let cont = inner (idx + 1) xs in
+        fun constr values ->
+          let v = match values.(idx) with
             | None -> default
-          in
-          cont (constr v) map
-      | Record_in.Cons ((field, to_value_func, None), xs) ->
-        let cont = inner xs in
-        fun constr map ->
-          let t = ref None in
-          let map = Map.change map field ~f:(fun a -> t := a; None) in
-          let v = match !t with
             | Some t -> to_value_func t
-            | None -> begin
-                match default with
-                | None -> raise_errorf "Field not found: %s" field
-                | Some t -> to_value_func t
-              end
           in
-          cont (constr v) map
-      | Record_in.Nil when strict -> fun a map -> begin
-          match Map.is_empty map with
-          | true -> a
-          | false -> raise_errorf "Superfluous fields for map: [%s]" (Map.keys map |> String.concat ~sep:"; ")
-        end
+          cont (constr v) values
+      | Record_in.Cons ((field, to_value_func, None), xs) ->
+        let cont = inner (idx + 1) xs in
+        fun constr values ->
+          let v = match values.(idx) with
+            | None -> raise_errorf "Missing record field: %s" field
+            | Some t -> to_value_func t
+          in
+          cont (constr v) values
       | Record_in.Nil -> fun a _map -> a
     in
-    fun spec constr ->
-      let f = inner spec constr in
-      Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
-      fun elements ->
-        let map = List.fold_left ~init:(Map.empty (module String))
-            ~f:(fun acc (field, t) ->
-                match Map.add acc ~key:field ~data:t with
-                | `Ok map -> map
-                | `Duplicate -> raise_errorf "Duplicate fields found: %s" field
-          ) elements
-        in
-        f map
+    fun ?(strict=false) spec constr ->
+      let table =
+        to_alist 0 spec
+        |> Hashtbl.of_alist_exn (module String)
+      in
+      let count = Hashtbl.length table in
+      let f = inner 0 spec constr in
+
+      fun values ->
+        let value_array = Array.create ~len:count None in
+        List.iter ~f:(fun (field, t) ->
+            match Hashtbl.find table field with
+            | None when strict -> raise_errorf "Unused field when deserialising record: %s" field
+            | None -> ()
+            | Some idx -> begin
+                match value_array.(idx) with
+                | Some _ -> raise_errorf "Multiple fields with the same name: %s" field
+                | None -> value_array.(idx) <- Some t
+              end
+          ) values;
+        f value_array
 
   (** Map fields names of a {Record_out} structure *)
-  let rec map_record_out: type t a. field:(string -> string) -> (t, a, t) Record_out.t -> (t, a, t) Record_out.t = fun ~field -> function
-    | Record_out.Cons ((field_name, to_t, default), xs) ->
-      Record_out.Cons ((field field_name, to_t, default), map_record_out ~field xs)
-    | Record_out.Nil -> Record_out.Nil
+  let rec map_record_out: type t a. (string -> string) -> (t, a, t) Record_out.t -> (t, a, t) Record_out.t =
+    fun field -> function
+      | Record_out.Cons ((field_name, to_t, default), xs) ->
+        Record_out.Cons ((field field_name, to_t, default), map_record_out field xs)
+      | Record_out.Nil -> Record_out.Nil
 
-  let rec of_record: type t a. omit_default:bool -> ((string * t) list -> t) -> (t, a, t) Record_out.t -> (string * t) list -> a = fun ~omit_default map ->
-    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
-    function
-    | Record_out.Cons ((field, to_t, default), xs) ->
-      let cont = of_record ~omit_default map xs in
-      let f = match omit_default, default with
-        | true, Some d -> begin
-            fun acc -> function
-              | v when Poly.equal v d -> cont acc
-              | v -> cont ((field, to_t v) :: acc)
-          end
-        | _, _ -> fun acc v -> cont ((field, to_t v) :: acc)
-      in
-      f
-    | Record_out.Nil ->
-      fun acc -> map acc
+  type 't serialize_record = (string * 't) list -> 't
 
   (** {of_record map_f spec} produces a valid deserialisation function for a record type
       The [map_f] function is called to produce the serialised result from a field_name, t association list.
       If [omit_default] is true, then default values are omitted from the output
   *)
-  let of_record ?(omit_default=false) map_f spec = of_record ~omit_default map_f spec []
+  let of_record: type t a t. omit_default:bool -> t serialize_record -> (t, a, t) Record_out.t -> a =
+    fun ~omit_default serialize_record ->
+    let rec inner: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
+      | Record_out.Cons ((field, to_t, default), xs) ->
+        let cont = inner xs in
+        let f = match omit_default, default with
+          | true, Some d -> begin
+              fun acc -> function
+                | v when Poly.equal v d -> cont acc
+                | v -> cont ((field, to_t v) :: acc)
+            end
+          | _, _ -> fun acc v -> cont ((field, to_t v) :: acc)
+        in
+        f
+      | Record_out.Nil ->
+        fun acc -> serialize_record acc
+    in
+    fun spec -> inner spec []
 
   (** {to_tuple spec tlist} produces a tuple from the serialized values in [tlist] *)
   let rec to_tuple: type t a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
-    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
     function
     | Tuple_in.Cons (to_value_func, xs) ->
       let cont = to_tuple xs in
@@ -196,82 +191,36 @@ module Helper = struct
       | [] -> a
       | _ -> raise_errorf "Too many elements when parsing tuple"
 
-  let rec of_tuple: type t a. (t list -> t) -> (t, a, t) Tuple_out.t -> t list -> a = fun map ->
-    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
-    function
-    | Tuple_out.Cons (to_t, xs) ->
-      let cont = of_tuple map xs in
-      fun acc v ->
-        cont (to_t v :: acc)
-    | Tuple_out.Nil ->
-      fun acc -> List.rev acc |> map
+  type 't serialize_tuple = 't list -> 't
+  let of_tuple: type t a. t serialize_tuple -> (t, a, t) Tuple_out.t -> a = fun serialize_tuple ->
+    let rec inner: type a. (t, a, t) Tuple_out.t -> t list -> a = function
+      | Tuple_out.Cons (to_t, xs) ->
+        let cont = inner xs in
+        fun acc v ->
+          cont (to_t v :: acc)
+      | Tuple_out.Nil ->
+        fun acc -> List.rev acc |> serialize_tuple
+    in
+    fun spec -> inner spec []
 
-  (** {of_tuple spec} prduces a list of serialized values from the given tuple [v] *)
-  let of_tuple map_f spec = of_tuple map_f spec []
+  type 't serialize_variant = string -> 't list -> 't
+  (* {of_variant spec v} serialises v and returns the serialized values as a list or map *)
+  let of_variant: type t. t serialize_variant -> string -> (t, 'a, t) Tuple_out.t -> 'a =
+    fun serialize_variant name spec ->
+    of_tuple (serialize_variant name) spec
 
   (** Map field names in all inline records of the spec *)
-  let map_variant_out: field:(string -> string) -> ('a, 'b, 'c) Variant_out.t -> ('a, 'b, 'c) Variant_out.t = fun ~field -> function
-    | Variant_out.Record spec -> Variant_out.Record (map_record_out ~field spec)
-    | Variant_out.Tuple spec -> Variant_out.Tuple spec
+  let map_constructor_names: (string -> string) -> ('t, 'a) Variant_in.t list -> ('t, 'a) Variant_in.t list =
+    fun constructor variant ->
+    List.map variant ~f:(fun (Variant_in.Variant (name, spec, constr)) -> Variant_in.Variant (constructor name, spec, constr))
 
-  (** {of_variant spec v} serialises v and returns the serialized values as a list or map *)
-  let of_variant: type t a. ?omit_default:bool -> (t variant -> t) -> (t, a, t) Variant_out.t -> a = fun ?(omit_default=false) map_f ->
-    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
-    function
-    | Variant_out.Record spec ->
-      of_record ~omit_default (fun x -> Record x |> map_f) spec
-    | Variant_out.Tuple Tuple_out.Nil -> of_tuple (fun _ -> map_f Nil) Tuple_out.Nil
-    | Variant_out.Tuple spec ->
-      of_tuple (fun x -> Tuple x |> map_f) spec
-
-  (** Map field names in all inline records of the spec *)
-  let map_variant_in: field:(string -> string) -> constructor:(string -> string) -> (string * ('a,'b) Variant_in.t) list -> (string * ('a,'b) Variant_in.t) list =
-    fun ~field ~constructor variants ->
-    List.map ~f:(fun (name, spec) ->
-        let name = constructor name in
-        let spec = match spec with
-          | Variant_in.Record (spec, v) -> Variant_in.Record (map_record_in ~field spec, v)
-          | Variant_in.Tuple (spec, v) -> Variant_in.Tuple (spec, v)
-        in
-        name, spec
-      ) variants
-
-  let to_variant: type t c. ?strict:bool -> (t -> (string * t) list option) -> (string * (t, c) Variant_in.t) list -> string -> t list -> c = fun ?strict to_alist spec ->
-    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
-    let map_variant_constr: type c. (t, c) Variant_in.t -> t list -> c = function
-      | Variant_in.Record (spec, constructor) ->
-        begin
-          let f = to_record ?strict spec constructor in
-          function
-          | [t] ->
-            let v = match to_alist t with
-              | Some alist -> alist
-              | None -> raise_errorf "Expected map when deserialising variant of record"
-            in
-            f v
-          | _ -> raise_errorf "Expected exactly one alist argument when deserialising variant of record"
-        end
-      | Variant_in.Tuple (Tuple_in.Nil, constructor) ->
-        begin
-          function
-          | [] -> constructor
-          | _ -> failwith "Too many arguments when deserialising variant with no arguments"
-        end
-      | Variant_in.Tuple (spec, constructor) ->
-        begin
-          let f = to_tuple spec constructor in
-          fun t -> f t
-        end
+  let to_variant: ('t, 'a) Variant_in.t list -> string -> 't list -> 'a = fun spec ->
+    let table =
+      List.map spec ~f:(fun (Variant_in.Variant (name, spec, constr)) -> name, to_tuple spec constr)
+      |> Hashtbl.of_alist_exn (module String)
     in
-    let hash = Hashtbl.create ~growth_allowed:false ~size:10000000 (module String) in
-    let _map = List.fold_left ~init:(Map.empty (module String)) ~f:(fun acc (name, spec) ->
-        Map.add_exn acc ~key:name ~data:(map_variant_constr spec)
-      ) spec
-    in
-    List.iter ~f:(fun (name, spec) -> Hashtbl.add_exn hash ~key:name  ~data:(map_variant_constr spec)) spec;
-    Caml.Printf.eprintf "%s\n%!" Caml.__LOC__;
-    fun name t ->
-      match Hashtbl.find hash name with
-      | Some f -> f t
-      | None -> raise_errorf "Unknown constructor name: %s" name
+    fun name args ->
+      match Hashtbl.find table name with
+      | None -> raise_errorf "Unknown variant name: %s" name
+      | Some f -> f args
 end

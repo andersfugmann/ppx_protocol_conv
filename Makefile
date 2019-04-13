@@ -46,8 +46,8 @@ debug:
 	dumpast type.ml
 	_build/default/.ppx/ppx_protocol_conv+ppx_sexp_conv+ppx_driver.runner/ppx.exe type.ml
 
-drivers/json/types.ml: force
-	./_build/default/.ppx/e9840e423ed75c867f2f125ead673d85/ppx.exe  -pretty type.ml | ocamlformat - --name=b | sed 's/\[@@[^\]*\]//'  > drivers/json/types.ml
+drivers/json/test/types.ml: force
+	./_build/default/.ppx/40ba31c2c2fdb938f34c2041ffe28e6b/ppx.exe  -pretty type.ml | ocamlformat - --name=b | sed 's/\[@@[^\]*\]//'  > drivers/json/test/types.ml
 
 .PHONY: force
 force:

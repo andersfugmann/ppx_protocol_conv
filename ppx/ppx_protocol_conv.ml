@@ -5,18 +5,12 @@ open Base
 
 type t = {
   driver: longident;
-  field_key:
-    (label_declaration, string) Attribute.t;
-  constr_key:
-    (constructor_declaration, string) Attribute.t;
-  constr_name:
-    (constructor_declaration, string) Attribute.t;
-  variant_key:
-    (row_field, string) Attribute.t;
-  variant_name:
-    (row_field, string) Attribute.t;
-  field_default:
-    (label_declaration, expression) Attribute.t;
+  field_key:     (label_declaration, string) Attribute.t;
+  constr_key:    (constructor_declaration, string) Attribute.t;
+  constr_name:   (constructor_declaration, string) Attribute.t;
+  variant_key:   (row_field, string) Attribute.t;
+  variant_name:  (row_field, string) Attribute.t;
+  field_default: (label_declaration, expression) Attribute.t;
 }
 
 (* In variants, dont encode as tuple.... *)
@@ -36,18 +30,8 @@ let string_of_ident_loc { loc; txt } =
   in
   { loc; txt=inner txt }
 
-let _longident_loc_of_string ~loc s =
-  { txt = Lident s; loc }
-
 let pexp_ident_string_loc { loc; txt } =
   pexp_ident ~loc {loc; txt = Lident txt}
-
-let rec _string_of_ident = function
-  | Lident s -> s
-  | Ldot (i, s) -> _string_of_ident i ^ "." ^ s
-  | Lapply _  -> raise_errorf "lapply???"
-
-let ident_of_string_loc { loc; txt} = { loc; txt=Lident txt }
 
 let driver_func t ~loc name =
   let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
@@ -171,221 +155,6 @@ let test_row_mapping t rows =
   in
   ()
 
-
-(** Serialization expression for a given type *)
-let rec serialize_expr_of_type_descr t ~loc = function
-  | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
-    let to_p = serialize_expr_of_type_descr t ~loc ct.ptyp_desc in
-    pexp_apply ~loc (driver_func ~loc t ("of_" ^ ident)) [Nolabel, to_p]
-
-  | Ptyp_constr ({ txt=Lident ident; loc=_ }, _) when is_meta_type ident ->
-    raise_errorf ~loc "Unsupported type descr containing list of sub-types"
-
-  | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
-    driver_func t ~loc ("of_" ^ s)
-
-  | Ptyp_constr (ident, cts) ->
-    (* Call recursivly to for app type parameters *)
-    let args =
-      List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
-          serialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
-      |> List.map ~f:(fun expr -> (Nolabel, expr))
-    in
-    let func = protocol_ident "to" t.driver ident in
-    pexp_apply ~loc func args
-
-  | Ptyp_tuple cts -> begin
-      let spec =
-        List.map cts ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
-        |> slist_expr ~loc
-      in
-      let ids = List.mapi cts ~f:(fun i _ -> sprintf "t%d" i) in
-      let args = List.map ids ~f:(fun id -> Nolabel, pexp_ident ~loc { loc; txt=Lident id } ) in
-      let patt =
-        List.map ids ~f:(fun id -> ppat_var ~loc { loc; txt=id })
-        |> ppat_tuple ~loc
-      in
-      [%expr
-        let _of_tuple =
-          [%e driver_func t ~loc "of_tuple"] Protocol_conv.Runtime.Tuple_out.([%e spec])
-        in
-        fun [%p patt] -> [%e pexp_apply ~loc [%expr _of_tuple] args]
-      ]
-    end
-  | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
-  | Ptyp_variant (rows, _closed, None) ->
-    (*
-       type t = [`A | `B of int]
-
-       let to_json =
-         let _A_of_tuple = Json.of_variant "A" (Protocol_conv.Runtime.Variant_out.Tuple
-                (let open Protocol_conv.Runtime.Tuple_out in Nil))
-         and _B_of_tuple = Json.of_variant "B" (Protocol_conv.Runtime.Variant_out.Tuple
-                (let open Protocol_conv.Runtime.Tuple_out in Cons (Json.of_int, Nil)))
-         in
-         function `A -> _A_of_tuple
-                | `B c0 -> _B_of_tuple c0
-    *)
-    test_row_mapping t rows;
-    let mk_pattern core_types =
-      List.mapi ~f:(fun i (core_type:core_type) ->
-          ppat_var
-            ~loc:core_type.ptyp_loc
-            { loc = core_type.ptyp_loc; txt = sprintf "c%d" i }
-        ) core_types
-      |> ppat_tuple_opt ~loc
-    in
-    let mk_case = function
-      | Rinherit _ -> raise_errorf ~loc "Inherited types not supported"
-      | Rtag (name, _attributes, _bool, core_types) as row ->
-        let f_name = { loc; txt = sprintf "_%s_of_tuple" name.txt } in
-        let constr_name = match get_variant_name t row with
-          | Some key -> key
-          | None -> name.txt
-        in
-        let f =
-          let spec =
-            List.map core_types ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
-            |> slist_expr ~loc
-          in
-          [%expr [%e driver_func t ~loc "of_variant"] [%e estring ~loc constr_name]
-              (Protocol_conv.Runtime.Variant_out.Tuple
-                 Protocol_conv.Runtime.Tuple_out.([%e spec])
-              )
-          ]
-        in
-        let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
-
-        let lhs = ppat_variant ~loc name.txt (mk_pattern core_types) in
-        let args =
-          List.mapi ~f:(fun i _-> pexp_ident ~loc { loc; txt=Lident (sprintf "c%d" i) }) core_types
-        in
-        let rhs =
-          pexp_apply ~loc (pexp_ident_string_loc f_name) (List.map ~f:(fun a -> (Nolabel, a)) args)
-        in
-        binding, case ~lhs ~guard:None ~rhs
-    in
-    let bindings, cases = List.map ~f:mk_case rows |> List.unzip in
-    pexp_let ~loc Nonrecursive bindings @@ pexp_function ~loc cases
-  | Ptyp_var core_type ->
-    pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_to_%s" core_type) }
-  | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
-  | Ptyp_variant _
-  | Ptyp_any
-  | Ptyp_object _
-  | Ptyp_class _
-  | Ptyp_alias _
-  | Ptyp_package _
-  | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
-
-let rec deserialize_variant t ~loc ~typ name core_types =
-  let pexp_constr = match typ with
-    | `Construct -> pexp_construct ~loc { loc; txt = Lident name }
-    | `Variant -> pexp_variant ~loc name
-  in
-  match core_types with
-  | [] -> pexp_constr None, [%expr Protocol_conv.Runtime.Tuple_in.Nil]
-  | core_types ->
-    let constructor =
-      let arg_names = List.mapi ~f:(fun i _ -> {loc; txt = Lident (sprintf "v%d" i)}) core_types in
-      let body =
-        pexp_tuple ~loc (List.map ~f:(pexp_ident ~loc) arg_names)
-        |> Option.some
-        |> pexp_constr
-      in
-      List.fold_right ~init:body ~f:(fun id expr ->
-          pexp_fun ~loc Nolabel None (ppat_var ~loc (string_of_ident_loc id)) expr
-        ) arg_names
-    in
-    let spec =
-      List.map ~f:(fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc) core_types
-      |> slist_expr ~loc
-      |> fun e -> [%expr Protocol_conv.Runtime.Tuple_in.( [%e e] ) ]
-    in
-    constructor, spec
-
-(** Deserialization expression for a given type *)
-and deserialize_expr_of_type_descr t ~loc = function
-  | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
-    let to_t = deserialize_expr_of_type_descr t ~loc ct.ptyp_desc in
-    pexp_apply ~loc (driver_func t ~loc ("to_" ^ ident)) [Nolabel, to_t]
-
-  | Ptyp_constr ({ txt=Lident ident; _ }, _) when is_meta_type ident ->
-    raise_errorf ~loc "Unsupported type descr containing list of sub-types"
-
-  | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
-    driver_func t ~loc ("to_" ^ s)
-
-  | Ptyp_constr (ident, cts) ->
-    (* Construct all arguments to of ... *)
-    let args =
-      List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
-          deserialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
-      |> List.map ~f:(fun expr -> (Nolabel, expr))
-    in
-    let func = protocol_ident "of" t.driver ident in
-    pexp_apply ~loc func args
-
-  | Ptyp_tuple cts -> begin
-      let constructor =
-        let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
-        let tuple =
-          pexp_tuple ~loc (List.map ~f:(pexp_ident ~loc) ids)
-        in
-        List.fold_right ~init:tuple ~f:(fun id expr ->
-            pexp_fun ~loc Nolabel None (ppat_var ~loc (string_of_ident_loc id)) expr
-          ) ids
-      in
-      let slist =
-        List.map ~f:(fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc) cts
-      in
-      [%expr
-        let open !Protocol_conv.Runtime.Tuple_in in
-        let _of_funcs = [%e slist_expr ~loc slist ] in
-        let _constructor = [%e constructor] in
-        [%e driver_func t ~loc "to_tuple"] _of_funcs _constructor
-      ]
-    end
-  | Ptyp_poly _      ->
-    raise_errorf ~loc "Polymorphic variants not supported"
-  | Ptyp_variant (_rows, _closed, Some _) ->
-    raise_errorf ~loc "Variant with some"
-
-  | Ptyp_variant (rows, _closed, None) ->
-    (* Variant deserialization *)
-    test_row_mapping t rows;
-    let mk_elem = function
-      | Rinherit _ ->
-        raise_errorf ~loc "Inherited types not supported"
-      | Rtag (name, _attributes, _bool, core_types) as row ->
-        let constructor, spec = deserialize_variant t ~loc ~typ:`Variant name.txt core_types in
-        let name = match get_variant_name t row with
-          | Some key -> key
-          | None -> name.txt
-        in
-        [%expr
-          ([%e estring ~loc name],
-           Protocol_conv.Runtime.Variant_in.Tuple ([%e spec], [%e constructor]))
-        ]
-    in
-    let arg_list =
-      List.map ~f:mk_elem rows
-      |> list_expr ~loc
-    in
-    [%expr
-      [%e driver_func t ~loc "to_variant" ] [%e arg_list ]
-    ]
-
-  | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_of_%s" core_type) }
-
-  | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
-  | Ptyp_any
-  | Ptyp_object _
-  | Ptyp_class _
-  | Ptyp_alias _
-  | Ptyp_package _
-  | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
-
 let test_label_mapping t labels =
   let base, mapped = List.partition_map ~f:(fun label ->
       match Attribute.get t.field_key label with
@@ -405,7 +174,7 @@ let test_label_mapping t labels =
   ()
 
 (** @returns function, pattern and arguments *)
-let serialize_record t ~loc labels =
+let rec serialize_record t ~loc labels =
   test_label_mapping t labels;
   let spec =
     List.map ~f:(fun label ->
@@ -433,79 +202,99 @@ let serialize_record t ~loc labels =
      ) Closed,
   List.map ~f:(fun label -> Nolabel, pexp_ident ~loc { loc; txt=Lident label.pld_name.txt }) labels
 
-let serialize_expr_of_tdecl t ~loc tdecl =
+and serialize_tuple t ~loc core_types =
+  let spec =
+    List.map core_types ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
+    |> slist_expr ~loc
+  in
+  let ids = List.mapi core_types ~f:(fun i _ -> sprintf "t%d" i) in
+  let args = List.map ids ~f:(fun id -> Nolabel, pexp_ident ~loc { loc; txt=Lident id } ) in
+  let patt =
+    List.map ids ~f:(fun id -> ppat_var ~loc { loc; txt=id })
+    |> ppat_tuple ~loc
+  in
+  [%expr
+    let _of_tuple =
+      [%e driver_func t ~loc "of_tuple"] Protocol_conv.Runtime.Tuple_out.([%e spec])
+    in
+    fun [%p patt] -> [%e pexp_apply ~loc [%expr _of_tuple] args]
+  ]
+
+and serialize_variant t ~loc type_ ~name ~alias pcstr  =
+  let ppat_constr ~loc name pattern = match type_ with
+    | `Variant -> ppat_variant ~loc name pattern
+    | `Construct -> ppat_construct ~loc {loc; txt = Lident name} pattern
+  in
+  let mk_pattern core_types =
+    List.mapi ~f:(fun i (core_type:core_type) ->
+        ppat_var
+          ~loc:core_type.ptyp_loc
+          { loc = core_type.ptyp_loc; txt = sprintf "c%d" i }
+      ) core_types
+    |> ppat_tuple_opt ~loc
+  in
+  match pcstr with
+  | Pcstr_record labels ->
+    let spec, patt, args = serialize_record t ~loc labels in
+    let patt_tuple = List.map ~f:(fun label -> ppat_var ~loc label.pld_name) labels |> ppat_tuple ~loc in
+    let f = [%expr
+      let f = [%e driver_func t ~loc "of_record"] [%e spec] in
+      let f [%p patt_tuple] = [%e pexp_apply ~loc (pexp_ident ~loc {loc; txt = Lident "f"}) args] in
+      let spec =
+        let open Protocol_conv.Runtime.Tuple_out in
+        (Cons (f, Nil))
+      in
+      [%e driver_func t ~loc "of_variant"] [%e estring ~loc alias ]spec
+    ]
+    in
+
+    let f_name = { loc; txt = sprintf "_%s_of_record_" name } in
+    let lhs = ppat_constr ~loc name (Some patt) in
+    let rhs = pexp_apply ~loc (pexp_ident_string_loc f_name) [Nolabel, pexp_tuple ~loc (List.map ~f:snd args)] in
+    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
+    binding, case ~lhs ~guard:None ~rhs
+  | Pcstr_tuple core_types ->
+    let f_name = { loc; txt = sprintf "_%s_of_tuple" name } in
+    let f =
+      let spec =
+        List.map core_types ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
+        |> slist_expr ~loc
+      in
+      [%expr [%e driver_func t ~loc "of_variant"]
+          [%e estring ~loc alias] Protocol_conv.Runtime.Tuple_out.([%e spec])
+      ]
+    in
+    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
+
+    let lhs = ppat_constr ~loc name (mk_pattern core_types) in
+    let args =
+      List.mapi ~f:(fun i _-> pexp_ident ~loc { loc; txt=Lident (sprintf "c%d" i) }) core_types
+    in
+    let rhs =
+      pexp_apply ~loc (pexp_ident_string_loc f_name) (List.map ~f:(fun a -> (Nolabel, a)) args)
+    in
+    binding, case ~lhs ~guard:None ~rhs
+
+and serialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
   | Ptype_abstract -> begin
       match tdecl.ptype_manifest with
       | Some core_type ->
         serialize_expr_of_type_descr t ~loc core_type.ptyp_desc
-      | None -> raise_errorf ~loc "Manifest is none"
+      | None -> raise_errorf ~loc "Opaque types are not supported."
     end
   | Ptype_variant constrs ->
-    (* Serialize ADT *)
     test_constructor_mapping t constrs;
-    let mk_pattern core_types =
-      List.mapi ~f:(fun i (core_type:core_type) ->
-          ppat_var
-            ~loc:core_type.ptyp_loc
-            { loc = core_type.ptyp_loc; txt = sprintf "c%d" i }
-        ) core_types
-      |> ppat_tuple_opt ~loc
-    in
-    let mk_case = function
-      | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
-        let spec, patt, args = serialize_record t ~loc labels in
-        let f_name = { loc; txt = sprintf "_%s_of_record_" pcd_name.txt } in
-        let constr_name = match get_constr_name t constr with
-          | Some key -> key
-          | None -> pcd_name.txt
-        in
-        let f = [%expr
-          [%e driver_func t ~loc "of_variant"] [%e estring ~loc constr_name]
-            (Protocol_conv.Runtime.Variant_out.Record [%e spec])
-        ]
-        in
-        let lhs = ppat_construct
-            ~loc
-            (ident_of_string_loc pcd_name)
-            (Some patt)
-        in
-        let rhs = pexp_apply ~loc (pexp_ident_string_loc f_name) args in
-        let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
-        binding, case ~lhs ~guard:None ~rhs
-
-      | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
-        let f_name = { loc; txt = sprintf "_%s_of_tuple" pcd_name.txt } in
-        let constr_name = match get_constr_name t constr with
-          | Some key -> key
-          | None -> pcd_name.txt
-        in
-        let f =
-          let spec =
-            List.map core_types ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc)
-            |> slist_expr ~loc
+    let bindings, cases =
+      List.map ~f:(fun ({ pcd_name; pcd_args = pcstr; pcd_loc=loc; _ } as constr) ->
+          let alias = match get_constr_name t constr with
+            | Some key -> key
+            | None -> pcd_name.txt
           in
-          [%expr [%e driver_func t ~loc "of_variant"] [%e estring ~loc constr_name]
-              (Protocol_conv.Runtime.Variant_out.Tuple
-                 Protocol_conv.Runtime.Tuple_out.([%e spec]))
-          ]
-        in
-        let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
-        let lhs =
-          ppat_construct
-            ~loc
-            (ident_of_string_loc pcd_name)
-            (mk_pattern core_types)
-        in
-        let args =
-          List.mapi ~f:(fun i _-> pexp_ident ~loc { loc; txt=Lident (sprintf "c%d" i) }) core_types
-        in
-        let rhs =
-          pexp_apply ~loc (pexp_ident_string_loc f_name) (List.map ~f:(fun a -> (Nolabel, a)) args)
-        in
-        binding, case ~lhs ~guard:None ~rhs
+          serialize_variant t ~loc `Construct ~name:pcd_name.txt ~alias pcstr
+        ) constrs
+      |> List.unzip
     in
-    let bindings, cases = List.map ~f:mk_case constrs |> List.unzip in
     pexp_let ~loc Nonrecursive bindings @@ pexp_function ~loc cases
 
   | Ptype_record labels ->
@@ -517,7 +306,62 @@ let serialize_expr_of_tdecl t ~loc tdecl =
     ]
   | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
 
-let deserialize_record t ~loc ?map_result labels =
+(** Serialization expression for a given type *)
+and serialize_expr_of_type_descr t ~loc = function
+  | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
+    let to_p = serialize_expr_of_type_descr t ~loc ct.ptyp_desc in
+    pexp_apply ~loc (driver_func ~loc t ("of_" ^ ident)) [Nolabel, to_p]
+
+  | Ptyp_constr ({ txt=Lident ident; loc=_ }, _) when is_meta_type ident ->
+    raise_errorf ~loc "Unsupported type descr containing list of sub-types"
+
+  | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
+    driver_func t ~loc ("of_" ^ s)
+
+  | Ptyp_constr (ident, cts) ->
+    (* Call recursivly to for app type parameters *)
+    let args =
+      List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
+          serialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
+      |> List.map ~f:(fun expr -> (Nolabel, expr))
+    in
+    let func = protocol_ident "to" t.driver ident in
+    pexp_apply ~loc func args
+
+  | Ptyp_tuple core_types ->
+    serialize_tuple ~loc t core_types
+  | Ptyp_poly _      -> raise_errorf ~loc "Polymorphic variants not supported"
+  | Ptyp_variant (rows, _closed, None) ->
+    test_row_mapping t rows;
+    let bindings, cases =
+      List.map ~f:(function
+          | Rinherit _ -> raise_errorf ~loc "Inherited types not supported"
+          | Rtag (name, _attributes, _bool, core_types) as row ->
+            let alias = match get_variant_name t row with
+              | Some key -> key
+              | None -> name.txt
+            in
+            serialize_variant t ~loc `Variant ~name:name.txt ~alias (Pcstr_tuple core_types)
+        ) rows
+      |> List.unzip
+    in
+    pexp_let ~loc Nonrecursive bindings @@ pexp_function ~loc cases
+  | Ptyp_var core_type ->
+    pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_to_%s" core_type) }
+  | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
+  | Ptyp_variant _
+  | Ptyp_any
+  | Ptyp_object _
+  | Ptyp_class _
+  | Ptyp_alias _
+  | Ptyp_package _
+  | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
+
+
+(*=========== Deserialization functions ==============*)
+(* Create a tuple deserialization function *)
+
+let rec deserialize_record t ~loc ?map_result labels =
   test_label_mapping t labels;
   let field_ids = List.map ~f:(fun ld -> ld.pld_name) labels in
 
@@ -548,10 +392,58 @@ let deserialize_record t ~loc ?map_result labels =
       ) labels
     |> slist_expr ~loc
   in
-  (constructor,
-  [%expr Protocol_conv.Runtime.Record_in.([%e spec])])
+  ([%expr Protocol_conv.Runtime.Record_in.([%e spec])], constructor)
 
-let deserialize_expr_of_tdecl t ~loc tdecl =
+and deserialize_tuple t ~loc ~constr cts =
+  let constructor =
+    let ids = List.mapi ~f:(fun i _ -> { loc; txt=Lident (sprintf "x%d" i) }) cts in
+    let tuple =
+      pexp_tuple ~loc (List.map ~f:(pexp_ident ~loc) ids) |> constr
+    in
+    List.fold_right ~init:tuple ~f:(fun id expr ->
+        pexp_fun ~loc Nolabel None (ppat_var ~loc (string_of_ident_loc id)) expr
+      ) ids
+  in
+  let slist =
+    List.map ~f:(fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc) cts
+  in
+  (slist_expr ~loc slist, constructor)
+
+and deserialize_variant t ~loc type_ ~name pcstrs =
+  let pexp_constr ~loc name = match type_ with
+    | `Construct -> pexp_construct ~loc { loc; txt = Lident name }
+    | `Variant -> pexp_variant ~loc name
+  in
+  match pcstrs with
+    | Pcstr_record labels ->
+        let map_result x = pexp_constr ~loc name (Some x) in
+        let spec, constr = deserialize_record t ~loc ~map_result labels in (* Why not just create the function right there!!!! *)
+        let f = pexp_apply ~loc (driver_func t ~loc "to_record") [Nolabel, spec; Nolabel, constr] in
+        let spec = [%expr Protocol_conv.Runtime.Tuple_in.(Cons ([%e f], Nil))] in
+        let constr = [%expr fun x -> x] in
+        spec, constr
+    | Pcstr_tuple [] -> [%expr Protocol_conv.Runtime.Tuple_in.Nil], pexp_constr ~loc name None
+    | Pcstr_tuple core_types ->
+      let spec =
+        List.map ~f:(fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc) core_types
+        |> slist_expr ~loc
+        |> fun e -> [%expr Protocol_conv.Runtime.Tuple_in.( [%e e] ) ]
+      in
+      let constructor =
+        let arg_names = List.mapi ~f:(fun i _ -> {loc; txt = Lident (sprintf "v%d" i)}) core_types in
+        let body =
+          pexp_tuple ~loc (List.map ~f:(pexp_ident ~loc) arg_names)
+          |> Option.some
+          |> pexp_constr ~loc name
+        in
+        List.fold_right ~init:body ~f:(fun id expr ->
+            pexp_fun ~loc Nolabel None (ppat_var ~loc (string_of_ident_loc id)) expr
+          ) arg_names
+      in
+      spec, constructor
+
+
+and deserialize_expr_of_tdecl t ~loc tdecl =
   match tdecl.ptype_kind with
   | Ptype_abstract -> begin
       match tdecl.ptype_manifest with
@@ -560,39 +452,93 @@ let deserialize_expr_of_tdecl t ~loc tdecl =
       | None -> raise_errorf ~loc "Manifest is none"
     end
   | Ptype_variant constrs ->
-    (* Variant deserialization *)
     test_constructor_mapping t constrs;
-
-    let mk_elem = function
-      | { pcd_name; pcd_args = Pcstr_tuple core_types; pcd_loc=loc; _ } as constr ->
-        let constructor, spec = deserialize_variant t ~loc ~typ:`Construct pcd_name.txt core_types in
-        let name = match get_constr_name t constr with
-          | Some key -> key
-          | None -> pcd_name.txt
-        in
-        [%expr ([%e estring ~loc name ], Protocol_conv.Runtime.Variant_in.Tuple ([%e spec], [%e constructor])) ]
-      | { pcd_name; pcd_args = Pcstr_record labels; pcd_loc=loc; _ } as constr ->
-        let map_result x = pexp_construct ~loc { loc; txt = Lident pcd_name.txt } (Some x) in
-        let constructor, spec = deserialize_record t ~loc ~map_result labels in
-        let name = match get_constr_name t constr with
-          | Some key -> key
-          | None -> pcd_name.txt
-        in
-        [%expr ([%e estring ~loc name ], Protocol_conv.Runtime.Variant_in.Record ([%e spec], [%e constructor])) ]
+    let mk_elem ({ pcd_name; pcd_args; pcd_loc=loc; _ } as constr) =
+      let ser_name = match get_constr_name t constr with
+        | Some key -> key
+        | None -> pcd_name.txt
+      in
+      let spec, constr = deserialize_variant t ~loc `Construct ~name:pcd_name.txt pcd_args in
+      (ser_name, spec, constr)
     in
-    let arg_list =
+    let spec =
       List.map ~f:mk_elem constrs
+      |> List.map ~f:(fun (name, spec, constr) ->
+          [%expr Protocol_conv.Runtime.Variant_in.Variant ([%e estring ~loc name], [%e spec], [%e constr])]
+        )
       |> list_expr ~loc
     in
-    [%expr
-      [%e driver_func t ~loc "to_variant" ] [%e arg_list ]
-    ]
+    pexp_apply ~loc (driver_func t ~loc "to_variant") [Nolabel, spec]
 
   | Ptype_record labels ->
-    let constructor, of_funcs = deserialize_record t ~loc labels in
-    pexp_apply ~loc (driver_func t ~loc "to_record") [Nolabel, of_funcs; Nolabel, constructor]
+    let spec, constructor = deserialize_record t ~loc labels in
+    pexp_apply ~loc (driver_func t ~loc "to_record") [Nolabel, spec; Nolabel, constructor]
 
   | Ptype_open -> raise_errorf ~loc "Extensible variant types not supported"
+
+
+(** Deserialization expression for a given type *)
+and deserialize_expr_of_type_descr t ~loc = function
+  | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
+    let to_t = deserialize_expr_of_type_descr t ~loc ct.ptyp_desc in
+    pexp_apply ~loc (driver_func t ~loc ("to_" ^ ident)) [Nolabel, to_t]
+
+  | Ptyp_constr ({ txt=Lident ident; _ }, _) when is_meta_type ident ->
+    raise_errorf ~loc "Unsupported type descr containing list of sub-types"
+
+  | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
+    driver_func t ~loc ("to_" ^ s)
+
+  | Ptyp_constr (ident, cts) ->
+    (* Construct all arguments to of ... *)
+    let args =
+      List.map ~f:(fun { ptyp_desc; ptyp_loc; _ } ->
+          deserialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
+      |> List.map ~f:(fun expr -> (Nolabel, expr))
+    in
+    let func = protocol_ident "of" t.driver ident in
+    pexp_apply ~loc func args
+
+  | Ptyp_tuple cts ->
+    let (spec, constructor) = deserialize_tuple t ~constr:Fn.id ~loc cts in
+    [%expr
+      let spec = Protocol_conv.Runtime.Tuple_in.([%e spec ]) in
+      let constructor = [%e constructor] in
+      [%e driver_func t ~loc "to_tuple"] spec constructor
+    ]
+  | Ptyp_poly _ ->
+    raise_errorf ~loc "Polymorphic variants not supported"
+  | Ptyp_variant (_rows, _closed, Some _) ->
+    raise_errorf ~loc "Variant with some"
+
+  | Ptyp_variant (rows, _closed, None) ->
+    test_row_mapping t rows;
+    let mk_elem = function
+      | Rinherit _ -> raise_errorf ~loc "Inherited variant types not supported"
+      | Rtag (name, _attributes, _bool, core_types) as row ->
+        let ser_name = match get_variant_name t row with
+          | Some key -> key
+          | None -> name.txt
+        in
+        let spec, constr = deserialize_variant t ~loc `Variant ~name:name.txt (Pcstr_tuple core_types) in
+        (ser_name, spec, constr)
+    in
+    let spec =
+      List.map ~f:mk_elem rows
+      |> List.map ~f:(fun (name, spec, constr) -> [%expr Protocol_conv.Runtime.Variant_in.Variant ([%e estring ~loc name], [%e spec], [%e constr])])
+      |> list_expr ~loc
+    in
+    pexp_apply ~loc (driver_func t ~loc "to_variant") [Nolabel, spec]
+
+  | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_of_%s" core_type) }
+
+  | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
+  | Ptyp_any
+  | Ptyp_object _
+  | Ptyp_class _
+  | Ptyp_alias _
+  | Ptyp_package _
+  | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
 
 let serialize_function_name ~loc ~driver name =
   let prefix = match name.txt with

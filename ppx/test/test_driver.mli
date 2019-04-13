@@ -1,5 +1,6 @@
 type t =
-  | Map of (string * t) list
+  | Record of (string * t) list
+  | Variant of string * t list
   | Tuple of t list
   | Option of t option
   | List of t list

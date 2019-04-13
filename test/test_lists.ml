@@ -4,7 +4,7 @@ module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module EmptyList : M.Testable = struct
-    let name = "SingleElem"
+    let name = __MODULE__ ^ ".SingleElem"
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -12,7 +12,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module Singleton : M.Testable = struct
-    let name = "SingleElem"
+    let name = __MODULE__ ^ ".SingleElem"
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -20,7 +20,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module LongList : M.Testable = struct
-    let name = "Longlist"
+    let name = __MODULE__ ^ ".Longlist"
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -28,7 +28,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module EmptyInsideRec : M.Testable = struct
-    let name = "EmptyInsideRec"
+    let name = __MODULE__ ^ ".EmptyInsideRec"
     type v = int [@key "A"]
     and t = { a : string;
               b : v list; [@key "V"]
@@ -40,7 +40,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module SingleInsideRec : M.Testable = struct
-    let name = "SingleInsideRec"
+    let name = __MODULE__ ^ ".SingleInsideRec"
     type v = int [@key "A"]
     and t = { a : string;
               b : v list; [@key "V"]
@@ -52,7 +52,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module MultiInsideRec : M.Testable = struct
-    let name = "MultiInsideRec"
+    let name = __MODULE__ ^ ".MultiInsideRec"
     type v = int [@key "A"]
     and t = { a : string;
               b : v list; [@key "V"]
@@ -64,7 +64,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module ListOfLists : M.Testable = struct
-    let name = "ListOfLists"
+    let name = __MODULE__ ^ ".ListOfLists"
     type v = int list
     and t = { a : v list; }
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -73,7 +73,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module ListOfLists2 : M.Testable = struct
-    let name = "ListOfLists2"
+    let name = __MODULE__ ^ ".ListOfLists2"
     type t = int list list list
     [@@deriving protocol ~driver:(module Driver), sexp]
 

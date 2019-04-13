@@ -2,7 +2,8 @@ open Base
 open Protocol_conv
 open Runtime
 type t =
-  | Map of (string *t) list
+  | Record of (string * t) list
+  | Variant of string * t list
   | Tuple of t list
   | Option of t option
   | List of t list
@@ -17,8 +18,6 @@ type t =
   | Unit
 [@@deriving sexp]
 
-module StringMap = Caml.Map.Make(String)
-
 exception Protocol_error of string * t option
 
 let to_string_hum t = sexp_of_t t |> Sexp.to_string_hum
@@ -26,28 +25,19 @@ let to_string_hum t = sexp_of_t t |> Sexp.to_string_hum
 let raise_errorf t fmt =
   Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, Some t))) fmt
 
-let of_list l = List l
-let to_string = function String s -> s | t -> raise_errorf t "String expected"
-let of_string s = String s
-let of_map l = Map l
+let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec -> function
+  | Variant (name, args) -> Helper.to_variant spec name args
+  | t -> raise_errorf t "Variant expected"
 
-let to_variant: type c. (string * (t, c) Variant_in.t) list -> t -> c = fun spec ->
-  let f = Helper.to_variant (function Map m -> Some m | _ -> None) spec in
-  function List (name :: args) -> f (to_string name) args
-         | t -> raise_errorf t "List expected"
+let of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a = fun name spec ->
+  Helper.of_variant (fun name args -> Variant (name, args)) name spec
 
-let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name ->
-  Helper.of_variant (function Helper.Nil -> List [of_string name]
-                            | Helper.Tuple args -> List (of_string name :: args)
-                            | Helper.Record record -> List [of_string name; Map record]
-    )
-let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec constr ->
-  let f = Helper.to_record spec constr in
-  function Map m -> f m
-         | t -> raise_errorf t "Expected map for record"
+let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec constr -> function
+  | Record rs -> Helper.to_record spec constr rs
+  | t -> raise_errorf t "Expected map for record"
 
 let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
-  Helper.of_record of_map spec
+  Helper.of_record ~omit_default:false (fun rs -> Record rs) spec
 
 let to_tuple: (t, 'constr, 'b) Tuple_in.t -> 'constr -> t -> 'b = fun spec constr->
   let f = Helper.to_tuple spec constr in
@@ -55,7 +45,7 @@ let to_tuple: (t, 'constr, 'b) Tuple_in.t -> 'constr -> t -> 'b = fun spec const
          | t -> raise_errorf t "List expected to tuple"
 
 let of_tuple: type a. (t, a, t) Tuple_out.t -> a = fun spec ->
-  Helper.of_tuple of_list spec
+  Helper.of_tuple (fun l -> List l) spec
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
   | Option None -> None

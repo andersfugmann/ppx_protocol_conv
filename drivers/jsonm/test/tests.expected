@@ -136,7 +136,7 @@
     ]
   ]
 ]
-=== Tuple ===
+=== Test__Test_variant.Tuple ===
 [
   [
     "A",
@@ -146,7 +146,7 @@
     ]
   ]
 ]
-=== Tree ===
+=== Test__Test_variant.Tree ===
 [
   [
     "Node",
@@ -160,7 +160,7 @@
     "Leaf"
   ]
 ]
-=== MutualRecursion ===
+=== Test__Test_variant.MutualRecursion ===
 [
   [
     "T1",
@@ -188,7 +188,7 @@
     ]
   ]
 ]
-=== InsideRec ===
+=== Test__Test_variant.InsideRec ===
 [
   {
     "c": "c",
@@ -196,7 +196,7 @@
     "a": "a"
   }
 ]
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord ===
 [
   [
     "A",
@@ -205,7 +205,7 @@
     }
   ]
 ]
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord2 ===
 [
   [
     "aa",
@@ -224,10 +224,10 @@
     }
   ]
 ]
-=== Polymoric variants ===
+=== Test__Test_variant.Poly ===
 [
   [
-    "a",
+    "aaa",
     5
   ]
 ]
@@ -288,17 +288,17 @@
     }
   }
 ]
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
 [
   []
 ]
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
 [
   [
     2
   ]
 ]
-=== Longlist ===
+=== Test__Test_lists.Longlist ===
 [
   [
     4,
@@ -307,7 +307,7 @@
     1
   ]
 ]
-=== EmptyInsideRec ===
+=== Test__Test_lists.EmptyInsideRec ===
 [
   {
     "c": "c",
@@ -315,7 +315,7 @@
     "a": "a"
   }
 ]
-=== SingleInsideRec ===
+=== Test__Test_lists.SingleInsideRec ===
 [
   {
     "c": "c",
@@ -325,7 +325,7 @@
     "a": "a"
   }
 ]
-=== MultiInsideRec ===
+=== Test__Test_lists.MultiInsideRec ===
 [
   {
     "c": "c",
@@ -338,7 +338,7 @@
     "a": "a"
   }
 ]
-=== ListOfLists ===
+=== Test__Test_lists.ListOfLists ===
 [
   {
     "a": [
@@ -353,7 +353,7 @@
     ]
   }
 ]
-=== ListOfLists2 ===
+=== Test__Test_lists.ListOfLists2 ===
 [
   [
     [],
@@ -381,13 +381,13 @@
 [
   []
 ]
-=== SingleElem ===
+=== Test__Test_arrays.SingleElem ===
 [
   [
     2
   ]
 ]
-=== Longarray ===
+=== Test__Test_arrays.Longarray ===
 [
   [
     4,
@@ -396,7 +396,7 @@
     1
   ]
 ]
-=== EmptyInsideRec ===
+=== Test__Test_arrays.EmptyInsideRec ===
 [
   {
     "c": "c",
@@ -404,7 +404,7 @@
     "a": "a"
   }
 ]
-=== SingleInsideRec ===
+=== Test__Test_arrays.SingleInsideRec ===
 [
   {
     "c": "c",
@@ -414,7 +414,7 @@
     "a": "a"
   }
 ]
-=== MultiInsideRec ===
+=== Test__Test_arrays.MultiInsideRec ===
 [
   {
     "c": "c",
@@ -427,7 +427,7 @@
     "a": "a"
   }
 ]
-=== ArrayOfArrays ===
+=== Test__Test_arrays.ArrayOfArrays ===
 [
   {
     "a": [
@@ -442,7 +442,7 @@
     ]
   }
 ]
-=== ArrayOfArrays2 ===
+=== Test__Test_arrays.ArrayOfArrays2 ===
 [
   [
     [],
@@ -526,7 +526,7 @@
     }
   }
 ]
-=== Simple ===
+=== Test__Test_poly.Simple ===
 [
   [
     "A",
@@ -550,7 +550,7 @@
     ]
   ]
 ]
-=== Tree ===
+=== Test__Test_poly.Tree ===
 [
   [
     "Node",
@@ -568,7 +568,7 @@
     ]
   ]
 ]
-=== MutualRecursion ===
+=== Test__Test_poly.MutualRecursion ===
 [
   [
     "T1",
@@ -596,7 +596,7 @@
     ]
   ]
 ]
-=== InsideRec ===
+=== Test__Test_poly.InsideRec ===
 [
   {
     "c": "c",

@@ -1,11 +1,7 @@
 (* Xml driver for ppx_protocol_conv *)
-open StdLabels
+open Base
 open Protocol_conv.Runtime
 type t = Xml.xml
-
-let _log fmt = Printf.eprintf (fmt ^^ "\n%!")
-
-module StringMap = Map.Make(String)
 
 exception Protocol_error of string * t option
 (* Register exception printer *)
@@ -15,24 +11,12 @@ let () = Printexc.register_printer
             | _ -> None)
 
 let raise_errorf t fmt =
-  Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
 let to_string_hum xml =
   Xml.to_string_fmt xml
 
-let rec element_to_map m = function
-  | (Xml.Element(name, _, _) as x) :: xs ->
-    let m =
-      let ks = try StringMap.find name m with Not_found -> [] in
-      StringMap.add name (x :: ks) m
-    in
-    element_to_map m xs
-  | _ :: xs -> element_to_map m xs
-  | [] -> m
-
 let element name t = Xml.Element (name, [], t)
-
-let wrap f t x = try f x with Helper.Protocol_error s -> raise_errorf (Some t) "%s" s
 
 let record_to_xml assoc =
   List.map ~f:(
@@ -47,45 +31,14 @@ let record_to_xml assoc =
         ) xs (* why xs here. Or do we need to extend the option one level *)
     | (field, e) -> raise_errorf (Some e) "Must be an element: %s" field
   ) assoc
-  |> List.flatten |> element "record"
-
-let xml_to_record = function
-  | Xml.Element (_, _, xs) ->
-    let map = element_to_map StringMap.empty xs in
-    StringMap.bindings map
-    |> List.map ~f:(function
-        | field, [ Xml.Element (name, _, xs) ] -> field, Xml.Element (name, ["record", "unwrapped"], xs)
-        | field, [ Xml.PCData _ as d ] -> field, d
-        | field, xs -> field, Xml.Element (field, [], List.rev xs)
-      )
-    |> (fun x -> Some x)
-  | _ -> None
+  |> List.concat |> element "record"
 
 
-(* We need to create a record. Dont we have a function for that?? *)
-let of_variant: string -> (t, 'a, t) Variant_out.t -> 'a = fun name spec ->
-  (*
-  let rewrite: type a. (t, a, t) Variant_out.t -> (t, a, t) Variant_out.t = function
-    | Variant_out.Tuple Tuple_out.Nil -> Variant_out.Tuple Tuple_out.Nil
-    | Variant_out.Tuple spec ->
-      let rec inner: type a. int -> (t, a, t) Tuple_out.t ->  (t, a, t) Record_out.t = fun cnt -> function
-        | Tuple_out.Cons (f, fs) -> Record_out.Cons ((Printf.sprintf "t%d" cnt, f, None), inner (cnt+1) fs)
-        | Tuple_out.Nil -> Record_out.Nil
-      in
-      Variant_out.Record (inner 0 spec)
-    | Variant_out.Record spec -> Variant_out.Record spec
-  in
-  let spec = rewrite spec in
-  *)
-
-  let to_t = function
-    | Helper.Nil -> Xml.Element("variant", [], [Xml.PCData name])
-    | Helper.Tuple l -> Xml.Element("variant", [], Xml.PCData name :: l)
-    | Helper.Record r -> Xml.Element("variant", [], [Xml.PCData name; (record_to_xml r)])
-  in
+let of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
+  let to_t name args = Xml.Element("variant", [], Xml.PCData name :: args) in
   Helper.of_variant to_t spec
 
-let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
+let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec ->
   (*
   let rewrite spec =
     let inner: type c. (t, c) Variant_in.t -> (t, c) Variant_in.t = function
@@ -102,21 +55,45 @@ let to_variant: (string * (t, 'c) Variant_in.t) list -> t -> 'c = fun spec ->
   in
   let spec = rewrite spec in
   *)
-  let f = Helper.to_variant xml_to_record spec in
+  let f = Helper.to_variant spec in
   function
   | Xml.Element(_, _, Xml.PCData s :: es) as t ->
     begin try f s es with Helper.Protocol_error s -> raise_errorf (Some t) "%s" s end
   | Xml.Element(name, _, []) as t -> raise_errorf (Some t) "No contents for variant type: %s" name
   | t -> raise_errorf (Some t) "Wrong variant data"
 
-let to_record: type a b. (t, a, b) Record_in.t -> a -> t -> b = fun spec constr->
-  let f = Helper.to_record ~default:(Xml.Element ("", [], [])) spec constr in
-  fun t -> match xml_to_record t with
-    | Some ts -> wrap f t ts
-    | None -> raise_errorf (Some t) "Expected record"
+let to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec constr ->
+  let rec inner: type constr b. (t, constr, b) Record_in.t -> string list = function
+    | Record_in.Cons ((field, _, _), xs) -> field :: inner xs
+    | Record_in.Nil ->  []
+  in
+  let fields = inner spec in
+  (* Join all elements, including default empty ones *)
+  let default_map = Map.of_alist_exn (module String) (List.map fields ~f:(fun f -> f, [])) in
+
+  (* TODO: Add elements that does not exist *)
+  let f = Helper.to_record spec constr in
+  function
+  | Xml.Element (_, _, xs) ->
+    let args = List.fold_left ~init:default_map
+        ~f:(fun map -> function
+            | (Xml.Element(name, _, _) as x) ->
+              Map.update map name ~f:(function Some l -> x :: l | None -> [x])
+            | _ -> map
+          ) xs
+            |> Map.to_alist
+            |> List.map ~f:(function
+                | field, [ Xml.Element (name, _, xs) ] -> field, Xml.Element (name, ["record", "unwrapped"], xs)
+                | field, [ Xml.PCData _ as d ] -> field, d
+                | field, xs -> field, Xml.Element (field, [], List.rev xs)
+              )
+    in
+    f args
+  | t -> raise_errorf (Some t) "Expected record element"
+
 
 let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
-  Helper.of_record record_to_xml spec
+  Helper.of_record ~omit_default:false record_to_xml spec
 
 let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
   let rec inner: type a b c. int -> (a, b, c) Tuple_out.t -> (a, b, c) Record_out.t = fun i -> function

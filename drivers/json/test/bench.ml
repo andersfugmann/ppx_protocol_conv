@@ -9,11 +9,60 @@ module Json = Json.Make(struct
     let constructors_without_arguments_as_string = true
   end)
 
+module type Test = sig
+  val name : string
+  type t
+  val t: unit -> t
+  val to_json: t -> Json.t
+  val to_yojson: t -> Yojson.Safe.json
+  val of_json: Json.t -> t
+  val of_yojson: Yojson.Safe.json -> t Ppx_deriving_yojson_runtime.error_or
+end
+
+
 let int () = Random.int 10
 let float () = Random.float 1000.
 let string () = String.init (Random.int 10) ~f:(fun _ -> Char.to_int 'a' + Random.int 20 |> Char.of_int_exn)
 let list ?length f () = let length = Option.value ~default:(Random.int 64) length in List.init length ~f:(fun _ -> f ())
 let option f () = match Random.bool () with | true -> Some (f ()) | false -> None
+
+module Test_tuple = struct
+  type t = (int * int * string * int * int)
+  [@@deriving protocol ~driver:(module Json), yojson]
+  let t () = (int (), int (), string (), int (), int ())
+  let name = "Tuple"
+end
+
+module Test_variant_record = struct
+  let name = "Variant with record"
+  type t = A of { a: int; b: int; c: int; d: int; e: int; f: int; }
+         | B of { a: int; b: int; c: int; d: int; e: int; f: int; }
+         | C of { a: int; b: int; c: int; d: int; e: int; f: int; }
+         | D of { a: int; b: int; c: int; d: int; e: int; f: int; }
+  [@@deriving protocol ~driver:(module Json), yojson]
+  let t () = C {
+    a = int ();
+    b = int ();
+    c = int ();
+    d = int ();
+    e = int ();
+    f = int ();
+  }
+end
+
+module Test_record : Test = struct
+  let name = "Record"
+  type t = { a: int; b: int; c: int; d: int; e: int; f: int; }
+  [@@deriving protocol ~driver:(module Json), yojson]
+  let t () = {
+    a = int ();
+    b = int ();
+    c = int ();
+    d = int ();
+    e = int ();
+    f = int ();
+  }
+end
 
 type a = A of int |  B of string | C of float | D of (int * int)
 [@@deriving protocol ~driver:(module Json), yojson]
@@ -49,6 +98,7 @@ let d () =
     c = list c ();
   }
 
+
 type e = A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 | A16 | A17 | A18 | A19
 [@@deriving protocol ~driver:(module Json), yojson]
 let e () = match Random.int 20 with
@@ -73,56 +123,58 @@ let e () = match Random.int 20 with
   | 18 -> A18
   | 19 -> A19
   | _ -> failwith "e"
-(* Switch is a jump table: I could enumerate to get an index. But why is the reverse so slow???*)
+
+module Test_enum : Test = struct
+  let name = "Enum"
+  type t = A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 | A16 | A17 | A18 | A19
+  [@@deriving protocol ~driver:(module Json), yojson]
+  let t () = match Random.int 20 with
+    | 0 -> A0 | 1 -> A1 | 2 -> A2 | 3 -> A3 | 4 -> A4 | 5 -> A5 | 6 -> A6 | 7 -> A7 | 8 -> A8 | 9 -> A9 | 10 -> A10
+    | 11 -> A11 | 12 -> A12 | 13 -> A13 | 14 -> A14 | 15 -> A15 | 16 -> A16 | 17 -> A17 | 18 -> A18 | 19 -> A19 | _ -> failwith "e"
+end
 
 type f = d * e
 [@@deriving protocol ~driver:(module Json), yojson]
 let f () = d (), e ()
 
-type t = e list
-[@@deriving protocol ~driver:(module Json), yojson]
-let t () = list ~length:10 e ()
+module Test_full : Test = struct
+  let name = "Test full"
+  type t = f list
+  [@@deriving protocol ~driver:(module Json), yojson]
+  let t () = list ~length:1 f ()
+end
 
-(** Global data structures *)
-let t = t ()
-let t' = to_json t
-let t'' = of_json t'
-let ty' = to_yojson t
-let () =
-  Yojson.Safe.pretty_to_channel Stdio.stdout t';
-  Caml.Printf.printf "\nYojson:\n";
-  Yojson.Safe.pretty_to_channel Stdio.stdout ty';
+
+let bench (module X: Test) =
+  let t = X.t () in
+  let json = X.to_json t in
+  let yojson = X.to_yojson t in
+  Core.Command.run @@ Bench.make_command @@ [
+    Bench.Test.create_group ~name:X.name [
+      Bench.Test.create_group ~name:"Deserialize" [
+        Bench.Test.create ~name:"to_yojson"
+          (fun () -> for _ = 0 to 10000 do X.of_yojson yojson |> ignore done);
+        Bench.Test.create ~name:"to_json"
+          (fun () -> for _ = 0 to 10000 do X.of_json json |> ignore done);
+      ]
+    ]
+  ];
+  Core.Command.run @@ Bench.make_command @@ [
+    Bench.Test.create_group ~name:X.name [
+      Bench.Test.create_group ~name:"Serialize" [
+        Bench.Test.create ~name:"to_yojson"
+          (fun () -> for _ = 0 to 10000 do X.to_yojson t |> ignore done);
+        Bench.Test.create ~name:"to_json"
+          (fun () -> for _ = 0 to 10000 do X.to_json t |> ignore done);
+      ];
+    ];
+  ];
   ()
 
+
 let () =
-  for _ = 0 to 100000 do
-    to_json t |> Sys.opaque_identity |> ignore
-  done
-
-(*
-let () =
-  of_json ty' |> ignore;
-  of_yojson t' |> ignore;
-  ()
-*)
-
-let to_json =
-  Bench.Test.create ~name:"to_json"
-    (fun () -> to_json t |> ignore)
-
-let of_json =
-  Bench.Test.create ~name:"of_json"
-    (fun () -> of_json t' |> ignore)
-
-let to_yojson =
-  Bench.Test.create ~name:"to_yojson"
-    (fun () -> to_yojson t |> ignore)
-
-let of_yojson =
-  Bench.Test.create ~name:"of_yojson"
-    (fun () -> of_yojson ty' |> ignore)
-
-let tests = [ to_json; to_yojson; of_json; of_yojson ]
-
-let command = Bench.make_command tests
-let () = Core.Command.run command
+  bench (module Test_enum);
+  bench (module Test_tuple);
+  bench (module Test_variant_record);
+  bench (module Test_record);
+  bench (module Test_full);

@@ -11,7 +11,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module Singleton : M.Testable = struct
-    let name = "SingleElem"
+    let name = __MODULE__ ^".SingleElem"
     type t = int array
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -19,7 +19,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module LongArray : M.Testable = struct
-    let name = "Longarray"
+    let name = __MODULE__ ^ ".Longarray"
     type t = int array
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -27,7 +27,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module EmptyInsideRec : M.Testable = struct
-    let name = "EmptyInsideRec"
+    let name = __MODULE__ ^ ".EmptyInsideRec"
     type v = int [@key "A"]
     and t = { a : string;
               b : v array; [@key "V"]
@@ -39,7 +39,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module SingleInsideRec : M.Testable = struct
-    let name = "SingleInsideRec"
+    let name = __MODULE__ ^ ".SingleInsideRec"
     type v = int [@key "A"]
     and t = { a : string;
               b : v array; [@key "V"]
@@ -51,7 +51,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module MultiInsideRec : M.Testable = struct
-    let name = "MultiInsideRec"
+    let name = __MODULE__ ^ ".MultiInsideRec"
     type v = int [@key "A"]
     and t = { a : string;
               b : v array; [@key "V"]
@@ -63,7 +63,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module ArrayOfArrays : M.Testable = struct
-    let name = "ArrayOfArrays"
+    let name = __MODULE__ ^ ".ArrayOfArrays"
     type v = int array
     and t = { a : v array; }
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -72,7 +72,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module ArrayOfArrays2 : M.Testable = struct
-    let name = "ArrayOfArrays2"
+    let name = __MODULE__ ^ ".ArrayOfArrays2"
     type t = int array array array
     [@@deriving protocol ~driver:(module Driver), sexp]
 

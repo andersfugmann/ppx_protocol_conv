@@ -100,7 +100,7 @@ D
     </record>
   </variant>
 </l>
-=== Tuple ===
+=== Test__Test_variant.Tuple ===
 <variant>
 A
   <record>
@@ -108,7 +108,7 @@ A
     <t0>3</t0>
   </record>
 </variant>
-=== Tree ===
+=== Test__Test_variant.Tree ===
 <variant>
 Node
   <variant>
@@ -120,7 +120,7 @@ Node
   <p>10</p>
   <variant>Leaf</variant>
 </variant>
-=== MutualRecursion ===
+=== Test__Test_variant.MutualRecursion ===
 <variant>
 T1
   <variant>
@@ -146,20 +146,20 @@ V0
     </variant>
   </variant>
 </variant>
-=== InsideRec ===
+=== Test__Test_variant.InsideRec ===
 <record>
   <c>c</c>
   <V>A</V>
   <a>a</a>
 </record>
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord ===
 <variant>
 A
   <record>
     <a>a</a>
   </record>
 </variant>
-=== Inline Record ===
+=== Test__Test_variant.InlineRecord2 ===
 <variant>
 aa
   <record>
@@ -176,9 +176,9 @@ B
     <A>a</A>
   </record>
 </variant>
-=== Polymoric variants ===
+=== Test__Test_variant.Poly ===
 <variant>
-a
+aaa
   <p>5</p>
 </variant>
 === Nonrec ===
@@ -218,31 +218,31 @@ Cons
 </__option>
 === Some Some Some Unit ===
 <p>()</p>
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
 <l/>
-=== SingleElem ===
+=== Test__Test_lists.SingleElem ===
 <l>
   <p>2</p>
 </l>
-=== Longlist ===
+=== Test__Test_lists.Longlist ===
 <l>
   <p>4</p>
   <p>2</p>
   <p>3</p>
   <p>1</p>
 </l>
-=== EmptyInsideRec ===
+=== Test__Test_lists.EmptyInsideRec ===
 <record>
   <c>c</c>
   <a>a</a>
 </record>
-=== SingleInsideRec ===
+=== Test__Test_lists.SingleInsideRec ===
 <record>
   <c>c</c>
   <V>2</V>
   <a>a</a>
 </record>
-=== MultiInsideRec ===
+=== Test__Test_lists.MultiInsideRec ===
 <record>
   <c>c</c>
   <V>4</V>
@@ -251,7 +251,7 @@ Cons
   <V>1</V>
   <a>a</a>
 </record>
-=== ListOfLists ===
+=== Test__Test_lists.ListOfLists ===
 <record>
   <a>
     <p>2</p>
@@ -262,7 +262,7 @@ Cons
     <p>5</p>
   </a>
 </record>
-=== ListOfLists2 ===
+=== Test__Test_lists.ListOfLists2 ===
 <l>
   <l/>
   <l>
@@ -286,29 +286,29 @@ Cons
 </l>
 === SingleElem ===
 <l/>
-=== SingleElem ===
+=== Test__Test_arrays.SingleElem ===
 <l>
   <p>2</p>
 </l>
-=== Longarray ===
+=== Test__Test_arrays.Longarray ===
 <l>
   <p>4</p>
   <p>2</p>
   <p>3</p>
   <p>1</p>
 </l>
-=== EmptyInsideRec ===
+=== Test__Test_arrays.EmptyInsideRec ===
 <record>
   <c>c</c>
   <a>a</a>
 </record>
-=== SingleInsideRec ===
+=== Test__Test_arrays.SingleInsideRec ===
 <record>
   <c>c</c>
   <V>2</V>
   <a>a</a>
 </record>
-=== MultiInsideRec ===
+=== Test__Test_arrays.MultiInsideRec ===
 <record>
   <c>c</c>
   <V>4</V>
@@ -317,7 +317,7 @@ Cons
   <V>1</V>
   <a>a</a>
 </record>
-=== ArrayOfArrays ===
+=== Test__Test_arrays.ArrayOfArrays ===
 <record>
   <a>
     <p>2</p>
@@ -328,7 +328,7 @@ Cons
     <p>5</p>
   </a>
 </record>
-=== ArrayOfArrays2 ===
+=== Test__Test_arrays.ArrayOfArrays2 ===
 <l>
   <l/>
   <l>
@@ -394,7 +394,7 @@ Cons
     </b>
   </c>
 </record>
-=== Simple ===
+=== Test__Test_poly.Simple ===
 <l>
   <variant>A</variant>
   <variant>
@@ -416,7 +416,7 @@ D
     </record>
   </variant>
 </l>
-=== Tree ===
+=== Test__Test_poly.Tree ===
 <variant>
 Node
   <record>
@@ -432,7 +432,7 @@ Node
     </t0>
   </record>
 </variant>
-=== MutualRecursion ===
+=== Test__Test_poly.MutualRecursion ===
 <variant>
 T1
   <variant>
@@ -458,7 +458,7 @@ V0
     </variant>
   </variant>
 </variant>
-=== InsideRec ===
+=== Test__Test_poly.InsideRec ===
 <record>
   <c>c</c>
   <V>A</V>

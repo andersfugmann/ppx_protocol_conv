@@ -40,7 +40,7 @@ module Test = struct
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
-      [%expect {| { "F_v":  [ "V_A", 6 ], "F_uu": [ "V_B", 5 ], "F_u": "V_A", "F_int": 5 } |}]
+      [%expect {| { "F_v": [ "V_A", 6 ], "F_uu": [ "V_B", 5 ], "F_u": "V_A", "F_int": 5 } |}]
   end
 
   module Singleton_as_list = struct

@@ -1,2 +1,3 @@
-type v = A of (int * int ) | B of int * int
-[@@deriving to_protocol ~driver:(module Json), sexp]
+open Protocol_conv_json
+type t = [ `A of int [@key "aaa"]| `B of string ]
+[@@deriving protocol ~driver:(module Json)]
