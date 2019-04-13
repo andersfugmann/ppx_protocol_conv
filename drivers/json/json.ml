@@ -1,23 +1,22 @@
 module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warning "-3"] = struct
   type t = Yojson.Safe.json [@warning "-3"]
-  module U = Yojson.Safe.Util
 
   let to_string_hum t =
     Yojson.Safe.pretty_to_string t
 
   let of_list l = `List l
-  let to_list = U.to_list
+  let to_list = function `List l -> l | _ -> failwith "List expected"
   let is_list = function `List _ -> true | _ -> false
 
   let of_array l = `List (Array.to_list l)
-  let to_array t = U.to_list t |> Array.of_list
+  let to_array = function `List l -> Array.of_list l | _ -> failwith "List expected"
 
   let of_alist a = `Assoc a
-  let to_alist = U.to_assoc
+  let to_alist = function `Assoc a -> a | _ -> failwith "Assoc expected"
   let is_alist = function `Assoc _ -> true | _ -> false
 
   let of_int i = `Int i
-  let to_int = U.to_int
+  let to_int = function `Int i -> i | _ -> failwith "Int expected"
 
   let of_int32 i = Int32.to_int i |> of_int
   let to_int32 t = to_int t |> Int32.of_int
@@ -29,10 +28,10 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warn
   let to_nativeint t = to_int t |> Nativeint.of_int
 
   let of_float f = `Float f
-  let to_float t = U.to_float t
+  let to_float = function `Float f -> f | _ -> failwith "Float expected"
 
   let of_string s = `String s
-  let to_string = U.to_string
+  let to_string = function `String s -> s | _ -> failwith "String expected"
   let is_string = function `String _ -> true | _ -> false
 
   let of_char c = of_string (String.make 1 c)
@@ -41,7 +40,7 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warn
     | _ -> failwith "Got string with length != 1 when reading type 'char'"
 
   let of_bool b = `Bool b
-  let to_bool = U.to_bool
+  let to_bool = function `Bool b -> b | _ -> failwith "Bool expected"
 
   let null = `Null
   let is_null = function `Null -> true | _ -> false

@@ -4,7 +4,6 @@ open Protocol_conv.Runtime
 type t = Xml.xml
 
 exception Protocol_error of string * t option
-(* Register exception printer *)
 let () = Printexc.register_printer
     (function Protocol_error (s, Some t) -> Some (s ^ ": " ^ (Xml.to_string t))
             | Protocol_error (s, None) -> Some (s)
@@ -28,7 +27,7 @@ let record_to_xml assoc =
       List.map ~f:(function
           | Xml.Element(_, attrs, xs) -> Xml.Element(field, attrs, xs)
           | PCData _ as p -> Xml.Element(field, [], [p])
-        ) xs (* why xs here. Or do we need to extend the option one level *)
+        ) xs
     | (field, e) -> raise_errorf (Some e) "Must be an element: %s" field
   ) assoc
   |> List.concat |> element "record"
@@ -39,22 +38,6 @@ let of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
   Helper.of_variant to_t spec
 
 let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec ->
-  (*
-  let rewrite spec =
-    let inner: type c. (t, c) Variant_in.t -> (t, c) Variant_in.t = function
-      | Variant_in.Tuple (Tuple_in.Nil, b) -> Variant_in.Tuple (Tuple_in.Nil, b)
-      | Variant_in.Tuple (spec, b) ->
-      let rec inner: type a b. int -> (t, a, b) Tuple_in.t -> (t, a, b) Record_in.t = fun cnt -> function
-        | Tuple_in.Cons (f, fs) -> Record_in.Cons ((Printf.sprintf "t%d" cnt, f, None), inner (cnt+1) fs)
-        | Tuple_in.Nil -> Record_in.Nil
-      in
-      Variant_in.Record ((inner 0 spec), b)
-    | Variant_in.Record (spec, b) -> Variant_in.Record (spec, b)
-    in
-    List.map ~f:(fun (field, spec) -> (field, inner spec)) spec
-  in
-  let spec = rewrite spec in
-  *)
   let f = Helper.to_variant spec in
   function
   | Xml.Element(_, _, Xml.PCData s :: es) as t ->
@@ -71,7 +54,6 @@ let to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec co
   (* Join all elements, including default empty ones *)
   let default_map = Map.of_alist_exn (module String) (List.map fields ~f:(fun f -> f, [])) in
 
-  (* TODO: Add elements that does not exist *)
   let f = Helper.to_record spec constr in
   function
   | Xml.Element (_, _, xs) ->
@@ -115,21 +97,16 @@ let to_tuple: type constr b. (t, constr, b) Tuple_in.t -> constr -> t -> b = fun
   to_record spec constr
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
-  (* Not allowed to throw out the unwrap. *)
   match t with
   | Xml.Element (_, [_, "unwrapped"], [])
   | Xml.Element (_, _, [])
   | Xml.Element (_, _, [ PCData ""] ) ->
     None
   | Xml.Element (_, [_, "unwrapped"], [ (Element ("__option", _, _) as t)])
-  (*  | Xml.Element (_, [_, "unwrapped"], [ t ]) *)
   | Xml.Element ("__option", _, [t])
   | t ->
     Some (to_value_fun t)
 
-(* Some Some None ->
-   Some Some Some v -> v
-*)
 
 let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun v ->
   let t = match v with
