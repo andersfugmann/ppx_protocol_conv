@@ -10,9 +10,6 @@ module Driver : Ppx_protocol_driver.Driver with type t = Msgpck.t = struct
   let to_list = Msgpck.to_list
   let is_list = function Msgpck.List _ -> true | _ -> false
 
-  let of_array t = Array.to_list t |> Msgpck.of_list
-  let to_array v = Msgpck.to_list v |> Array.of_list
-
   let of_alist alist = List.map (fun (k, v) -> Msgpck.of_string k, v) alist |> Msgpck.of_map
   let to_alist t = Msgpck.to_map t |> List.map (fun (k, v) -> (Msgpck.to_string k, v))
 

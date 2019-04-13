@@ -44,9 +44,6 @@ module type Driver = sig
   val of_list: t list -> t
   val is_list: t -> bool
 
-  val to_array: t -> t array
-  val of_array: t array -> t
-
   val to_alist: t -> (string * t) list
   val of_alist: (string * t) list -> t
   val is_alist: t -> bool

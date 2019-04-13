@@ -30,9 +30,6 @@ module type Driver = sig
   val of_list: t list -> t
   val is_list: t -> bool
 
-  val to_array: t -> t array
-  val of_array: t array -> t
-
   val to_alist: t -> (string * t) list
   val of_alist: (string * t) list -> t
   val is_alist: t -> bool
@@ -212,29 +209,29 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun  of_value_fun v ->
     Lazy.force v |> of_value_fun
 
-  let to_char  t = try Driver.to_char t with _ -> raise_errorf (Some t) "char expected"
-  let of_char  v = Driver.of_char v
+  let to_char t = try Driver.to_char t with _ -> raise_errorf (Some t) "char expected"
+  let of_char = Driver.of_char
 
-  let to_int  t = try Driver.to_int t with _ -> raise_errorf (Some t) "int expected"
-  let of_int  v = Driver.of_int v
+  let to_int t = try Driver.to_int t with _ -> raise_errorf (Some t) "int expected"
+  let of_int = Driver.of_int
 
-  let to_int32  t = try Driver.to_int32 t with _ -> raise_errorf (Some t) "int32 expected"
-  let of_int32  v = Driver.of_int32 v
+  let to_int32 t = try Driver.to_int32 t with _ -> raise_errorf (Some t) "int32 expected"
+  let of_int32 = Driver.of_int32
 
-  let to_int64  t = try Driver.to_int64 t with _ -> raise_errorf (Some t) "int64 expected"
-  let of_int64  v = Driver.of_int64 v
+  let to_int64 t = try Driver.to_int64 t with _ -> raise_errorf (Some t) "int64 expected"
+  let of_int64 = Driver.of_int64
 
-  let to_nativeint  t = try Driver.to_nativeint t with _ -> raise_errorf (Some t) "nativeint expected"
-  let of_nativeint  v = Driver.of_nativeint v
+  let to_nativeint t = try Driver.to_nativeint t with _ -> raise_errorf (Some t) "nativeint expected"
+  let of_nativeint = Driver.of_nativeint
 
-  let to_string  t = try Driver.to_string t with _ -> raise_errorf (Some t) "string expected"
-  let of_string  v = Driver.of_string v
+  let to_string t = try Driver.to_string t with _ -> raise_errorf (Some t) "string expected"
+  let of_string = Driver.of_string
 
-  let to_float  t = try Driver.to_float t with _ -> raise_errorf (Some t) "float expected"
-  let of_float  v = Driver.of_float v
+  let to_float t = try Driver.to_float t with _ -> raise_errorf (Some t) "float expected"
+  let of_float = Driver.of_float
 
-  let to_bool  t = try Driver.to_bool t with _ -> raise_errorf (Some t) "bool expected"
-  let of_bool  v = Driver.of_bool v
+  let to_bool t = try Driver.to_bool t with _ -> raise_errorf (Some t) "bool expected"
+  let of_bool = Driver.of_bool
 
   let to_unit t = to_option (fun _ -> ()) t
                   |> function Some _ -> raise_errorf (Some t) "Unit expected"

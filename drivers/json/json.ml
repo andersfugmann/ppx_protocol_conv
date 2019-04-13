@@ -8,9 +8,6 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yojson.Safe.json [@warn
   let to_list = function `List l -> l | _ -> failwith "List expected"
   let is_list = function `List _ -> true | _ -> false
 
-  let of_array l = `List (Array.to_list l)
-  let to_array = function `List l -> Array.of_list l | _ -> failwith "List expected"
-
   let of_alist a = `Assoc a
   let to_alist = function `Assoc a -> a | _ -> failwith "Assoc expected"
   let is_alist = function `Assoc _ -> true | _ -> false
