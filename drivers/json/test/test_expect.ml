@@ -136,4 +136,29 @@ module Test = struct
       Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
       [%expect {| 12 -> 12 -> 12 -> 12 |}]
   end
+
+  module Test_lazy = struct
+    module Json = Make(
+      struct
+        include Default_parameters
+        let eager = false
+      end)
+    type t = int * int lazy_t
+    [@@deriving protocol ~driver:(module Json)]
+    let t = 4, Lazy.from_val 5
+    let%expect_test _ =
+      let (a, b) = of_json (`List [ `Int 5; `String "string"]) in
+      Printf.printf "`Fst: %d\n%!" a;
+      begin
+        try
+          Printf.printf "`Snd: %d\n" (Lazy.force b)
+        with
+        | Json.Protocol_error (msg, Some t) -> Printf.eprintf "`Snd: %s. Got: %s"  msg (Json.to_string_hum t);
+        | Json.Protocol_error (msg, None) -> Printf.eprintf "`Snd: %s. Got: None"  msg
+      end;
+      [%expect {|
+        `Fst: 5
+        `Snd: int expected. Got: "string" |}]
+  end
+
 end

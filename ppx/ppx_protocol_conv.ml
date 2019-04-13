@@ -720,7 +720,7 @@ let to_protocol_str_type_decls t rec_flag ~loc tydecls =
           (to_p, Some signature, expr_param) :: acc, (is_recursive || acc_recursive)
         ) tydecls
   in
-  pstr_value_of_funcs ~loc (if is_recursive then rec_flag else Nonrecursive) defs
+  pstr_value_of_funcs ~loc (if is_recursive then Recursive else Nonrecursive) defs
   |> fun x -> [ x ]
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
