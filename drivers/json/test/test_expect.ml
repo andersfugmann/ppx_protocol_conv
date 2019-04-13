@@ -123,7 +123,6 @@ module Test = struct
       c: u;
     }
     [@@deriving protocol ~driver:(module Json)]
-
     let expect = !count
     let t = { a=5; b=5; c=B }
     let%test _ =  t |> to_json |> of_json = t
@@ -135,6 +134,29 @@ module Test = struct
       let c3 = !count in
       Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
       [%expect {| 12 -> 12 -> 12 -> 12 |}]
+
+  end
+
+    module Variant_name_count = struct
+    let count = ref 0
+    module Json = Make(
+      struct
+        include Default_parameters
+        let variant_name name = incr count; name
+      end)
+    type t = A of u | B
+    and u = X of t | Y
+    [@@deriving protocol ~driver:(module Json)]
+    let expect = !count
+    let t = A (X (A (X ( B))))
+    let%expect_test _ =
+      let c1 = !count in
+      let _ = t |> to_json |> of_json in
+      let c2 = !count in
+      let _ = t |> to_json |> of_json in
+      let c3 = !count in
+      Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
+      [%expect {| 0 -> 0 -> 8 -> 8 |}]
   end
 
   module Test_lazy = struct
