@@ -196,7 +196,7 @@ module Test = struct
       v: t v;
       u: [`A of int | `B of t | `C [@name "CC"] ]
     }
-    [@@deriving protocol ~driver:(module Json), yojson]
+    [@@deriving protocol ~driver:(module Json)]
 
     let tree =
       { int = 5;
