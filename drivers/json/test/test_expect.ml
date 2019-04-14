@@ -137,7 +137,7 @@ module Test = struct
 
   end
 
-    module Variant_name_count = struct
+  module Variant_name_count = struct
     let count = ref 0
     module Json = Make(
       struct
@@ -167,7 +167,7 @@ module Test = struct
       end)
     type t = int * int lazy_t
     [@@deriving protocol ~driver:(module Json)]
-    let t = 4, Lazy.from_val 5
+
     let%expect_test _ =
       let (a, b) = of_json (`List [ `Int 5; `String "string"]) in
       Printf.printf "`Fst: %d\n%!" a;
@@ -181,6 +181,84 @@ module Test = struct
       [%expect {|
         `Fst: 5
         `Snd: int expected. Got: "string" |}]
+  end
+
+  module Yojson_test = struct
+    module Json = Json.Yojson
+    type 'a v = A of int | B of { int: int; t: 'a } | C [@name "C-D"]
+    and t = {
+      int : int [@default 5];
+      float: float [@key "Float"];
+      string: string;
+      t_option: t option;
+      int_option: int option;
+      int_list: int list;
+      v: t v;
+      u: [`A of int | `B of t | `C [@name "CC"] ]
+    }
+    [@@deriving protocol ~driver:(module Json), yojson]
+
+    let tree =
+      { int = 5;
+        float = 6.0;
+        string = "TestStr";
+        t_option = None;
+        int_option = Some 7;
+        int_list = [4;5;6;7;8];
+        v = C;
+        u = `A 5;
+      }
+    let tree =
+      { tree with
+        v = B { int = 100; t = tree};
+        u = `C;
+      }
+    let tree =
+      { tree with
+        v = A 21;
+        u = `B tree;
+        int = 7;
+      }
+      let yojson_result =  {|
+        {
+          "int": 7,
+          "Float": 6.0,
+          "string": "TestStr",
+          "t_option": null,
+          "int_option": 7,
+          "int_list": [ 4, 5, 6, 7, 8 ],
+          "v": [ "A", 21 ],
+          "u": [
+            "B",
+            {
+              "Float": 6.0,
+              "string": "TestStr",
+              "t_option": null,
+              "int_option": 7,
+              "int_list": [ 4, 5, 6, 7, 8 ],
+              "v": [
+                "B",
+                {
+                  "int": 100,
+                  "t": {
+                    "Float": 6.0,
+                    "string": "TestStr",
+                    "t_option": null,
+                    "int_option": 7,
+                    "int_list": [ 4, 5, 6, 7, 8 ],
+                    "v": [ "C-D" ],
+                    "u": [ "A", 5 ]
+                  }
+                }
+              ],
+              "u": [ "CC" ]
+            }
+          ]
+        } |} |> Yojson.Safe.from_string
+
+    let t = tree
+    let%test _ =  yojson_result |> of_json = t
+    let%test _ =  t |> to_json |> of_json = t
   end
 
 end
