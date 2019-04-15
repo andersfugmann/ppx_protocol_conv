@@ -1,6 +1,6 @@
 (executable
  (name       unittest)
- (modules    :standard \ test test_expect bench types)
+ (modules    :standard \ test test_expect bench)
  (libraries  test ppx_protocol_conv_json)
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect))
 )

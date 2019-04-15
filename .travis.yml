@@ -22,7 +22,7 @@ env:
   - PACKAGE="ppx_protocol_conv_yaml"      OCAML_VERSION=4.07
   - PACKAGE="ppx_protocol_conv_jsonm"     OCAML_VERSION=4.07
   - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.07 TEST=false
-  - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.06 EXTRA_DEPS="base=v0.9.4"
+  - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.06 EXTRA_DEPS="base=v0.11.1"
 
 os:
   - linux
