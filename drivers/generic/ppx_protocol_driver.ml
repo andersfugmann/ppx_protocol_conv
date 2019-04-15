@@ -61,14 +61,6 @@ module type Driver = sig
   val is_null: t -> bool
 end
 
-let string_map ~f str =
-  let cs = ref [] in
-  String.iter ~f:(fun c -> cs := c :: !cs) str;
-  let cs = f (List.rev !cs) in
-  let bytes = Bytes.create (List.length cs) in
-  List.iteri ~f:(fun i c -> bytes.[i] <- c) cs;
-  Bytes.to_string bytes
-
 let mangle str =
   match String.split_on_chars ~on:['_'] str with
   | s :: sx ->
