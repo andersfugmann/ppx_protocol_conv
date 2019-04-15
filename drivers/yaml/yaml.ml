@@ -2,17 +2,14 @@ module Yaml = Global.Yaml
 module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   type t = Yaml.value
   let to_string_hum t =
-    let b = Buffer.create 64 in
-    Yaml.pp (Format.formatter_of_buffer b ) t;
-    Buffer.contents b
+    Yaml.to_string_exn t
 
   let of_list l = `A l
   let to_list = function `A l -> l | _ -> failwith "List expected"
   let is_list = function `A _ -> true | _ -> false
 
   let of_alist a = `O a
-  let to_alist = function `O a -> a
-                        | _ -> failwith "Object expected"
+  let to_alist = function `O a -> a | _ -> failwith "Object expected"
   let is_alist = function `O _ -> true | _ -> false
 
   let of_int i = `Float (float_of_int i)
