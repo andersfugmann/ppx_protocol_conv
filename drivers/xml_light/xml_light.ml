@@ -12,6 +12,10 @@ let () = Printexc.register_printer
 let raise_errorf t fmt =
   Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
+let wrap t f x = match f x with
+  | v -> v
+  | exception Helper.Protocol_error s -> raise (Protocol_error (s, Some t))
+
 let to_string_hum xml =
   Xml.to_string_fmt xml
 
@@ -41,9 +45,12 @@ let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec ->
   let f = Helper.to_variant spec in
   function
   | Xml.Element(_, _, Xml.PCData s :: es) as t ->
-    begin try f s es with Helper.Protocol_error s -> raise_errorf (Some t) "%s" s end
+    wrap t (f s) es
   | Xml.Element(name, _, []) as t -> raise_errorf (Some t) "No contents for variant type: %s" name
   | t -> raise_errorf (Some t) "Wrong variant data"
+
+let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
+  Helper.of_record ~omit_default:false record_to_xml spec
 
 let to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec constr ->
   let rec inner: type constr b. (t, constr, b) Record_in.t -> string list = function
@@ -53,11 +60,11 @@ let to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec co
   let fields = inner spec in
   (* Join all elements, including default empty ones *)
   let default_map = Map.of_alist_exn (module String) (List.map fields ~f:(fun f -> f, [])) in
-
   let f = Helper.to_record spec constr in
   function
-  | Xml.Element (_, _, xs) ->
-    let args = List.fold_left ~init:default_map
+  | Xml.Element (_, _, xs) as t ->
+    let args =
+      List.fold_left ~init:default_map
         ~f:(fun map -> function
             | (Xml.Element(name, _, _) as x) ->
               Map.update map name ~f:(function Some l -> x :: l | None -> [x])
@@ -70,12 +77,9 @@ let to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec co
                 | field, xs -> field, Xml.Element (field, [], List.rev xs)
               )
     in
-    f args
+    wrap t f args
   | t -> raise_errorf (Some t) "Expected record element"
 
-
-let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
-  Helper.of_record ~omit_default:false record_to_xml spec
 
 let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
   let rec inner: type a b c. int -> (a, b, c) Tuple_out.t -> (a, b, c) Record_out.t = fun i -> function
@@ -94,7 +98,8 @@ let to_tuple: type constr b. (t, constr, b) Tuple_in.t -> constr -> t -> b = fun
     | Tuple_in.Nil -> Record_in.Nil
   in
   let spec = inner 0 spec in
-  to_record spec constr
+  let f = to_record spec constr in
+  fun t -> wrap t f t
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   match t with
@@ -109,18 +114,16 @@ let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
 
 
 let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun v ->
-  let t = match v with
-    | None ->
-      Xml.Element ("__option", [], [])
-    | Some x -> begin
+  match v with
+  | None ->
+    Xml.Element ("__option", [], [])
+  | Some x -> begin
       match of_value_fun x with
-        | (Xml.Element ("__option", _, _) as t) ->
-          Xml.Element ("__option", [], [t])
-        | t ->
-          t
+      | (Xml.Element ("__option", _, _) as t) ->
+        Xml.Element ("__option", [], [t])
+      | t ->
+        t
     end
-  in
-  t
 
 let to_ref: (t -> 'a) -> t -> 'a ref = fun to_value_fun t ->
   let v = to_value_fun t in
@@ -128,7 +131,6 @@ let to_ref: (t -> 'a) -> t -> 'a ref = fun to_value_fun t ->
 
 let of_ref: ('a -> t) -> 'a ref -> t = fun of_value_fun v ->
   of_value_fun !v
-
 
 (** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
@@ -153,13 +155,16 @@ let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun t -> Lazy.from_fun
 let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
   Lazy.force v |> of_value_fun
 
-
 let of_value to_string v = Xml.Element ("p", [], [ Xml.PCData (to_string v) ])
-let to_value type_name of_string = function
-  | Xml.Element(_, _, []) -> of_string ""
-  | Xml.Element(_, _, [PCData s]) -> of_string s
-  | Xml.Element(name, _, _) as e -> raise_errorf (Some e) "Primitive value expected in node: %s for %s" name type_name
-  | Xml.PCData _ as e -> raise_errorf (Some e) "Primitive type not expected here when deserializing %s" type_name
+let to_value type_name of_string t =
+  let s = match t with
+    | Xml.Element(_, _, []) -> ""
+    | Xml.Element(_, _, [PCData s]) -> s
+    | Xml.Element(name, _, _) as e -> raise_errorf (Some e) "Primitive value expected in node: %s for %s" name type_name
+    | Xml.PCData _ as e -> raise_errorf (Some e) "Primitive type not expected here when deserializing %s" type_name
+  in
+  try of_string s with
+  | _ -> raise_errorf (Some t) "Failed to convert element to %s." type_name
 
 let to_bool = to_value "bool" bool_of_string
 let of_bool = of_value string_of_bool

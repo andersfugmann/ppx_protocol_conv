@@ -106,10 +106,14 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let raise_errorf t fmt =
     Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
+  let wrap t f x = match f x with
+    | v -> v
+    | exception Helper.Protocol_error s -> raise (Protocol_error (s, Some t))
+
   let to_record: (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b = fun spec constr ->
     let spec = Helper.map_record_in P.field_name spec in
     let f = Helper.to_record ~strict:P.strict spec constr in
-    fun t -> f (Driver.to_alist t)
+    fun t -> wrap t f (Driver.to_alist t)
 
   let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
     let spec = Helper.map_record_out P.field_name spec in
@@ -117,29 +121,21 @@ module Make(Driver: Driver)(P: Parameters) = struct
 
   let to_tuple: (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b = fun spec constr ->
     let f = Helper.to_tuple spec constr in
-    fun t -> f (Driver.to_list t)
+    fun t -> wrap t f (Driver.to_list t)
 
   let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
     Helper.of_tuple Driver.of_list spec
 
-  let of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a =
-    let of_variant name =
-      let name = P.variant_name name |> Driver.of_string in
-      function
-      | [] when P.constructors_without_arguments_as_string -> name
-      | ts -> Driver.of_list (name :: ts)
-    in
-    fun name spec -> Helper.of_variant of_variant name spec
-
   let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec ->
     let f = Helper.to_variant (Helper.map_constructor_names P.variant_name spec) in
+
     match P.constructors_without_arguments_as_string with
     | true -> begin
         function
-        | t when Driver.is_string t -> f (Driver.to_string t) []
+        | t when Driver.is_string t -> wrap t (f (Driver.to_string t)) []
         | t when Driver.is_list t -> begin
             match Driver.to_list t with
-            | name :: args when Driver.is_string name -> f (Driver.to_string name) args
+            | name :: args when Driver.is_string name -> wrap t f ((Driver.to_string name)) args
             | _ :: _ -> raise_errorf (Some t) "First element in the list must be the constructor name when name when deserialising variant"
             | [] -> raise_errorf (Some t) "Empty list found when deserialising variant"
           end
@@ -149,12 +145,21 @@ module Make(Driver: Driver)(P: Parameters) = struct
         function
         | t when Driver.is_list t -> begin
             match Driver.to_list t with
-            | name :: args when Driver.is_string name -> f (Driver.to_string name) args
+            | name :: args when Driver.is_string name -> wrap t (f (Driver.to_string name)) args
             | _ :: _ -> raise_errorf (Some t) "First element in the list must be the constructor name when name when deserialising variant"
             | [] -> raise_errorf (Some t) "Empty list found when deserialising variant"
           end
         | t -> raise_errorf (Some t) "Expected list when deserialising variant"
       end
+
+  let of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a =
+    let of_variant name =
+      let name = P.variant_name name |> Driver.of_string in
+      function
+      | [] when P.constructors_without_arguments_as_string -> name
+      | ts -> Driver.of_list (name :: ts)
+    in
+    fun name spec -> Helper.of_variant of_variant name spec
 
   let get_option = function
     | t when Driver.is_alist t -> begin
@@ -171,8 +176,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
       let t = match (get_option t) with Some t -> t | None -> t in
       Some (to_value_fun t)
 
-
-  let of_option: ('a -> t) -> 'a option -> t = fun  of_value_fun -> function
+  let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun -> function
     | None -> Driver.null
     | Some v ->
       let mk_option t = Driver.of_alist [ ("__option", t) ] in
@@ -190,7 +194,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     of_value_fun !v
 
   let to_list: (t -> 'a) -> t -> 'a list = fun  to_value_fun t ->
-    List.map ~f:to_value_fun (Driver.to_list t)
+    List.map ~f:to_value_fun (wrap t Driver.to_list t)
 
   let of_list: ('a -> t) -> 'a list -> t = fun  of_value_fun v ->
     List.map ~f:of_value_fun v |> Driver.of_list
@@ -206,7 +210,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     | true -> fun t -> Lazy.from_val (to_value_fun t)
     | false -> fun t -> Lazy.from_fun (fun () -> to_value_fun t)
 
-  let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun  of_value_fun v ->
+  let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
     Lazy.force v |> of_value_fun
 
   let to_char t = try Driver.to_char t with _ -> raise_errorf (Some t) "char expected"

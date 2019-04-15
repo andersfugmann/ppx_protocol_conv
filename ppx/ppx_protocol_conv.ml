@@ -708,13 +708,15 @@ let deserialization_signature ~loc ~as_sig ~as_result driver tdecl =
 let make_recursive ~loc (e : expression) = function
   | false -> e
   | true ->
-    [%expr (let f = ref None in
+    [%expr
+      ( let f = ref None in
             (fun t -> match !f with
                | None ->
                  let f' = [%e e] in f := Some f'; f' t
                | Some f -> f t
             ))
     ]
+
 
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   let (defs, is_recursive) =
