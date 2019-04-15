@@ -87,13 +87,13 @@ module Helper = struct
 
   type 'a variant = Record of (string * 'a) list | Tuple of 'a list | Nil
 
-  (** Map fields names of a {Record_in} structure *)
+  (** Map fields names of a [Record_in] structure *)
   let rec map_record_in: type t a b. (string -> string) -> (t, a, b) Record_in.t -> (t, a, b) Record_in.t = fun field -> function
     | Record_in.Cons ((field_name, to_value_func, default), xs) ->
       Record_in.Cons ((field field_name, to_value_func, default), map_record_in field xs)
     | Record_in.Nil -> Record_in.Nil
 
-  (** {to_record spec constructor ts} returns the constructed value.
+  (** {!to_record spec constructor ts} returns the constructed value.
       [ts] is a associative array [(string * t)] list, mapping fields to the deserialized value [t]
       if [strict] is true, an error will be raised if input contains an unknown field.
       If dublicate fields are found in the input, an error is raised
@@ -146,7 +146,7 @@ module Helper = struct
           ) values;
         f value_array
 
-  (** Map fields names of a {Record_out} structure *)
+  (** Map fields names of a [Record_out] structure *)
   let rec map_record_out: type t a. (string -> string) -> (t, a, t) Record_out.t -> (t, a, t) Record_out.t =
     fun field -> function
       | Record_out.Cons ((field_name, to_t, default), xs) ->
@@ -155,7 +155,7 @@ module Helper = struct
 
   type 't serialize_record = (string * 't) list -> 't
 
-  (** {of_record map_f spec} produces a valid deserialisation function for a record type
+  (** {!of_record map_f spec} produces a valid deserialisation function for a record type
       The [map_f] function is called to produce the serialised result from a field_name, t association list.
       If [omit_default] is true, then default values are omitted from the output
   *)
@@ -178,7 +178,7 @@ module Helper = struct
     in
     fun spec -> inner spec []
 
-  (** {to_tuple spec tlist} produces a tuple from the serialized values in [tlist] *)
+  (** {!to_tuple spec tlist} produces a tuple from the serialized values in [tlist] *)
   let rec to_tuple: type t a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
     function
     | Tuple_in.Cons (to_value_func, xs) ->
@@ -206,7 +206,10 @@ module Helper = struct
     fun spec -> inner spec []
 
   type 't serialize_variant = string -> 't list -> 't
-  (* {of_variant spec v} serialises v and returns the serialized values as a list or map *)
+
+  (** {!of_variant spec v} serialises v and returns the serialized values
+      as a list or map
+  *)
   let of_variant: type t. t serialize_variant -> string -> (t, 'a, t) Tuple_out.t -> 'a =
     fun serialize_variant name spec ->
     of_tuple (serialize_variant name) spec
