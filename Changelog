@@ -6,7 +6,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 5.0.0 (unreleased)
 [x] Add option make make lazy type indeed lazy
 [x] Add option to mangle variant names
-[x] Refactor tuple, variant and record code to be more efficient
+[*] Refactor tuple, variant and record code to be more efficient
 [x] Reduce amount of closures in generated code
 [x] support nativeint
 [x] Remove superfluous rec flag from generated code
@@ -14,7 +14,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Fix signatures for parameterized types
 [x] Create helper module for tuple, record and variant.
 [x] Add strict option
-[ ] create t_to_driver and t_to_driver_exn
+[*] create t_to_driver and t_to_driver_exn
 [ ] Move some documentation to wiki pages
 [ ] Add a TLDR to the README, including dune build instructions
 [x] Allow core < v.013

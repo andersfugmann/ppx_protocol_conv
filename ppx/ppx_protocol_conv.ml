@@ -13,7 +13,6 @@ type t = {
   field_default: (label_declaration, expression) Attribute.t;
 }
 
-(* In variants, dont encode as tuple.... *)
 let (^^) = Caml.(^^)
 let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^ fmt)
 
@@ -63,11 +62,6 @@ let module_name ?loc = function
   | Lident s -> String.uncapitalize s
   | Ldot (_, s) -> String.uncapitalize s
   | Lapply _ -> raise_errorf ?loc "lapply???"
-
-let _default_case ~loc =
-  case ~lhs:[%pat? (s, _)]
-    ~guard:None
-    ~rhs:[%expr failwith ("Unknown variant or arity error: " ^ s)]
 
 let protocol_ident dir driver { loc; txt } =
   let prefix, suffix = match dir with
@@ -710,7 +704,7 @@ let deserialization_signature ~loc ~as_sig ~as_result driver tdecl =
   | true -> signature
   | false -> ptyp_poly ~loc (List.map ~f:(fun txt -> { loc; txt }) params) signature
 
-
+(** Cache intermediate result. Unfortunatly we are not allowed to create a spec, so we cache in an option reference. *)
 let make_recursive ~loc (e : expression) = function
   | false -> e
   | true ->
@@ -808,7 +802,14 @@ let of_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_
   List.concat_map ~f:(fun tydecl ->
       let of_p = deserialize_function_name ~loc ~driver tydecl.ptype_name  in
       let signature = deserialization_signature ~as_sig:true ~as_result:false ~loc driver tydecl in
-      psig_value ~loc (value_description ~loc ~name:of_p ~type_:signature ~prim:[]) :: []
+
+      let of_p_result = deserialize_function_name ~as_result:true ~loc ~driver tydecl.ptype_name in
+      let result_sig = deserialization_signature ~as_sig:false ~as_result:true driver ~loc tydecl in
+
+      [
+        psig_value ~loc (value_description ~loc ~name:of_p ~type_:signature ~prim:[]);
+        psig_value ~loc (value_description ~loc ~name:of_p_result ~type_:result_sig ~prim:[]);
+      ]
     ) tydecls
 
 let protocol_sig_type_decls ~loc ~path (rec_flag, tydecls) (driver:module_expr option) =
