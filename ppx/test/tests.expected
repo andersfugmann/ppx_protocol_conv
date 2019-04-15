@@ -251,3 +251,10 @@
      (List ((Int 100) (Int 101))))))))
 === array ===
 (Record ((a (List ((Int 1) (Int 2) (Int 3))))))
+=== Test__Test_sig.Test_sig ===
+(Record
+ ((x
+   (Variant A
+    ((List
+      ((Variant A ((Int 7))) (Int 7) (Int 7) (Variant B ((Float 0.7)))
+       (Int 7))))))))

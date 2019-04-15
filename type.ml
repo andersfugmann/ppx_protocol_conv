@@ -1,10 +1,15 @@
 open Protocol_conv_json
-module Recursive : sig
-  type t = Cons of int * t
-         | Nil
-  [@@deriving protocol ~driver:(module Json)]
+
+module Test_sig : sig
+  type ('a, 'b) t = 'a * 'b
+  and 'a u = A of ('a, int) t | B | C of 'a u
+  and 'a v = { x : 'a u }
+  and w = [`A of int | `B of float] v
+  [@@deriving protocol ~driver:(module Json), sexp]
 end = struct
-  type t = Cons of int * t
-         | Nil
+  type ('a, 'b) t = 'a * 'b
+  and 'a u = A of ('a, int) t | B | C of 'a u
+  and 'a v = { x : 'a u }
+  and w = [`A of int | `B of float] v
   [@@deriving protocol ~driver:(module Json)]
 end

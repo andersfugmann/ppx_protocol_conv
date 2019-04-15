@@ -662,7 +662,7 @@ let type_of_of_func ~loc driver ~as_result tydecl =
   in
   [%type: [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] -> [%t result_type]]
 
-let serialization_signature ~loc  ~as_sig driver tdecl =
+let serialization_signature ~loc ~as_sig driver tdecl =
   let type_of = type_of_to_func ~loc driver tdecl in
   let params =
     List.filter_map
@@ -806,7 +806,7 @@ let of_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_
       let signature = deserialization_signature ~as_sig:true ~as_result:false ~loc driver tydecl in
 
       let of_p_result = deserialize_function_name ~as_result:true ~loc ~driver tydecl.ptype_name in
-      let result_sig = deserialization_signature ~as_sig:false ~as_result:true driver ~loc tydecl in
+      let result_sig = deserialization_signature ~as_sig:true ~as_result:true driver ~loc tydecl in
 
       [
         psig_value ~loc (value_description ~loc ~name:of_p ~type_:signature ~prim:[]);
