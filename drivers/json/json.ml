@@ -46,7 +46,6 @@ end
 include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
 module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
 
-module Y = Yojson.Safe
 module Yojson = struct
   include Make(struct
       include Ppx_protocol_driver.Default_parameters

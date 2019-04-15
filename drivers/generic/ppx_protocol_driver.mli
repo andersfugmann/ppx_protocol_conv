@@ -1,17 +1,20 @@
 module type Parameters = sig
   (** Map field names of records
       Mapping is done after applying [@key] attribute
+      Default is [identity]
   *)
   val field_name: string -> string
 
   (** Map variant and constructor names.
       Mapping is done after applying [@name] attribute
+      Default is [identity]
   *)
   val variant_name: string -> string
 
   (** Map constructors with no arguments to a string.
       If true, constructors without arguments are mapped to a string, instead of
       than a list containing only the constructor / variant name
+      Default is [true]
   *)
   val constructors_without_arguments_as_string: bool
 
@@ -19,6 +22,7 @@ module type Parameters = sig
       If true, default values
       are not serialized. Note that this uses polymorphic compare
       to determine if a field value is the same as the default value
+      Default is [true]
   *)
   val omit_default_values: bool
 
@@ -26,10 +30,15 @@ module type Parameters = sig
       If true, lazy fields are parsed eagerly.
       If false, lazy fields are parsed first when forced, which means they
       will hold the serialized structure until forced, and forcing
-      might raise a parse error *)
+      might raise a parse error.
+
+      Default is [true]
+  *)
   val eager: bool
 
-  (** Require exact amount of input fields when deserialising objects *)
+  (** Fail if unknown fields are encountered when deserialising records.
+      Default is [false]
+  *)
   val strict: bool
 end
 

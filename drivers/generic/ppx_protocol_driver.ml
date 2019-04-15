@@ -1,8 +1,6 @@
 open Protocol_conv
 open Runtime
-open StdLabels
-
-module StringMap = Map.Make(String)
+open Base
 
 module type Parameters = sig
   val field_name: string -> string
@@ -84,16 +82,6 @@ let mangle: string -> string = fun s ->
 module Make(Driver: Driver)(P: Parameters) = struct
   type t = Driver.t
 
-  let debug_t = false
-  let debug_t t fmt = match debug_t with
-    | true -> Printf.eprintf ("%s:" ^^ fmt ^^ "\n%!") (Driver.to_string_hum t)
-    | false -> Printf.ifprintf stderr fmt [@@warning "-32"]
-
-  let debug = true
-  let debug fmt = match debug with
-    | true -> Printf.eprintf (fmt ^^ "\n%!")
-    | false -> Printf.ifprintf stderr fmt [@@warning "-32"]
-
   exception Protocol_error of string * t option
   (* Register exception printer *)
   let () = Printexc.register_printer (function
@@ -104,7 +92,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let to_string_hum = Driver.to_string_hum
 
   let raise_errorf t fmt =
-    Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+    Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
   let wrap t f x = match f x with
     | v -> v
@@ -182,7 +170,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
       let mk_option t = Driver.of_alist [ ("__option", t) ] in
       match of_value_fun v with
       | t when Driver.is_null t -> mk_option t
-      | t when (get_option t) <> None ->
+      | t when Option.is_some (get_option t) ->
         mk_option t
       | t -> t
 
