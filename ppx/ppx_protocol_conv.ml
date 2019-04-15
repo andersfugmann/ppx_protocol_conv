@@ -34,8 +34,7 @@ let pexp_ident_string_loc { loc; txt } =
   pexp_ident ~loc {loc; txt = Lident txt}
 
 let driver_func t ~loc name =
-  let func = pexp_ident ~loc { loc; txt = Ldot (t.driver, name) } in
-  [%expr ([%e func])]
+  pexp_ident ~loc { loc; txt = Ldot (t.driver, name) }
 
 (** Concatinate the list of expressions into a single expression using
    list concatenation *)
@@ -71,13 +70,17 @@ let _default_case ~loc =
     ~rhs:[%expr failwith ("Unknown variant or arity error: " ^ s)]
 
 let protocol_ident dir driver { loc; txt } =
+  let prefix, suffix = match dir with
+    | `Serialze -> "to", ""
+    | `Deserialize -> "of" , "_exn"
+  in
   (* Match the name of the type *)
   let driver_name = module_name ~loc driver in
   let txt = match txt with
-    | Lident "t" -> Lident (sprintf "%s_%s" dir driver_name)
-    | Lident name -> Lident (sprintf "%s_%s_%s" name dir driver_name)
-    | Ldot (l, "t") -> Ldot (l, sprintf "%s_%s" dir driver_name)
-    | Ldot (l, name) -> Ldot (l, sprintf "%s_%s_%s" name dir driver_name)
+    | Lident "t" -> Lident (sprintf "%s_%s%s" prefix driver_name suffix)
+    | Lident name -> Lident (sprintf "%s_%s_%s%s" name prefix driver_name suffix)
+    | Ldot (l, "t") -> Ldot (l, sprintf "%s_%s%s" prefix driver_name suffix)
+    | Ldot (l, name) -> Ldot (l, sprintf "%s_%s_%s%s" name prefix driver_name suffix)
     | Lapply _  -> raise_errorf ~loc "lapply???"
   in
   pexp_ident ~loc { loc; txt }
@@ -325,7 +328,7 @@ and serialize_expr_of_type_descr t ~loc = function
           serialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
       |> List.map ~f:(fun expr -> (Nolabel, expr))
     in
-    let func = protocol_ident "to" t.driver ident in
+    let func = protocol_ident `Serialze t.driver ident in
     pexp_apply ~loc func args
 
   | Ptyp_tuple core_types ->
@@ -496,7 +499,7 @@ and deserialize_expr_of_type_descr t ~loc = function
           deserialize_expr_of_type_descr t ~loc:ptyp_loc ptyp_desc) cts
       |> List.map ~f:(fun expr -> (Nolabel, expr))
     in
-    let func = protocol_ident "of" t.driver ident in
+    let func = protocol_ident `Deserialize t.driver ident in
     pexp_apply ~loc func args
 
   | Ptyp_tuple cts ->
@@ -530,7 +533,7 @@ and deserialize_expr_of_type_descr t ~loc = function
     in
     pexp_apply ~loc (driver_func t ~loc "to_variant") [Nolabel, spec]
 
-  | Ptyp_var core_type -> pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_of_%s" core_type) }
+  | Ptyp_var name -> pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_of_%s" name) }
 
   | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
   | Ptyp_any
@@ -547,7 +550,18 @@ let serialize_function_name ~loc ~driver name =
   in
   sprintf "%sto_%s" prefix (module_name ~loc driver) |> Located.mk ~loc
 
-let deserialize_function_name ~loc ~driver name =
+let deserialize_function_name ?(as_result = false) ~loc ~driver name =
+  let prefix = match name.txt with
+    | "t" -> ""
+    | name -> name ^ "_"
+  in
+  let suffix = match as_result with
+    | true -> ""
+    | false -> "_exn"
+  in
+  sprintf "%sof_%s%s" prefix (module_name ~loc driver) suffix |> Located.mk ~loc
+
+let _deserialize_function_name_result ~loc ~driver name =
   let prefix = match name.txt with
     | "t" -> ""
     | name -> name ^ "_"
@@ -645,8 +659,14 @@ let mk_typ ~loc tydecl =
 let type_of_to_func ~loc driver tydecl =
   [%type: [%t mk_typ ~loc tydecl] -> [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] ]
 
-let type_of_of_func ~loc driver tydecl =
-  [%type: [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] -> [%t mk_typ ~loc tydecl]]
+let type_of_of_func ~loc driver ~as_result tydecl =
+  let typ = mk_typ ~loc tydecl in
+  let result_type = match as_result with
+    | false -> typ
+    | true ->
+      ptyp_constr ~loc { loc; txt = Ldot (Ldot (Lident "Protocol_conv", "Runtime"), "or_error") } [typ]
+  in
+  [%type: [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] -> [%t result_type]]
 
 let serialization_signature ~loc  ~as_sig driver tdecl =
   let type_of = type_of_to_func ~loc driver tdecl in
@@ -669,8 +689,8 @@ let serialization_signature ~loc  ~as_sig driver tdecl =
   | true -> signature
   | false -> ptyp_poly ~loc (List.map ~f:(fun txt -> { loc; txt }) params) signature
 
-let deserialization_signature ~loc ~as_sig driver tdecl =
-  let type_of = type_of_of_func ~loc driver tdecl in
+let deserialization_signature ~loc ~as_sig ~as_result driver tdecl =
+  let type_of = type_of_of_func ~loc ~as_result driver tdecl in
   let params =
     List.filter_map
       ~f:(function ({ ptyp_desc = Ptyp_var s; _ }, _variance) -> Some s
@@ -724,25 +744,52 @@ let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   |> fun x -> [ x ]
 
 let of_protocol_str_type_decls t rec_flag ~loc tydecls =
-  let (defs, is_recursive) =
+  let expr_param ~loc tdecl expr =
+    List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
+        let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"of" ct) in
+        [%expr fun [%p patt] -> [%e expr] ])
+      tdecl.ptype_params
+  in
+  let result_expr ~loc tdecl of_p =
+    let expr =
+      let type_params = List.map
+          ~f:(fun (ct, _variance) ->
+              pexp_ident ~loc { loc; txt = Lident (name_of_core_type ~prefix:"of" ct).txt })
+          tdecl.ptype_params
+      in
+      let args =
+        type_params @ [ pexp_ident ~loc { loc; txt = Lident "t"} ]
+        |> List.map ~f:(fun e -> (Nolabel, e))
+      in
+      pexp_apply ~loc (pexp_ident ~loc { loc; txt = Lident of_p.txt}) args
+    in
+    [%expr fun t -> match [%e expr] with
+      | v -> Protocol_conv.Runtime.ok v
+      | exception exn -> Protocol_conv.Runtime.error exn
+    ]
+  in
+  let (defs, err_defs, is_recursive) =
     let is_recursive_f = is_recursive tydecls rec_flag in
-    List.fold_right ~init:([], false)
-      ~f:(fun tdecl (acc, acc_recursive) ->
+    List.fold_right ~init:([], [], false)
+      ~f:(fun tdecl (defs, err_defs, acc_recursive) ->
           let is_recursive = is_recursive_f tdecl in
           let of_p = deserialize_function_name ~loc ~driver:t.driver tdecl.ptype_name in
           let expr = make_recursive ~loc (deserialize_expr_of_tdecl t ~loc tdecl) is_recursive in
-          let expr_param =
-            List.fold_right ~init:expr ~f:(fun (ct, _variance) expr ->
-                let patt = Ast_helper.Pat.var ~loc (name_of_core_type ~prefix:"of" ct) in
-                [%expr fun [%p patt] -> [%e expr] ])
-              tdecl.ptype_params
-          in
-          let signature = deserialization_signature ~as_sig:false t.driver ~loc tdecl in
-          (of_p, Some signature, expr_param) :: acc, (is_recursive || acc_recursive)
+          let signature = deserialization_signature ~as_sig:false ~as_result:false t.driver ~loc tdecl in
+
+          let of_p_result = deserialize_function_name ~as_result:true ~loc ~driver:t.driver tdecl.ptype_name in
+          let result_expr = result_expr ~loc tdecl of_p in
+          let result_sig = deserialization_signature ~as_sig:false ~as_result:true t.driver ~loc tdecl in
+
+          (of_p, Some signature, expr_param ~loc tdecl expr) :: defs,
+          (of_p_result, Some result_sig, expr_param ~loc tdecl result_expr) :: err_defs,
+          (is_recursive || acc_recursive)
         ) tydecls
   in
-  pstr_value_of_funcs ~loc (if is_recursive then Recursive else Nonrecursive) defs
-  |> fun x -> [ x ]
+  [
+    pstr_value_of_funcs ~loc (if is_recursive then Recursive else Nonrecursive) defs;
+    pstr_value_of_funcs ~loc Nonrecursive err_defs;
+  ]
 
 let protocol_str_type_decls t rec_flag ~loc tydecls =
   to_protocol_str_type_decls t rec_flag ~loc tydecls @
@@ -760,7 +807,7 @@ let of_protocol_sig_type_decls ~loc ~path:_ (_rec_flag, tydecls) (driver:module_
   let driver = ident_of_module ~loc driver in
   List.concat_map ~f:(fun tydecl ->
       let of_p = deserialize_function_name ~loc ~driver tydecl.ptype_name  in
-      let signature = deserialization_signature ~as_sig:true ~loc driver tydecl in
+      let signature = deserialization_signature ~as_sig:true ~as_result:false ~loc driver tydecl in
       psig_value ~loc (value_description ~loc ~name:of_p ~type_:signature ~prim:[]) :: []
     ) tydecls
 

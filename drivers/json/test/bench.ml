@@ -2,6 +2,9 @@ open Protocol_conv_json
 open Base
 open Core_bench.Std
 
+(* Constant random number seed to make tests comparable *)
+let () = Random.init 12345678
+
 module Json = Json.Make(struct
     include Ppx_protocol_driver.Default_parameters
     let omit_default_values = true

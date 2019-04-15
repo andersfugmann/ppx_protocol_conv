@@ -21,7 +21,7 @@ module Make (Driver: Driver) = struct
       close_out out_ch;
 
       let t' =
-        try T.to_driver T.t |> T.of_driver with
+        try T.to_driver T.t |> T.of_driver_exn with
         | exn -> Printf.printf "\n%s: Failed parsing:\n>>>>>\n%s\n======\n%s\n<<<<<<\n"
                    T.name
                    (Driver.to_string_hum serialized)

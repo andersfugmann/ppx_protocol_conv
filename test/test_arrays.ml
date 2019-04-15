@@ -3,7 +3,7 @@ open Sexplib.Std
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
   module EmptyArray : M.Testable = struct
-    let name = "SingleElem"
+    let name = __MODULE__ ^ ".SingleElem"
     type t = int array
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -11,7 +11,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module Singleton : M.Testable = struct
-    let name = __MODULE__ ^".SingleElem"
+    let name = __MODULE__ ^ ".SingleElem"
     type t = int array
     [@@deriving protocol ~driver:(module Driver), sexp]
 

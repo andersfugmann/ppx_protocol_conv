@@ -57,20 +57,20 @@ include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
 module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
 
 type nonrec bytes = string
-let bytes_of_msgpack = Msgpck.to_bytes
+let bytes_of_msgpack_exn = Msgpck.to_bytes
 let bytes_to_msgpack = Msgpck.of_bytes
 
 type uint32 = int
-let uint32_of_msgpack t = Msgpck.to_uint32 t |> Int32.to_int
+let uint32_of_msgpack_exn t = Msgpck.to_uint32 t |> Int32.to_int
 let uint32_to_msgpack v = Int32.of_int v |> Msgpck.of_uint32
 
 type uint64 = int
-let uint64_of_msgpack t = Msgpck.to_uint64 t |> Int64.to_int
+let uint64_of_msgpack_exn t = Msgpck.to_uint64 t |> Int64.to_int
 let uint64_to_msgpack v = Int64.of_int v |> Msgpck.of_uint64
 
 type float32 = float
-let float32_of_msgpack t = Msgpck.to_float32 t |> Int32.float_of_bits
+let float32_of_msgpack_exn t = Msgpck.to_float32 t |> Int32.float_of_bits
 let float32_to_msgpack v = Int32.bits_of_float v |> Msgpck.of_float32
 
-let of_msgpack t = t
+let of_msgpack_exn t = t
 let to_msgpack t = t

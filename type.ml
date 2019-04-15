@@ -1,4 +1,12 @@
 open Protocol_conv_json
-type 'a x = 'a
-and y = A of y x
-[@@deriving protocol ~driver:(module Json)]
+module Recursive = struct
+  type t = Cons of int * t
+         | Nil
+  [@@deriving protocol ~driver:(module Json)]
+
+  module Nonrec = struct
+    type nonrec t = A of t
+    [@@deriving protocol ~driver:(module Json)]
+  end
+
+end

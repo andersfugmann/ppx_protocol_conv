@@ -96,7 +96,7 @@
 (List
  ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
   (List ((List ()))) (List ((List ((Int 2)))))))
-=== SingleElem ===
+=== Test__Test_arrays.SingleElem ===
 (List ())
 === Test__Test_arrays.SingleElem ===
 (List ((Int 2)))

@@ -13,7 +13,7 @@ module Test = struct
       uu: u;
     } [@@deriving protocol ~driver:(module Json)]
     let t = { int = 5; u = A; uu = B 5 }
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  t |> to_json |> of_json_exn = t
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
@@ -36,7 +36,7 @@ module Test = struct
     } [@@deriving protocol ~driver:(module Json)]
 
     let t = { int = 5; u = A; uu = B 5; v = `A 6 }
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  t |> to_json |> of_json_exn = t
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
@@ -58,7 +58,7 @@ module Test = struct
     } [@@deriving protocol ~driver:(module Json)]
 
     let t = { int = 5; u = A; uu = B 5; v = `X }
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  t |> to_json |> of_json_exn = t
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
@@ -79,7 +79,7 @@ module Test = struct
     } [@@deriving protocol ~driver:(module Json)]
 
     let t = { int = 5; u = A; uu = B 5 }
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  t |> to_json |> of_json_exn = t
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
@@ -101,7 +101,7 @@ module Test = struct
     } [@@deriving protocol ~driver:(module Json)]
 
     let t = { int = 5; u = A; uu = B 5 }
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  t |> to_json |> of_json_exn = t
     let%expect_test _ =
       let s = Json.to_string_hum (to_json t) in
       print_endline s;
@@ -125,12 +125,12 @@ module Test = struct
     [@@deriving protocol ~driver:(module Json)]
     let expect = !count
     let t = { a=5; b=5; c=B }
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  t |> to_json |> of_json_exn = t
     let%expect_test _ =
       let c1 = !count in
-      let _ = t |> to_json |> of_json in
+      let _ = t |> to_json |> of_json_exn in
       let c2 = !count in
-      let _ = t |> to_json |> of_json in
+      let _ = t |> to_json |> of_json_exn in
       let c3 = !count in
       Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
       [%expect {| 12 -> 12 -> 12 -> 12 |}]
@@ -151,9 +151,9 @@ module Test = struct
     let t = A (X (A (X ( B))))
     let%expect_test _ =
       let c1 = !count in
-      let _ = t |> to_json |> of_json in
+      let _ = t |> to_json |> of_json_exn in
       let c2 = !count in
-      let _ = t |> to_json |> of_json in
+      let _ = t |> to_json |> of_json_exn in
       let c3 = !count in
       Printf.printf "%d -> %d -> %d -> %d" expect c1 c2 c3;
       [%expect {| 0 -> 0 -> 8 -> 8 |}]
@@ -169,7 +169,7 @@ module Test = struct
     [@@deriving protocol ~driver:(module Json)]
 
     let%expect_test _ =
-      let (a, b) = of_json (`List [ `Int 5; `String "string"]) in
+      let (a, b) = of_json_exn (`List [ `Int 5; `String "string"]) in
       Printf.printf "`Fst: %d\n%!" a;
       begin
         try
@@ -257,8 +257,8 @@ module Test = struct
         } |} |> Yojson.Safe.from_string
 
     let t = tree
-    let%test _ =  yojson_result |> of_json = t
-    let%test _ =  t |> to_json |> of_json = t
+    let%test _ =  yojson_result |> of_json_exn = t
+    let%test _ =  t |> to_json |> of_json_exn = t
   end
 
 end

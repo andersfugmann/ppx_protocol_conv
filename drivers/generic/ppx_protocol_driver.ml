@@ -107,7 +107,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
   let to_record: (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b = fun spec constr ->
-    let spec = Helper.map_record_in ~field:P.field_name spec in
+    let spec = Helper.map_record_in P.field_name spec in
     let f = Helper.to_record ~strict:P.strict spec constr in
     fun t -> f (Driver.to_alist t)
 

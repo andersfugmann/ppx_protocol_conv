@@ -1,5 +1,9 @@
 open Base
 
+type 'a or_error = ('a, exn) Result.t
+let error exn = Result.Error exn
+let ok v = Result.Ok v
+
 module Record_in = struct
   type (_, _, _) t =
     | Cons : (string * ('t -> 'a) * 'a option) * ('t, 'b, 'c) t -> ('t, 'a -> 'b, 'c) t
@@ -84,17 +88,15 @@ module Helper = struct
   type 'a variant = Record of (string * 'a) list | Tuple of 'a list | Nil
 
   (** Map fields names of a {Record_in} structure *)
-  let rec map_record_in: type t a b. field:(string -> string) -> (t, a, b) Record_in.t -> (t, a, b) Record_in.t = fun ~field -> function
+  let rec map_record_in: type t a b. (string -> string) -> (t, a, b) Record_in.t -> (t, a, b) Record_in.t = fun field -> function
     | Record_in.Cons ((field_name, to_value_func, default), xs) ->
-      Record_in.Cons ((field field_name, to_value_func, default), map_record_in ~field xs)
+      Record_in.Cons ((field field_name, to_value_func, default), map_record_in field xs)
     | Record_in.Nil -> Record_in.Nil
 
   (** {to_record spec constructor ts} returns the constructed value.
-       [ts] is a associative array of (fieldname, t)
-      If default is set, then this value is used if the field name is not in [ts]
-
-      Create a map -> key -> idx
-      When getting input, create an array of t option.
+      [ts] is a associative array [(string * t)] list, mapping fields to the deserialized value [t]
+      if [strict] is true, an error will be raised if input contains an unknown field.
+      If dublicate fields are found in the input, an error is raised
   *)
   let to_record: type t constr b. ?strict:bool -> (t, constr, b) Record_in.t -> constr -> (string * t) list -> b =
     let rec to_alist : type a b c. int -> (a, b, c) Record_in.t -> (string * int) list = fun idx -> function

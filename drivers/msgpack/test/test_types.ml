@@ -32,7 +32,7 @@ let test_types _ =
   }
   in
   let m = to_msgpack t in
-  let t' = of_msgpack m in
+  let t' = of_msgpack_exn m in
   assert_equal t t';
   Printf.printf ".\n";
   ()
