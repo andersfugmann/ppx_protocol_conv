@@ -69,15 +69,12 @@ let string_map ~f str =
   List.iteri ~f:(fun i c -> bytes.[i] <- c) cs;
   Bytes.to_string bytes
 
-(* Convert a_bcd_e_ to aBcdE *)
-let mangle: string -> string = fun s ->
-  let rec inner : char list -> char list = function
-    | '_' :: c :: cs -> (Char.uppercase c) :: (inner cs)
-    | '_' :: [] -> []
-    | c :: cs -> c :: (inner cs)
-    | [] -> []
-  in
-  string_map ~f:inner s
+let mangle str =
+  match String.split_on_chars ~on:['_'] str with
+  | s :: sx ->
+    String.concat ~sep:""
+      (s :: List.map ~f:String.capitalize sx)
+  | _ -> str
 
 module Make(Driver: Driver)(P: Parameters) = struct
   type t = Driver.t

@@ -78,6 +78,8 @@ module type Driver = sig
   val of_unit:    unit -> t
 end
 
+(** This module contains helper functions for serializing and deserializing
+    tuples, records and variants. *)
 module Helper = struct
   exception Protocol_error of string
 

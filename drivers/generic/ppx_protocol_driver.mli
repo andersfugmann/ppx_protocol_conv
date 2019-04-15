@@ -91,6 +91,9 @@ module type Driver = sig
   val is_null: t -> bool
 end
 
+(** Helper function to convert snake case identifiers to
+    camel case, e.g. a_bcd_ef -> aBcdEf
+*)
 val mangle: string -> string
 
 module Make: functor (D : Driver)(P : Parameters) ->
