@@ -22,7 +22,7 @@ depends: [
 synopsis:
   "Ppx for generating serialisation and de-serialisation functions of ocaml types"
 description: """
-Ppx_protocol_conv generates code to serialise and de-serialise
+Ppx_protocol_conv generates code to serialize and de-serialize
 types. The ppx itself does not contain any protocol specific code,
 but relies on 'drivers' that defines serialisation and
 de-serialisation of basic types and structures.

@@ -156,7 +156,7 @@ module Helper = struct
   type 't serialize_record = (string * 't) list -> 't
 
   (** {!of_record map_f spec} produces a valid deserialisation function for a record type
-      The [map_f] function is called to produce the serialised result from a field_name, t association list.
+      The [map_f] function is called to produce the serialized result from a field_name, t association list.
       If [omit_default] is true, then default values are omitted from the output
   *)
   let of_record: type t a t. omit_default:bool -> t serialize_record -> (t, a, t) Record_out.t -> a =
@@ -207,7 +207,7 @@ module Helper = struct
 
   type 't serialize_variant = string -> 't list -> 't
 
-  (** {!of_variant spec v} serialises v and returns the serialized values
+  (** {!of_variant spec v} serializes v and returns the serialized values
       as a list or map
   *)
   let of_variant: type t. t serialize_variant -> string -> (t, 'a, t) Tuple_out.t -> 'a =

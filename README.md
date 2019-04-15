@@ -1,6 +1,6 @@
 # Ppx Protocol Conv
-Ppx protocol conv (de)serialisers using deriving, which allows for
-plugable (de)serialisers. [Api](https://andersfugmann.github.io/ppx_protocol_conv).
+Ppx protocol conv (de)serializers using deriving, which allows for
+plugable (de)serializers. [Api](https://andersfugmann.github.io/ppx_protocol_conv).
 
 [![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
 
@@ -20,11 +20,11 @@ The ppx supports the following features:
  * All primitive types (except nativeint)
 
 The following drivers exists
- * `Json` which serialises to `Yojson.Safe.t`
- * `Jsonm` which serialises to `Ezjsonm.value`
- * `Msgpack` which serialises to `Msgpck.t`
- * `Yaml` which serialises to `Yaml.t`
- * `Xml_light` which serialises to `Xml.xml list`
+ * `Json` which serializes to `Yojson.Safe.t`
+ * `Jsonm` which serializes to `Ezjsonm.value`
+ * `Msgpack` which serializes to `Msgpck.t`
+ * `Yaml` which serializes to `Yaml.t`
+ * `Xml_light` which serializes to `Xml.xml list`
 
 ## Examples
 ```ocaml
@@ -83,11 +83,11 @@ Drivers specify concrete serialization and deserialization.
 Users of the library can elect to implement their own driver see
 [custom drivers](#custom-drivers), or use predefined drivers:
 
- * `Json` which serialises to `Yojson.Safe.t`
- * `Jsonm` which serialises to `Ezjsonm.value`
- * `Msgpack` which serialises to `Msgpck.t`
- * `Yaml` which serialises to `Yaml.t`
- * `Xml_light` which serialises to `Xml.xml list`
+ * `Json` which serializes to `Yojson.Safe.t`
+ * `Jsonm` which serializes to `Ezjsonm.value`
+ * `Msgpack` which serializes to `Msgpck.t`
+ * `Yaml` which serializes to `Yaml.t`
+ * `Xml_light` which serializes to `Xml.xml list`
 
 ## Custom drivers
 It is easy to provide custom drivers by implementing the signature:

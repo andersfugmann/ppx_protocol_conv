@@ -4,5 +4,5 @@
  (kind ppx_deriver)
  (libraries base ppxlib)
  (preprocess (pps ppxlib.metaquot))
- (synopsis "ppx to derive (de)serialisers of a type")
+ (synopsis "ppx to derive (de)serializers of a type")
 )

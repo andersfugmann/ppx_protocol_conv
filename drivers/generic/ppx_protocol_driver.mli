@@ -1,13 +1,13 @@
 module type Parameters = sig
   (** Map field names of records
-      Mapping is done after applying [@key] attribute
+      Mapping is done after applying [[@key]] attribute.
 
       Default is [identity]
   *)
   val field_name: string -> string
 
   (** Map variant and constructor names.
-      Mapping is done after applying [@name] attribute
+      Mapping is done after applying [[@name]] attribute.
 
       Default is [identity]
   *)
@@ -15,7 +15,7 @@ module type Parameters = sig
 
   (** Map constructors with no arguments to a string.
       If true, constructors without arguments are mapped to a string, instead of
-      than a list containing only the constructor / variant name
+      than a list containing only the constructor / variant name.
 
       Default is [true]
   *)
@@ -24,7 +24,7 @@ module type Parameters = sig
   (** Omit default values from output.
       If true, default values
       are not serialized. Note that this uses polymorphic compare
-      to determine if a field value is the same as the default value
+      to determine if a field value is the same as the default value.
 
       Default is [true]
   *)
