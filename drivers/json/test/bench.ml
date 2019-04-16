@@ -18,7 +18,7 @@ module type Test = sig
   val t: unit -> t
   val to_json: t -> Json.t
   val to_yojson: t -> Yojson.Safe.json
-  val of_json: Json.t -> t
+  val of_json: Json.t -> t Protocol_conv.Runtime.or_error
   val of_yojson: Yojson.Safe.json -> t Ppx_deriving_yojson_runtime.error_or
 end
 
@@ -129,11 +129,13 @@ let e () = match Random.int 20 with
 
 module Test_enum : Test = struct
   let name = "Enum"
-  type t = A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 | A16 | A17 | A18 | A19
+  type u = A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 | A16 | A17 | A18 | A19
+  and t = u list
   [@@deriving protocol ~driver:(module Json), yojson]
-  let t () = match Random.int 20 with
+  let u () = match Random.int 20 with
     | 0 -> A0 | 1 -> A1 | 2 -> A2 | 3 -> A3 | 4 -> A4 | 5 -> A5 | 6 -> A6 | 7 -> A7 | 8 -> A8 | 9 -> A9 | 10 -> A10
     | 11 -> A11 | 12 -> A12 | 13 -> A13 | 14 -> A14 | 15 -> A15 | 16 -> A16 | 17 -> A17 | 18 -> A18 | 19 -> A19 | _ -> failwith "e"
+  let t () = list ~length:10 u ()
 end
 
 type f = d * e

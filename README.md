@@ -1,6 +1,10 @@
 # Ppx Protocol Conv
 Ppx protocol conv (de)serializers using deriving, which allows for
-plugable (de)serializers. [Api](https://andersfugmann.github.io/ppx_protocol_conv).
+plugable
+(de)serializers. [Api](https://andersfugmann.github.io/ppx_protocol_conv).
+
+This page contains an simple overview of functionality provided. More
+information is available in the [wiki pages](https://github.com/andersfugmann/ppx_protocol_conv/wiki)
 
 [![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
 
@@ -44,10 +48,12 @@ type b = A of int
 will generate the functions:
 ```ocaml
 val a_to_json: a -> Json.t
-val a_of_json: Json.t -> a
+val a_of_json_exn: Json.t -> a
+val a_of_json: Json.t -> (a, exn) result
 
 val b_to_json: a -> Json.t
-val b_of_json: Json.t -> a
+val b_of_json_exn: Json.t -> a
+val b_of_json: Json.t -> (b, exn) result
 ```
 
 ```ocaml
@@ -103,4 +109,3 @@ Submissions of new drivers are more than welcome.
 * Generalised algebraic datatypes
 * Extensible types
 * Extensible polymorphic variants
-* nativeint
