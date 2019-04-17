@@ -169,14 +169,13 @@ module Test = struct
     [@@deriving protocol ~driver:(module Json)]
 
     let%expect_test _ =
-      let (a, b) = of_json_exn (`List [ `Int 5; `String "string"]) in
-      Printf.printf "`Fst: %d\n%!" a;
+      let (a, b) = of_json_exn (`List [ `Int 5; `String "ipsum"]) in
+      Printf.printf "First: %d\n%!" a;
       begin
         try
-          Printf.printf "`Snd: %d\n" (Lazy.force b)
+          Printf.printf "Lazy: %d\n" (Lazy.force b)
         with
-        | Json.Protocol_error (msg, Some t) -> Printf.eprintf "`Snd: %s. Got: %s"  msg (Json.to_string_hum t);
-        | Json.Protocol_error (msg, None) -> Printf.eprintf "`Snd: %s. Got: None"  msg
+        | Json.Protocol_error err -> Printf.eprintf "Lazy: Got expected error: %s" (Json.error_to_string_hum err);
       end;
       [%expect {|
         `Fst: 5

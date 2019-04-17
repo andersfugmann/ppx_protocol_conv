@@ -70,18 +70,27 @@ let mangle str =
 
 module Make(Driver: Driver)(P: Parameters) = struct
   type t = Driver.t
+  type error = string * t option
+  exception Protocol_error of error
 
-  exception Protocol_error of string * t option
+  let error_to_string_hum: error -> string = function
+    | (s, Some t) -> Printf.sprintf "%s. Got: %s" s (Driver.to_string_hum t)
+    | (s, None) -> s
+
   (* Register exception printer *)
   let () = Printexc.register_printer (function
-      | Protocol_error (s, Some t) -> Some (Printf.sprintf "%s, %s" s (Driver.to_string_hum t))
-      | Protocol_error (s, None) -> Some (Printf.sprintf "%s" s)
+      | Protocol_error err -> Some (error_to_string_hum err)
       | _ -> None)
 
   let to_string_hum = Driver.to_string_hum
 
   let raise_errorf t fmt =
     Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+
+  let try_with: (t -> 'a) -> t -> ('a, error) Runtime.result = fun f t ->
+    match f t with
+    | v -> Ok v
+    | exception (Protocol_error e) -> Error e
 
   let wrap t f x = match f x with
     | v -> v

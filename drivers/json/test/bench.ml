@@ -18,7 +18,7 @@ module type Test = sig
   val t: unit -> t
   val to_json: t -> Json.t
   val to_yojson: t -> Yojson.Safe.json
-  val of_json: Json.t -> t Protocol_conv.Runtime.or_error
+  val of_json: Json.t -> (t, Json.t) Protocol_conv.Runtime.result
   val of_yojson: Yojson.Safe.json -> t Ppx_deriving_yojson_runtime.error_or
 end
 

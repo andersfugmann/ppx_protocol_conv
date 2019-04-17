@@ -1,8 +1,6 @@
 open Base
 
-type 'a or_error = ('a, exn) Result.t
-let error exn = Result.Error exn
-let ok v = Result.Ok v
+type ('v, 'e) result = ('v, 'e) Result.t
 
 module Record_in = struct
   type (_, _, _) t =
@@ -36,15 +34,40 @@ module Variant_in = struct
   type (_, _) t = Variant: string * ('a, 'constr, 'c) Tuple_in.t  * 'constr -> ('a, 'c) t
 end
 
+(** Signature for a driver. Serialization function are on the form [of_XXX] and
+    deserialization function are on the form [to_XXX].
+
+    All deserialization functions should only raise [Protocol_error] is the type could not be desrialized.
+*)
 module type Driver = sig
+
+  (** Serialized type. This type should not be opaque, so it is recommended that
+      drivers implement the signature as [Runtime.Driver with type t = ... ]
+  *)
   type t
-  exception Protocol_error of string * t option
+
+  (** Opaque error type *)
+  type error
+
+  (** Exception for protocol errors. The driver should make sure that
+      this is the only exception raised when deserializing *)
+  exception Protocol_error of error
+
+  (** Convert an error type to a human readable string *)
+  val error_to_string_hum: error -> string
+
+  (** Convert t to a string *)
   val to_string_hum: t -> string
+
+  (** Wrap deserialization function to convert exceptions into an result type *)
+  val try_with: (t -> 'v) -> t -> ('v, error) result
 
   val to_variant: (t, 'a) Variant_in.t list -> t -> 'a
   val of_variant: string -> (t, 'a, t) Tuple_out.t -> 'a
+
   val to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b
   val of_record:  (t, 'a, t) Record_out.t -> 'a
+
   val to_tuple:   (t, 'constr, 'b) Tuple_in.t -> 'constr -> t -> 'b
   val of_tuple:   (t, 'a, t) Tuple_out.t -> 'a
 

@@ -3,11 +3,24 @@ open Base
 open Protocol_conv.Runtime
 type t = Xml.xml
 
-exception Protocol_error of string * t option
-let () = Printexc.register_printer
-    (function Protocol_error (s, Some t) -> Some (s ^ ": " ^ (Xml.to_string t))
-            | Protocol_error (s, None) -> Some (s)
-            | _ -> None)
+type error = string * t option
+exception Protocol_error of error
+
+let to_string_hum xml = Xml.to_string_fmt xml
+
+let error_to_string_hum: error -> string = function
+  | (s, Some t) -> Printf.sprintf "%s. T: '%s'" s (to_string_hum t)
+  | (s, None) -> s
+
+(* Register exception printer *)
+let () = Printexc.register_printer (function
+    | Protocol_error err -> Some (error_to_string_hum err)
+    | _ -> None)
+
+let try_with: (t -> 'a) -> t -> ('a, error) result = fun f t ->
+  match f t with
+  | v -> Ok v
+  | exception (Protocol_error e) -> Error e
 
 let raise_errorf t fmt =
   Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
@@ -15,9 +28,6 @@ let raise_errorf t fmt =
 let wrap t f x = match f x with
   | v -> v
   | exception Helper.Protocol_error s -> raise (Protocol_error (s, Some t))
-
-let to_string_hum xml =
-  Xml.to_string_fmt xml
 
 let element name t = Xml.Element (name, [], t)
 

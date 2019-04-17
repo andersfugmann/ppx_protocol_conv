@@ -1,6 +1,7 @@
-open Base
 open Protocol_conv
 open Runtime
+open Base
+
 type t =
   | Record of (string * t) list
   | Variant of string * t list
@@ -18,12 +19,26 @@ type t =
   | Unit
 [@@deriving sexp]
 
-exception Protocol_error of string * t option
+type error = string * t option
+exception Protocol_error of error
 
 let to_string_hum t = sexp_of_t t |> Sexp.to_string_hum
+let error_to_string_hum: error -> string = function
+  | (s, Some t) -> Printf.sprintf "%s. T: '%s'" s (to_string_hum t)
+  | (s, None) -> s
+
+(* Register exception printer *)
+let () = Caml.Printexc.register_printer (function
+    | Protocol_error err -> Some (error_to_string_hum err)
+    | _ -> None)
 
 let raise_errorf t fmt =
   Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, Some t))) fmt
+
+let try_with: (t -> 'a) -> t -> ('a, error) Runtime.result = fun f t ->
+  match f t with
+  | v -> Ok v
+  | exception (Protocol_error e) -> Error e
 
 let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec -> function
   | Variant (name, args) -> Helper.to_variant spec name args

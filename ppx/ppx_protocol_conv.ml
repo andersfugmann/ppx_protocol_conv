@@ -658,7 +658,8 @@ let type_of_of_func ~loc driver ~as_result tydecl =
   let result_type = match as_result with
     | false -> typ
     | true ->
-      ptyp_constr ~loc { loc; txt = Ldot (Ldot (Lident "Protocol_conv", "Runtime"), "or_error") } [typ]
+      let error_typ = ptyp_constr ~loc { loc; txt = Ldot (driver, "error") } [] in
+      ptyp_constr ~loc { loc; txt = Ldot (Ldot (Lident "Protocol_conv", "Runtime"), "result") } [typ; error_typ]
   in
   [%type: [%t ptyp_constr ~loc { loc; txt = Ldot (driver, "t")} [] ] -> [%t result_type]]
 
@@ -753,16 +754,21 @@ let of_protocol_str_type_decls t rec_flag ~loc tydecls =
               pexp_ident ~loc { loc; txt = Lident (name_of_core_type ~prefix:"of" ct).txt })
           tdecl.ptype_params
       in
+      (*
       let args =
         type_params @ [ pexp_ident ~loc { loc; txt = Lident "t"} ]
         |> List.map ~f:(fun e -> (Nolabel, e))
       in
       pexp_apply ~loc (pexp_ident ~loc { loc; txt = Lident of_p.txt}) args
+
+*)
+      let args =
+        type_params
+        |> List.map ~f:(fun e -> (Nolabel, e))
+      in
+      pexp_apply ~loc (pexp_ident ~loc { loc; txt = Lident of_p.txt}) args
     in
-    [%expr fun t -> match [%e expr] with
-      | v -> Protocol_conv.Runtime.ok v
-      | exception exn -> Protocol_conv.Runtime.error exn
-    ]
+    pexp_apply ~loc (driver_func t ~loc "try_with") [Nolabel, expr]
   in
   let (defs, err_defs, is_recursive) =
     let is_recursive_f = is_recursive tydecls rec_flag in
