@@ -180,10 +180,12 @@ module Helper = struct
 
   (** Map fields names of a [Record_out] structure *)
   let rec map_record_out: type t a. (string -> string) -> (t, a, t) Record_out.t -> (t, a, t) Record_out.t =
-    fun field -> function
-      | Record_out.Cons ((field_name, to_t, default), xs) ->
-        Record_out.Cons ((field field_name, to_t, default), map_record_out field xs)
-      | Record_out.Nil -> Record_out.Nil
+    fun field ->
+    let open Record_out in
+    function
+      | Cons ((field_name, to_t, default), xs) ->
+        Cons ((field field_name, to_t, default), map_record_out field xs)
+      | Nil -> Nil
 
   type 't serialize_record = (string * 't) list -> 't
 
@@ -193,27 +195,20 @@ module Helper = struct
   *)
   let of_record: type t a t. omit_default:bool -> t serialize_record -> (t, a, t) Record_out.t -> a =
     fun ~omit_default serialize_record ->
-    let value =
-      match omit_default with
-      | false -> fun n f _d -> fun v acc -> (n, f v) :: acc
-      | true -> fun n f d -> begin match d with
-          | Some d -> begin
-              fun v acc -> match Poly.equal v d with
-                | true -> acc
-                | false -> (n, f v) :: acc
-            end
-          | None -> fun v acc -> (n, f v) :: acc
-        end
-    in
     let rec inner: type a. (t, a, t) Record_out.t -> (string * t) list -> a =
       let open Record_out in
       function
-      | Cons ((n1, f1, d1), xs) ->
+      | Cons ((n1, f1, Some d1), xs) when omit_default ->
+        begin
+          let cont = inner xs in
+          fun acc v1 -> match Poly.equal d1 v1 with
+            | true -> cont acc
+            | false -> cont ((n1, f1 v1) :: acc)
+        end
+      | Cons ((n1, f1, _), xs) ->
         let cont = inner xs in
-        let vf1 = value n1 f1 d1 in
         fun acc v1 ->
-          cont (vf1 v1 acc)
-
+          cont ((n1, f1 v1) :: acc)
       | Record_out.Nil ->
         fun acc -> serialize_record acc
     in
@@ -223,56 +218,23 @@ module Helper = struct
   let rec to_tuple: type t a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
     let open Tuple_in in
     function
-    | Cons (f1, Cons (f2, Cons (f3, Cons (f4, Cons (f5, Nil))))) -> begin
-      fun constructor -> function
-        | [v1; v2; v3; v4; v5] -> constructor (f1 v1) (f2 v2) (f3 v3) (f4 v4) (f5 v5)
-        | _ :: _ :: _ :: _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
-        | _ -> raise_errorf "Too few elements when parsing tuple"
-    end
-    | Cons (f1, Cons (f2, Cons (f3, Cons (f4, Nil)))) -> begin
-      fun constructor -> function
-        | [v1; v2; v3; v4] -> constructor (f1 v1) (f2 v2) (f3 v3) (f4 v4)
-        | _ :: _ :: _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
-        | _ -> raise_errorf "Too few elements when parsing tuple"
-    end
-    | Cons (f1, Cons (f2, Cons (f3, Nil))) -> begin
-      fun constructor -> function
-        | [v1; v2; v3] -> constructor (f1 v1) (f2 v2) (f3 v3)
-        | _ :: _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
-        | _ -> raise_errorf "Too few elements when parsing tuple"
-    end
-    | Cons (f1, Cons (f2, Nil)) -> begin
-      fun constructor -> function
-        | [v1; v2] -> constructor (f1 v1) (f2 v2)
-        | _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
-        | _ -> raise_errorf "Too few elements when parsing tuple"
-    end
-    | Cons (f1, Nil) -> begin
-      fun constructor -> function
-        | [v1] -> constructor (f1 v1)
-        | _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
-        | _ -> raise_errorf "Too few elements when parsing tuple"
-    end
+    | Cons (f1, xs) -> begin
+        let cont = to_tuple xs in
+        fun constructor -> function
+          | v1 :: ts -> cont (constructor (f1 v1)) ts
+          | _ -> raise_errorf "Too few elements when parsing tuple"
+      end
     | Nil -> fun a -> begin
       function
       | [] -> a
       | _ -> raise_errorf "Too many elements when parsing tuple"
     end
 
-    | Cons (f1, Cons (f2, Cons (f3, Cons (f4, Cons (f5, xs))))) -> begin
-        let cont = to_tuple xs in
-        fun constructor -> function
-          | v1 :: v2 :: v3 :: v4 :: v5 :: ts -> cont (constructor (f1 v1) (f2 v2) (f3 v3) (f4 v4) (f5 v5)) ts
-          | _ -> raise_errorf "Too few elements when parsing tuple"
-      end
-
   type 't serialize_tuple = 't list -> 't
   let of_tuple: type t a. t serialize_tuple -> (t, a, t) Tuple_out.t -> a = fun serialize_tuple ->
     let rec inner: type a. (t, a, t) Tuple_out.t -> t list -> a =
       let open Tuple_out in
       function
-      | Cons (f1, Cons (f2, (Cons (f3, (Cons (f4, Cons (f5, Nil))))))) ->
-        fun acc v1 v2 v3 v4 v5 -> List.rev_append acc [f1 v1; f2 v2; f3 v3; f4 v4; f5 v5] |> serialize_tuple
       | Cons (f1, Cons (f2, (Cons (f3, (Cons (f4, Nil)))))) ->
         fun acc v1 v2 v3 v4 -> List.rev_append acc [f1 v1; f2 v2; f3 v3; f4 v4] |> serialize_tuple
       | Cons (f1, Cons (f2, (Cons (f3, Nil)))) ->
@@ -283,7 +245,6 @@ module Helper = struct
         fun acc v1 -> List.rev_append acc [f1 v1] |> serialize_tuple
       | Nil ->
         fun acc -> List.rev acc |> serialize_tuple
-
       | Cons (f1, Cons (f2, (Cons (f3, (Cons (f4, Cons (f5, xs))))))) ->
         let cont = inner xs in
         fun acc v1 v2 v3 v4 v5 -> cont (f5 v5 :: f4 v4 :: f3 v3 :: f2 v2 :: f1 v1 :: acc)

@@ -44,7 +44,10 @@ gh-pages: doc
 
 .PHONY: bench
 bench:
-	dune exec drivers/json/test/bench.exe
+	dune clean
+	dune exec drivers/json/test/bench.exe --profile bench -- -all-values | tee bench.txt
+	sed -i 's/[┴┬┼│├┤┌┐┘└]/|/g' bench.txt
+	sed -i 's/[─]/-/g' bench.txt
 
 debug:
 	dumpast type.ml
