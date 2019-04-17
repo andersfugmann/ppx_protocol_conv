@@ -1,0 +1,4 @@
+(lang dune 1.1)
+(env
+(bench (ocamlopt_flags :standard -O3 -inline 20 -inline-max-depth 5 -inline-max-unroll 5 -unbox-closures -unboxed-types))
+)

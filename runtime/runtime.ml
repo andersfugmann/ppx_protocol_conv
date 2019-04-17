@@ -101,16 +101,28 @@ module type Driver = sig
   val of_unit:    unit -> t
 end
 
-(** This module contains helper functions for serializing and deserializing
-    tuples, records and variants. *)
+(** Module contains helper function for serializing and deserializing tuples, records and variants.
+    Deserialization functions may raise [Helper.Protocol] exception. It is recommended that the calling functions
+    convert this exception into a [Driver.Protocol_exception]
+*)
 module Helper = struct
+
+  (** Excpetion raised if the type could not be serialized *)
   exception Protocol_error of string
 
   (**/**)
+  module type Lookup = sig
+    val of_alist: (string * 'a) list -> string -> 'a option
+  end
+  module Hashtbl_lookup : Lookup = struct (* 20.22% *)
+    let of_alist alist =
+      let tbl = Hashtbl.of_alist_exn (module String) alist in
+      Hashtbl.find tbl
+  end
+  module Lookup = Hashtbl_lookup
+
   let raise_errorf: ('a, unit, string, 'b) format4 -> 'a = fun fmt -> Printf.ksprintf (fun s -> raise (Protocol_error s)) fmt
   (**/**)
-
-  type 'a variant = Record of (string * 'a) list | Tuple of 'a list | Nil
 
   (** Map fields names of a [Record_in] structure *)
   let rec map_record_in: type t a b. (string -> string) -> (t, a, b) Record_in.t -> (t, a, b) Record_in.t = fun field -> function
@@ -130,37 +142,32 @@ module Helper = struct
       | Record_in.Nil -> []
     in
     let rec inner: type constr. int -> (t, constr, b) Record_in.t -> constr -> t option array -> b = fun idx ->
+      let open Record_in in
+      let value_of to_v field default t = match t, default with
+        | Some t, _ -> to_v t
+        | None, Some d -> d
+        | None, None -> raise_errorf "Missing record field: %s" field
+      in
       function
-      | Record_in.Cons ((_field, to_value_func, Some default), xs) ->
+      | (Cons ((n1, f1, d1), xs)) ->
         let cont = inner (idx + 1) xs in
         fun constr values ->
-          let v = match values.(idx) with
-            | None -> default
-            | Some t -> to_value_func t
-          in
-          cont (constr v) values
-      | Record_in.Cons ((field, to_value_func, None), xs) ->
-        let cont = inner (idx + 1) xs in
-        fun constr values ->
-          let v = match values.(idx) with
-            | None -> raise_errorf "Missing record field: %s" field
-            | Some t -> to_value_func t
-          in
-          cont (constr v) values
-      | Record_in.Nil -> fun a _map -> a
+          let v1 = value_of f1 n1 d1 values.(idx + 0) in
+          cont (constr v1) values
+
+      | Nil -> fun a _values -> a
     in
     fun ?(strict=false) spec constr ->
-      let table =
-        to_alist 0 spec
-        |> Hashtbl.of_alist_exn (module String)
+      let lookup, count =
+        let alist = to_alist 0 spec in
+        Lookup.of_alist alist, List.length alist
       in
-      let count = Hashtbl.length table in
       let f = inner 0 spec constr in
 
       fun values ->
         let value_array = Array.create ~len:count None in
         List.iter ~f:(fun (field, t) ->
-            match Hashtbl.find table field with
+            match lookup field with
             | None when strict -> raise_errorf "Unused field when deserialising record: %s" field
             | None -> ()
             | Some idx -> begin
@@ -186,18 +193,27 @@ module Helper = struct
   *)
   let of_record: type t a t. omit_default:bool -> t serialize_record -> (t, a, t) Record_out.t -> a =
     fun ~omit_default serialize_record ->
-    let rec inner: type a. (t, a, t) Record_out.t -> (string * t) list -> a = function
-      | Record_out.Cons ((field, to_t, default), xs) ->
-        let cont = inner xs in
-        let f = match omit_default, default with
-          | true, Some d -> begin
-              fun acc -> function
-                | v when Poly.equal v d -> cont acc
-                | v -> cont ((field, to_t v) :: acc)
+    let value =
+      match omit_default with
+      | false -> fun n f _d -> fun v acc -> (n, f v) :: acc
+      | true -> fun n f d -> begin match d with
+          | Some d -> begin
+              fun v acc -> match Poly.equal v d with
+                | true -> acc
+                | false -> (n, f v) :: acc
             end
-          | _, _ -> fun acc v -> cont ((field, to_t v) :: acc)
-        in
-        f
+          | None -> fun v acc -> (n, f v) :: acc
+        end
+    in
+    let rec inner: type a. (t, a, t) Record_out.t -> (string * t) list -> a =
+      let open Record_out in
+      function
+      | Cons ((n1, f1, d1), xs) ->
+        let cont = inner xs in
+        let vf1 = value n1 f1 d1 in
+        fun acc v1 ->
+          cont (vf1 v1 acc)
+
       | Record_out.Nil ->
         fun acc -> serialize_record acc
     in
@@ -205,28 +221,72 @@ module Helper = struct
 
   (** {!to_tuple spec tlist} produces a tuple from the serialized values in [tlist] *)
   let rec to_tuple: type t a b. (t, a, b) Tuple_in.t -> a -> t list -> b =
+    let open Tuple_in in
     function
-    | Tuple_in.Cons (to_value_func, xs) ->
-      let cont = to_tuple xs in
-      fun constructor -> begin function
-          | t :: ts ->
-            let v = to_value_func t in
-            cont (constructor v) ts
-          | [] -> raise_errorf "Too few elements when parsing tuple"
-        end
-    | Tuple_in.Nil -> fun a -> function
+    | Cons (f1, Cons (f2, Cons (f3, Cons (f4, Cons (f5, Nil))))) -> begin
+      fun constructor -> function
+        | [v1; v2; v3; v4; v5] -> constructor (f1 v1) (f2 v2) (f3 v3) (f4 v4) (f5 v5)
+        | _ :: _ :: _ :: _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
+        | _ -> raise_errorf "Too few elements when parsing tuple"
+    end
+    | Cons (f1, Cons (f2, Cons (f3, Cons (f4, Nil)))) -> begin
+      fun constructor -> function
+        | [v1; v2; v3; v4] -> constructor (f1 v1) (f2 v2) (f3 v3) (f4 v4)
+        | _ :: _ :: _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
+        | _ -> raise_errorf "Too few elements when parsing tuple"
+    end
+    | Cons (f1, Cons (f2, Cons (f3, Nil))) -> begin
+      fun constructor -> function
+        | [v1; v2; v3] -> constructor (f1 v1) (f2 v2) (f3 v3)
+        | _ :: _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
+        | _ -> raise_errorf "Too few elements when parsing tuple"
+    end
+    | Cons (f1, Cons (f2, Nil)) -> begin
+      fun constructor -> function
+        | [v1; v2] -> constructor (f1 v1) (f2 v2)
+        | _ :: _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
+        | _ -> raise_errorf "Too few elements when parsing tuple"
+    end
+    | Cons (f1, Nil) -> begin
+      fun constructor -> function
+        | [v1] -> constructor (f1 v1)
+        | _ :: _ :: _ -> raise_errorf "Too many elements when parsing tuple"
+        | _ -> raise_errorf "Too few elements when parsing tuple"
+    end
+    | Nil -> fun a -> begin
+      function
       | [] -> a
       | _ -> raise_errorf "Too many elements when parsing tuple"
+    end
+
+    | Cons (f1, Cons (f2, Cons (f3, Cons (f4, Cons (f5, xs))))) -> begin
+        let cont = to_tuple xs in
+        fun constructor -> function
+          | v1 :: v2 :: v3 :: v4 :: v5 :: ts -> cont (constructor (f1 v1) (f2 v2) (f3 v3) (f4 v4) (f5 v5)) ts
+          | _ -> raise_errorf "Too few elements when parsing tuple"
+      end
 
   type 't serialize_tuple = 't list -> 't
   let of_tuple: type t a. t serialize_tuple -> (t, a, t) Tuple_out.t -> a = fun serialize_tuple ->
-    let rec inner: type a. (t, a, t) Tuple_out.t -> t list -> a = function
-      | Tuple_out.Cons (to_t, xs) ->
-        let cont = inner xs in
-        fun acc v ->
-          cont (to_t v :: acc)
-      | Tuple_out.Nil ->
+    let rec inner: type a. (t, a, t) Tuple_out.t -> t list -> a =
+      let open Tuple_out in
+      function
+      | Cons (f1, Cons (f2, (Cons (f3, (Cons (f4, Cons (f5, Nil))))))) ->
+        fun acc v1 v2 v3 v4 v5 -> List.rev_append acc [f1 v1; f2 v2; f3 v3; f4 v4; f5 v5] |> serialize_tuple
+      | Cons (f1, Cons (f2, (Cons (f3, (Cons (f4, Nil)))))) ->
+        fun acc v1 v2 v3 v4 -> List.rev_append acc [f1 v1; f2 v2; f3 v3; f4 v4] |> serialize_tuple
+      | Cons (f1, Cons (f2, (Cons (f3, Nil)))) ->
+        fun acc v1 v2 v3 -> List.rev_append acc [f1 v1; f2 v2; f3 v3] |> serialize_tuple
+      | Cons (f1, Cons (f2, Nil)) ->
+        fun acc v1 v2 -> List.rev_append acc [f1 v1; f2 v2] |> serialize_tuple
+      | Cons (f1, Nil) ->
+        fun acc v1 -> List.rev_append acc [f1 v1] |> serialize_tuple
+      | Nil ->
         fun acc -> List.rev acc |> serialize_tuple
+
+      | Cons (f1, Cons (f2, (Cons (f3, (Cons (f4, Cons (f5, xs))))))) ->
+        let cont = inner xs in
+        fun acc v1 v2 v3 v4 v5 -> cont (f5 v5 :: f4 v4 :: f3 v3 :: f2 v2 :: f1 v1 :: acc)
     in
     fun spec -> inner spec []
 
@@ -245,12 +305,12 @@ module Helper = struct
     List.map variant ~f:(fun (Variant_in.Variant (name, spec, constr)) -> Variant_in.Variant (constructor name, spec, constr))
 
   let to_variant: ('t, 'a) Variant_in.t list -> string -> 't list -> 'a = fun spec ->
-    let table =
+    let lookup =
       List.map spec ~f:(fun (Variant_in.Variant (name, spec, constr)) -> name, to_tuple spec constr)
-      |> Hashtbl.of_alist_exn (module String)
+      |> Lookup.of_alist
     in
     fun name args ->
-      match Hashtbl.find table name with
+      match lookup name with
       | None -> raise_errorf "Unknown variant name: %s" name
       | Some f -> f args
 end

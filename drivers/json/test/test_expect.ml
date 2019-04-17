@@ -178,8 +178,8 @@ module Test = struct
         | Json.Protocol_error err -> Printf.eprintf "Lazy: Got expected error: %s" (Json.error_to_string_hum err);
       end;
       [%expect {|
-        `Fst: 5
-        `Snd: int expected. Got: "string" |}]
+        First: 5
+        Lazy: Got expected error: int expected. Got: "ipsum" |}]
   end
 
   module Yojson_test = struct

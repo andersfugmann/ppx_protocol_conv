@@ -26,7 +26,6 @@
 (executable
  (name        bench)
  (modules     bench)
- (ocamlopt_flags :standard -O3 -inline 100000)
  (libraries   ppx_protocol_conv_json core_bench)
  (preprocess (pps ppx_protocol_conv ppx_deriving_yojson)))
 
