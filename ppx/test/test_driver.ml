@@ -22,6 +22,8 @@ type t =
 type error = string * t option
 exception Protocol_error of error
 
+let make_error ?value msg = (msg, value)
+
 let to_string_hum t = sexp_of_t t |> Sexp.to_string_hum
 let error_to_string_hum: error -> string = function
   | (s, Some t) -> Printf.sprintf "%s. T: '%s'" s (to_string_hum t)

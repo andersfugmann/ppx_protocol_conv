@@ -53,6 +53,9 @@ module type Driver = sig
       this is the only exception raised when deserializing *)
   exception Protocol_error of error
 
+  (** Construct an error to be raised from a custom parser. *)
+  val make_error: ?value: t -> string -> error
+
   (** Convert an error type to a human readable string *)
   val error_to_string_hum: error -> string
 
