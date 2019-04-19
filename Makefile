@@ -45,7 +45,7 @@ gh-pages: doc
 .PHONY: bench
 bench:
 	dune clean
-	dune exec drivers/json/test/bench.exe --profile bench -- -all-values | tee bench.txt
+	dune exec drivers/json/bench/bench.exe --profile bench -- -all-values | tee bench.txt
 	sed -i 's/[┴┬┼│├┤┌┐┘└]/|/g' bench.txt
 	sed -i 's/[─]/-/g' bench.txt
 
