@@ -4,4 +4,14 @@
  (preprocess (pps ppx_sexp_conv))
 )
 
-(include ../../test/dune.inc)
+(rule
+ (targets unittest.output)
+ (deps    unittest.exe)
+ (action  (run %{deps}))
+)
+
+(alias
+ (name runtest)
+ (package ppx_protocol_conv)
+ (action (diff unittest.expected unittest.output))
+)

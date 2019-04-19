@@ -8,10 +8,10 @@ type t = {
   u: u [@key "Poly"];
 } [@@deriving protocol ~driver:(module Json), sexp]
 
-let fmt : t Fmt.t = fun formatter t ->
+let fmt formatter t =
   Caml.Format.fprintf formatter "%s" (Base.Sexp.to_string_hum (sexp_of_t t))
 
-let fmt_yojson : Yojson.Safe.json Fmt.t = fun formatter t ->
+let fmt_yojson formatter t =
   Caml.Format.fprintf formatter "%s" (Yojson.Safe.pretty_to_string t)
 
 
