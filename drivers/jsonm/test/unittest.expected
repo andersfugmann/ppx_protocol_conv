@@ -1,382 +1,3 @@
-=== Some Some Some true ===
-[
-  true
-]
-=== Some Some None ===
-[
-  {
-    "__option": {
-      "__option": null
-    }
-  }
-]
-=== Some None ===
-[
-  {
-    "__option": null
-  }
-]
-=== None ===
-[
-  null
-]
-=== Some Some Some true ===
-[
-  {
-    "a": true
-  }
-]
-=== Some Some None ===
-[
-  {
-    "a": {
-      "__option": {
-        "__option": null
-      }
-    }
-  }
-]
-=== Some None ===
-[
-  {
-    "a": {
-      "__option": null
-    }
-  }
-]
-=== None ===
-[
-  {
-    "a": null
-  }
-]
-=== unit option option list option option ===
-[
-  [
-    {
-      "__option": {
-        "__option": null
-      }
-    },
-    {
-      "__option": null
-    },
-    null
-  ]
-]
-=== confuse deserialization by using reserved word ===
-[
-  {
-    "o": {
-      "option": true
-    }
-  }
-]
-=== S3 ===
-[
-  {
-    "Contents": [
-      {
-        "ETag": "Etag",
-        "StorageClass": "STANDARD"
-      }
-    ],
-    "Prefix": "prefix"
-  }
-]
-=== Types ===
-[
-  {
-    "baz": {
-      "y_yd": [
-        "Variant_two1",
-        1
-      ],
-      "y_yc": [
-        "three",
-        [
-          100,
-          200,
-          300
-        ]
-      ],
-      "y_b": [
-        "two",
-        [
-          10,
-          20,
-          30
-        ]
-      ],
-      "y_a": 2
-    },
-    "bar": "one",
-    "foo": 1
-  }
-]
-=== Simple ===
-[
-  [
-    "A",
-    [
-      "B",
-      5
-    ],
-    [
-      "C",
-      6,
-      7
-    ],
-    [
-      "D",
-      [
-        8,
-        9
-      ]
-    ]
-  ]
-]
-=== Test__Test_variant.Tuple ===
-[
-  [
-    "A",
-    [
-      3,
-      4
-    ]
-  ]
-]
-=== Test__Test_variant.Tree ===
-[
-  [
-    "Node",
-    [
-      "Node",
-      "Leaf",
-      3,
-      "Leaf"
-    ],
-    10,
-    "Leaf"
-  ]
-]
-=== Test__Test_variant.MutualRecursion ===
-[
-  [
-    "T1",
-    [
-      "V",
-      [
-        "T",
-        [
-          "V",
-          [
-            "V1",
-            [
-              "V1",
-              [
-                "V1",
-                [
-                  "V0",
-                  5
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    ]
-  ]
-]
-=== Test__Test_variant.InsideRec ===
-[
-  {
-    "c": "c",
-    "V": "A",
-    "a": "a"
-  }
-]
-=== Test__Test_variant.InlineRecord ===
-[
-  [
-    "A",
-    {
-      "a": "a"
-    }
-  ]
-]
-=== Test__Test_variant.InlineRecord2 ===
-[
-  [
-    "aa",
-    {
-      "b": [
-        "aa",
-        {
-          "b": [
-            "B",
-            5
-          ],
-          "A": "a"
-        }
-      ],
-      "A": "a"
-    }
-  ]
-]
-=== Test__Test_variant.Poly ===
-[
-  [
-    "aaa",
-    5
-  ]
-]
-=== Nonrec ===
-[
-  [
-    "A",
-    [
-      "Cons",
-      4,
-      [
-        "Cons",
-        3,
-        "Nil"
-      ]
-    ]
-  ]
-]
-=== Nonrec2 ===
-[
-  [
-    "Cons",
-    4,
-    [
-      "Cons",
-      3,
-      "Nil"
-    ]
-  ]
-]
-=== None ===
-[
-  null
-]
-=== Some None ===
-[
-  {
-    "__option": null
-  }
-]
-=== Some Some None ===
-[
-  {
-    "__option": {
-      "__option": null
-    }
-  }
-]
-=== Some Some Some Unit ===
-[
-  {
-    "__option": {
-      "__option": {
-        "__option": {
-          "__option": null
-        }
-      }
-    }
-  }
-]
-=== Test__Test_lists.SingleElem ===
-[
-  []
-]
-=== Test__Test_lists.SingleElem ===
-[
-  [
-    2
-  ]
-]
-=== Test__Test_lists.Longlist ===
-[
-  [
-    4,
-    2,
-    3,
-    1
-  ]
-]
-=== Test__Test_lists.EmptyInsideRec ===
-[
-  {
-    "c": "c",
-    "V": [],
-    "a": "a"
-  }
-]
-=== Test__Test_lists.SingleInsideRec ===
-[
-  {
-    "c": "c",
-    "V": [
-      2
-    ],
-    "a": "a"
-  }
-]
-=== Test__Test_lists.MultiInsideRec ===
-[
-  {
-    "c": "c",
-    "V": [
-      4,
-      2,
-      3,
-      1
-    ],
-    "a": "a"
-  }
-]
-=== Test__Test_lists.ListOfLists ===
-[
-  {
-    "a": [
-      [
-        2,
-        3
-      ],
-      [
-        4,
-        5
-      ]
-    ]
-  }
-]
-=== Test__Test_lists.ListOfLists2 ===
-[
-  [
-    [],
-    [
-      [],
-      [
-        2
-      ],
-      [
-        3,
-        4
-      ]
-    ],
-    [
-      []
-    ],
-    [
-      [
-        2
-      ]
-    ]
-  ]
-]
 === Test__Test_arrays.SingleElem ===
 [
   []
@@ -465,144 +86,6 @@
       ]
     ]
   ]
-]
-=== RecordList ===
-[
-  {
-    "objects": [
-      {
-        "key": 1
-      },
-      {
-        "key": 2
-      }
-    ]
-  }
-]
-=== SimpleRecord ===
-[
-  {
-    "HostId": "SDsd",
-    "RequestId": "sdfsd",
-    "Endpoint": null,
-    "Bucket": null,
-    "Message": "Message",
-    "Code": "Error"
-  }
-]
-=== simple ===
-[
-  5
-]
-=== record ===
-[
-  {
-    "a": 5
-  }
-]
-=== multiple ===
-[
-  [
-    5,
-    "5",
-    true
-  ]
-]
-=== reference ===
-[
-  {
-    "a": {
-      "a": 5
-    }
-  }
-]
-=== recursive ===
-[
-  {
-    "c": {
-      "b": {
-        "a": 5
-      }
-    }
-  }
-]
-=== Test__Test_poly.Simple ===
-[
-  [
-    "A",
-    [
-      "B",
-      5
-    ],
-    [
-      "C",
-      [
-        6,
-        7
-      ]
-    ],
-    [
-      "D",
-      [
-        8,
-        9
-      ]
-    ]
-  ]
-]
-=== Test__Test_poly.Tree ===
-[
-  [
-    "Node",
-    [
-      [
-        "Node",
-        [
-          "Leaf",
-          3,
-          "Leaf"
-        ]
-      ],
-      10,
-      "Leaf"
-    ]
-  ]
-]
-=== Test__Test_poly.MutualRecursion ===
-[
-  [
-    "T1",
-    [
-      "V",
-      [
-        "T",
-        [
-          "V",
-          [
-            "V1",
-            [
-              "V1",
-              [
-                "V1",
-                [
-                  "V0",
-                  5
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    ]
-  ]
-]
-=== Test__Test_poly.InsideRec ===
-[
-  {
-    "c": "c",
-    "V": "A",
-    "a": "a"
-  }
 ]
 === Tuple ===
 [
@@ -1037,6 +520,290 @@
     ]
   }
 ]
+=== Test__Test_lists.SingleElem ===
+[
+  []
+]
+=== Test__Test_lists.SingleElem ===
+[
+  [
+    2
+  ]
+]
+=== Test__Test_lists.Longlist ===
+[
+  [
+    4,
+    2,
+    3,
+    1
+  ]
+]
+=== Test__Test_lists.EmptyInsideRec ===
+[
+  {
+    "c": "c",
+    "V": [],
+    "a": "a"
+  }
+]
+=== Test__Test_lists.SingleInsideRec ===
+[
+  {
+    "c": "c",
+    "V": [
+      2
+    ],
+    "a": "a"
+  }
+]
+=== Test__Test_lists.MultiInsideRec ===
+[
+  {
+    "c": "c",
+    "V": [
+      4,
+      2,
+      3,
+      1
+    ],
+    "a": "a"
+  }
+]
+=== Test__Test_lists.ListOfLists ===
+[
+  {
+    "a": [
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  }
+]
+=== Test__Test_lists.ListOfLists2 ===
+[
+  [
+    [],
+    [
+      [],
+      [
+        2
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    [
+      []
+    ],
+    [
+      [
+        2
+      ]
+    ]
+  ]
+]
+=== Test__Test_nonrec.Nonrec ===
+[
+  [
+    "A",
+    [
+      "Cons",
+      4,
+      [
+        "Cons",
+        3,
+        "Nil"
+      ]
+    ]
+  ]
+]
+=== Test__Test_nonrec.Nonrec2 ===
+[
+  [
+    "Cons",
+    4,
+    [
+      "Cons",
+      3,
+      "Nil"
+    ]
+  ]
+]
+=== None ===
+[
+  null
+]
+=== Some None ===
+[
+  {
+    "__option": null
+  }
+]
+=== Some Some None ===
+[
+  {
+    "__option": {
+      "__option": null
+    }
+  }
+]
+=== Some Some Some Unit ===
+[
+  {
+    "__option": {
+      "__option": {
+        "__option": {
+          "__option": null
+        }
+      }
+    }
+  }
+]
+=== simple ===
+[
+  5
+]
+=== record ===
+[
+  {
+    "a": 5
+  }
+]
+=== multiple ===
+[
+  [
+    5,
+    "5",
+    true
+  ]
+]
+=== reference ===
+[
+  {
+    "a": {
+      "a": 5
+    }
+  }
+]
+=== recursive ===
+[
+  {
+    "c": {
+      "b": {
+        "a": 5
+      }
+    }
+  }
+]
+=== Test__Test_poly.Simple ===
+[
+  [
+    "A",
+    [
+      "B",
+      5
+    ],
+    [
+      "C",
+      [
+        6,
+        7
+      ]
+    ],
+    [
+      "D",
+      [
+        8,
+        9
+      ]
+    ]
+  ]
+]
+=== Test__Test_poly.Tree ===
+[
+  [
+    "Node",
+    [
+      [
+        "Node",
+        [
+          "Leaf",
+          3,
+          "Leaf"
+        ]
+      ],
+      10,
+      "Leaf"
+    ]
+  ]
+]
+=== Test__Test_poly.MutualRecursion ===
+[
+  [
+    "T1",
+    [
+      "V",
+      [
+        "T",
+        [
+          "V",
+          [
+            "V1",
+            [
+              "V1",
+              [
+                "V1",
+                [
+                  "V0",
+                  5
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+]
+=== Test__Test_poly.InsideRec ===
+[
+  {
+    "c": "c",
+    "V": "A",
+    "a": "a"
+  }
+]
+=== Test__Test_record.RecordList ===
+[
+  {
+    "objects": [
+      {
+        "key": 1
+      },
+      {
+        "key": 2
+      }
+    ]
+  }
+]
+=== Test__Test_record.SimpleRecord ===
+[
+  {
+    "HostId": "SDsd",
+    "RequestId": "sdfsd",
+    "Endpoint": null,
+    "Bucket": null,
+    "Message": "Message",
+    "Code": "Error"
+  }
+]
 === Test__Test_sig.Test_sig ===
 [
   {
@@ -1057,4 +824,259 @@
       ]
     ]
   }
+]
+=== Test__Test_sig.Test_sig2 ===
+[
+  [
+    1,
+    2,
+    "3.0",
+    null,
+    [
+      "A",
+      1
+    ],
+    {
+      "c": "3.0",
+      "b": 2,
+      "a": 1
+    },
+    [
+      "A",
+      1
+    ]
+  ]
+]
+=== Test__Test_types.S3 ===
+[
+  {
+    "Contents": [
+      {
+        "ETag": "Etag",
+        "StorageClass": "STANDARD"
+      }
+    ],
+    "Prefix": "prefix"
+  }
+]
+=== Test__Test_types.Types ===
+[
+  {
+    "baz": {
+      "y_yd": [
+        "Variant_two1",
+        1
+      ],
+      "y_yc": [
+        "three",
+        [
+          100,
+          200,
+          300
+        ]
+      ],
+      "y_b": [
+        "two",
+        [
+          10,
+          20,
+          30
+        ]
+      ],
+      "y_a": 2
+    },
+    "bar": "one",
+    "foo": 1
+  }
+]
+=== Test__Test_unit.Some Some Some true ===
+[
+  true
+]
+=== Test__Test_unit.Some Some None ===
+[
+  {
+    "__option": {
+      "__option": null
+    }
+  }
+]
+=== Test__Test_unit.Some None ===
+[
+  {
+    "__option": null
+  }
+]
+=== Test__Test_unit.None ===
+[
+  null
+]
+=== Test__Test_unit.Some Some Some true ===
+[
+  {
+    "a": true
+  }
+]
+=== Test__Test_unit.Some Some None ===
+[
+  {
+    "a": {
+      "__option": {
+        "__option": null
+      }
+    }
+  }
+]
+=== Test__Test_unit.Some None ===
+[
+  {
+    "a": {
+      "__option": null
+    }
+  }
+]
+=== Test__Test_unit.None ===
+[
+  {
+    "a": null
+  }
+]
+=== Test__Test_unit.unit option option list option option ===
+[
+  [
+    {
+      "__option": {
+        "__option": null
+      }
+    },
+    {
+      "__option": null
+    },
+    null
+  ]
+]
+=== Test__Test_unit.confuse deserialization by using reserved word ===
+[
+  {
+    "o": {
+      "option": true
+    }
+  }
+]
+=== Test__Test_variant.Simple ===
+[
+  [
+    "A",
+    [
+      "B",
+      5
+    ],
+    [
+      "C",
+      6,
+      7
+    ],
+    [
+      "D",
+      [
+        8,
+        9
+      ]
+    ]
+  ]
+]
+=== Test__Test_variant.Tuple ===
+[
+  [
+    "A",
+    [
+      3,
+      4
+    ]
+  ]
+]
+=== Test__Test_variant.Tree ===
+[
+  [
+    "Node",
+    [
+      "Node",
+      "Leaf",
+      3,
+      "Leaf"
+    ],
+    10,
+    "Leaf"
+  ]
+]
+=== Test__Test_variant.MutualRecursion ===
+[
+  [
+    "T1",
+    [
+      "V",
+      [
+        "T",
+        [
+          "V",
+          [
+            "V1",
+            [
+              "V1",
+              [
+                "V1",
+                [
+                  "V0",
+                  5
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+]
+=== Test__Test_variant.InsideRec ===
+[
+  {
+    "c": "c",
+    "V": "A",
+    "a": "a"
+  }
+]
+=== Test__Test_variant.InlineRecord ===
+[
+  [
+    "A",
+    {
+      "a": "a"
+    }
+  ]
+]
+=== Test__Test_variant.InlineRecord2 ===
+[
+  [
+    "aa",
+    {
+      "b": [
+        "aa",
+        {
+          "b": [
+            "B",
+            5
+          ],
+          "A": "a"
+        }
+      ],
+      "A": "a"
+    }
+  ]
+]
+=== Test__Test_variant.Poly ===
+[
+  [
+    "aaa",
+    5
+  ]
 ]

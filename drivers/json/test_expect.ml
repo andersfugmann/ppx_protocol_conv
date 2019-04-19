@@ -1,4 +1,3 @@
-open Protocol_conv_json
 module Default_parameters = Ppx_protocol_driver.Default_parameters
 module Make = Json.Make
 

@@ -1,5 +1,4 @@
 open Base
-open OUnit2
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
@@ -167,7 +166,7 @@ module Make(Driver: Testable.Driver) = struct
       ]
     }
   end
-  let unittest = Caml.__MODULE__ >: test_list [
+  let unittest = Caml.__MODULE__, [
       M.test (module Tuple);
       M.test (module Any);
       M.test (module Record);

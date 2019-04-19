@@ -1,5 +1,14 @@
-open OUnit2
+open Sexplib.Std
 open Protocol_conv_msgpack
+
+module Msgpack = struct
+  include Msgpack
+  let sexp_of_float32 = sexp_of_float
+  let sexp_of_uint32 = sexp_of_int
+  let sexp_of_uint64 = sexp_of_int
+  let sexp_of_bytes = sexp_of_string
+end
+
 
 type t = {
   int: int;
@@ -12,11 +21,10 @@ type t = {
   uint32: Msgpack.uint32;
   uint64: Msgpack.uint64;
   bytes: Msgpack.bytes;
-  t: Msgpack.t;
 }
-[@@deriving protocol ~driver:(module Msgpack)]
+[@@deriving protocol ~driver:(module Msgpack), sexp_of]
 
-let test_types _ =
+let test_types () =
   let t = {
     int = 0;
     string = "a";
@@ -28,13 +36,14 @@ let test_types _ =
     uint32 = 0;
     uint64 = 0;
     bytes = "asd";
-    t = Msgpck.Nil;
   }
   in
   let m = to_msgpack t in
   let t' = of_msgpack_exn m in
-  assert_equal t t';
-  Printf.printf ".\n";
+  let fmt : t Fmt.t = fun formatter t ->
+    Format.fprintf formatter "%s" (Base.Sexp.to_string_hum (sexp_of_t t))
+  in
+  Alcotest.(check (of_pp fmt)) "Identity" t t';
   ()
 
-let unittest = "special types" >:: test_types
+let tests = __MODULE__, [ Alcotest.test_case "Msgpack types" `Quick test_types; ]

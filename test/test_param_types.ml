@@ -1,4 +1,3 @@
-open OUnit2
 open Sexplib.Std
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
@@ -59,7 +58,7 @@ module Make(Driver: Testable.Driver) = struct
     let t = { c = { b = { a = 5 }}}
   end
 
-  let unittest = __MODULE__ >: test_list [
+  let unittest = __MODULE__, [
       M.test (module T1);
       M.test (module T2);
       M.test (module T3);

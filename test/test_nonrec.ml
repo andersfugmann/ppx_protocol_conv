@@ -1,4 +1,3 @@
-open OUnit2
 open Sexplib.Std
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
@@ -9,7 +8,7 @@ module Make(Driver: Testable.Driver) = struct
     [@@deriving protocol ~driver:(module Driver), sexp]
 
     module Nonrec : M.Testable = struct
-      let name = "Nonrec"
+      let name = __MODULE__ ^ ".Nonrec"
       type nonrec t = A of t
       [@@deriving protocol ~driver:(module Driver), sexp]
       let t = A (Cons (4, Cons (3, Nil)))
@@ -22,14 +21,14 @@ module Make(Driver: Testable.Driver) = struct
     [@@deriving protocol ~driver:(module Driver), sexp]
 
     module Nonrec : M.Testable = struct
-      let name = "Nonrec2"
+      let name = __MODULE__ ^ ".Nonrec2"
       type nonrec t = t
       [@@deriving protocol ~driver:(module Driver), sexp]
       let t = Cons (4, Cons (3, Nil))
     end
 
   end
-  let unittest = __MODULE__ >: test_list [
+  let unittest = __MODULE__, [
       M.test (module Recursive.Nonrec);
       M.test (module Recursive2.Nonrec);
     ]

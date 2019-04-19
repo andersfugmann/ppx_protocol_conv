@@ -1,36 +1,36 @@
-open OUnit2
+module type Test_module = sig
+  module Make : functor (Driver : Testable.Driver) -> sig
+    val unittest: unit Alcotest.test
+  end
+end
 
 let verbose = false
 module Make(Driver : Testable.Driver) = struct
-   module Unit = Test_unit.Make(Driver)
-   module Types = Test_types.Make(Driver)
-   module Variant = Test_variant.Make(Driver)
-   module Nonrec = Test_nonrec.Make(Driver)
-   module Option_unit = Test_option_unit.Make(Driver)
-   module Lists = Test_lists.Make(Driver)
-   module Arrays = Test_arrays.Make(Driver)
-   module Record = Test_record.Make(Driver)
-   module Param_types = Test_param_types.Make(Driver)
-   module Poly = Test_poly.Make(Driver)
-   module TDriver = Test_driver.Make(Driver)
-   module Signature = Test_sig.Make(Driver)
+  let test_modules : (module Test_module) list =
+    [
+      (module Test_arrays);
+      (module Test_driver);
+      (module Test_lists);
+      (module Test_nonrec);
+      (module Test_option_unit);
+      (module Test_param_types);
+      (module Test_poly);
+      (module Test_record);
+      (module Test_sig);
+      (module Test_types);
+      (module Test_unit);
+      (module Test_variant);
+    ]
 
+  (* Create a list of tests *)
   let run ?(extra = []) ~name () =
-    let suite = name >::: [
-        Unit.unittest;
-        Types.unittest;
-        Variant.unittest;
-        Nonrec.unittest;
-        Option_unit.unittest;
-        Lists.unittest;
-        Arrays.unittest;
-        Record.unittest;
-        Param_types.unittest;
-        Poly.unittest;
-        TDriver.unittest;
-        Signature.unittest;
-      ] @ extra
+    let tests =
+      List.map (fun (module Test : Test_module) ->
+          let module T = Test.Make(Driver) in
+          T.unittest)
+        test_modules
     in
-    open_out "test.out" |> close_out;
-    run_test_tt_main suite
+    let tests = tests @ extra in
+    open_out "unittest.output" |> close_out;
+    Alcotest.run name tests
 end

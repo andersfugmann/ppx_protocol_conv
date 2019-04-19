@@ -17,9 +17,9 @@ depends: [
   "dune" {build & >= "1.2"}
   "ppx_sexp_conv" {with-test & < "v0.13"}
   "sexplib" {with-test & < "v0.13"}
-  "ounit" {with-test & < "3.0.0"}
+  "alcotest" {with-test & >= "0.8.0"}
 ]
 synopsis: "Json driver for Ppx_protocol_conv"
 description: """
-This package provides a driver for json (Yojson.Safe.json)
-serialization and de-serialization using the yojson library"""
+This package provides a driver for yaml (Yaml.value)
+serialization and de-serialization using the Yaml"""

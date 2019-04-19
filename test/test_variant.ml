@@ -1,11 +1,10 @@
-open OUnit2
 open Sexplib.Std
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module Simple : M.Testable = struct
-    let name = "Simple"
+    let name = __MODULE__ ^ ".Simple"
 
     type v = A | B of int | C of int * int | D of (int * int)
     and t = v list
@@ -85,7 +84,7 @@ module Poly : M.Testable = struct
   [@@deriving protocol ~driver:(module Driver), sexp]
   let t = `A 5
 end
-  let unittest = __MODULE__ >: test_list [
+  let unittest = __MODULE__, [
       M.test (module Simple);
       M.test (module Tuple);
       M.test (module Tree);

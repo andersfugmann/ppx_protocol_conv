@@ -1,289 +1,3 @@
-=== Some Some Some true ===
-<p>true</p>
-=== Some Some None ===
-<__option>
-  <__option>
-    <__option/>
-  </__option>
-</__option>
-=== Some None ===
-<__option>
-  <__option/>
-</__option>
-=== None ===
-<__option/>
-=== Some Some Some true ===
-<record>
-  <a>true</a>
-</record>
-=== Some Some None ===
-<record>
-  <a>
-    <__option>
-      <__option/>
-    </__option>
-  </a>
-</record>
-=== Some None ===
-<record>
-  <a>
-    <__option/>
-  </a>
-</record>
-=== None ===
-<record>
-  <a/>
-</record>
-=== unit option option list option option ===
-<l>
-  <p>()</p>
-  <__option>
-    <__option/>
-  </__option>
-  <__option/>
-</l>
-=== confuse deserialization by using reserved word ===
-<record>
-  <o>
-    <option>true</option>
-  </o>
-</record>
-=== S3 ===
-<record>
-  <Contents>
-    <ETag>Etag</ETag>
-    <StorageClass>STANDARD</StorageClass>
-  </Contents>
-  <Prefix>prefix</Prefix>
-</record>
-=== Types ===
-<record>
-  <baz>
-    <y_yd>
-Variant_two1
-      <p>1</p>
-    </y_yd>
-    <y_yc>
-      <t1>100</t1>
-      <t1>200</t1>
-      <t1>300</t1>
-      <t0>three</t0>
-    </y_yc>
-    <y_b>
-      <t1>10</t1>
-      <t1>20</t1>
-      <t1>30</t1>
-      <t0>two</t0>
-    </y_b>
-    <y_a>2</y_a>
-  </baz>
-  <bar>one</bar>
-  <foo>1</foo>
-</record>
-=== Simple ===
-<l>
-  <variant>A</variant>
-  <variant>
-B
-    <p>5</p>
-  </variant>
-  <variant>
-C
-    <p>6</p>
-    <p>7</p>
-  </variant>
-  <variant>
-D
-    <record>
-      <t1>9</t1>
-      <t0>8</t0>
-    </record>
-  </variant>
-</l>
-=== Test__Test_variant.Tuple ===
-<variant>
-A
-  <record>
-    <t1>4</t1>
-    <t0>3</t0>
-  </record>
-</variant>
-=== Test__Test_variant.Tree ===
-<variant>
-Node
-  <variant>
-Node
-    <variant>Leaf</variant>
-    <p>3</p>
-    <variant>Leaf</variant>
-  </variant>
-  <p>10</p>
-  <variant>Leaf</variant>
-</variant>
-=== Test__Test_variant.MutualRecursion ===
-<variant>
-T1
-  <variant>
-V
-    <variant>
-T
-      <variant>
-V
-        <variant>
-V1
-          <variant>
-V1
-            <variant>
-V1
-              <variant>
-V0
-                <p>5</p>
-              </variant>
-            </variant>
-          </variant>
-        </variant>
-      </variant>
-    </variant>
-  </variant>
-</variant>
-=== Test__Test_variant.InsideRec ===
-<record>
-  <c>c</c>
-  <V>A</V>
-  <a>a</a>
-</record>
-=== Test__Test_variant.InlineRecord ===
-<variant>
-A
-  <record>
-    <a>a</a>
-  </record>
-</variant>
-=== Test__Test_variant.InlineRecord2 ===
-<variant>
-aa
-  <record>
-    <b>
-aa
-      <record>
-        <b>
-B
-          <p>5</p>
-        </b>
-        <A>a</A>
-      </record>
-    </b>
-    <A>a</A>
-  </record>
-</variant>
-=== Test__Test_variant.Poly ===
-<variant>
-aaa
-  <p>5</p>
-</variant>
-=== Nonrec ===
-<variant>
-A
-  <variant>
-Cons
-    <p>4</p>
-    <variant>
-Cons
-      <p>3</p>
-      <variant>Nil</variant>
-    </variant>
-  </variant>
-</variant>
-=== Nonrec2 ===
-<variant>
-Cons
-  <p>4</p>
-  <variant>
-Cons
-    <p>3</p>
-    <variant>Nil</variant>
-  </variant>
-</variant>
-=== None ===
-<__option/>
-=== Some None ===
-<__option>
-  <__option/>
-</__option>
-=== Some Some None ===
-<__option>
-  <__option>
-    <__option/>
-  </__option>
-</__option>
-=== Some Some Some Unit ===
-<p>()</p>
-=== Test__Test_lists.SingleElem ===
-<l/>
-=== Test__Test_lists.SingleElem ===
-<l>
-  <p>2</p>
-</l>
-=== Test__Test_lists.Longlist ===
-<l>
-  <p>4</p>
-  <p>2</p>
-  <p>3</p>
-  <p>1</p>
-</l>
-=== Test__Test_lists.EmptyInsideRec ===
-<record>
-  <c>c</c>
-  <a>a</a>
-</record>
-=== Test__Test_lists.SingleInsideRec ===
-<record>
-  <c>c</c>
-  <V>2</V>
-  <a>a</a>
-</record>
-=== Test__Test_lists.MultiInsideRec ===
-<record>
-  <c>c</c>
-  <V>4</V>
-  <V>2</V>
-  <V>3</V>
-  <V>1</V>
-  <a>a</a>
-</record>
-=== Test__Test_lists.ListOfLists ===
-<record>
-  <a>
-    <p>2</p>
-    <p>3</p>
-  </a>
-  <a>
-    <p>4</p>
-    <p>5</p>
-  </a>
-</record>
-=== Test__Test_lists.ListOfLists2 ===
-<l>
-  <l/>
-  <l>
-    <l/>
-    <l>
-      <p>2</p>
-    </l>
-    <l>
-      <p>3</p>
-      <p>4</p>
-    </l>
-  </l>
-  <l>
-    <l/>
-  </l>
-  <l>
-    <l>
-      <p>2</p>
-    </l>
-  </l>
-</l>
 === Test__Test_arrays.SingleElem ===
 <l/>
 === Test__Test_arrays.SingleElem ===
@@ -350,120 +64,6 @@ Cons
     </l>
   </l>
 </l>
-=== RecordList ===
-<record>
-  <objects>
-    <key>1</key>
-  </objects>
-  <objects>
-    <key>2</key>
-  </objects>
-</record>
-=== SimpleRecord ===
-<record>
-  <HostId>SDsd</HostId>
-  <RequestId>sdfsd</RequestId>
-  <Endpoint/>
-  <Bucket/>
-  <Message>Message</Message>
-  <Code>Error</Code>
-</record>
-=== simple ===
-<p>5</p>
-=== record ===
-<record>
-  <a>5</a>
-</record>
-=== multiple ===
-<record>
-  <t2>true</t2>
-  <t1>5</t1>
-  <t0>5</t0>
-</record>
-=== reference ===
-<record>
-  <a>
-    <a>5</a>
-  </a>
-</record>
-=== recursive ===
-<record>
-  <c>
-    <b>
-      <a>5</a>
-    </b>
-  </c>
-</record>
-=== Test__Test_poly.Simple ===
-<l>
-  <variant>A</variant>
-  <variant>
-B
-    <p>5</p>
-  </variant>
-  <variant>
-C
-    <record>
-      <t1>7</t1>
-      <t0>6</t0>
-    </record>
-  </variant>
-  <variant>
-D
-    <record>
-      <t1>9</t1>
-      <t0>8</t0>
-    </record>
-  </variant>
-</l>
-=== Test__Test_poly.Tree ===
-<variant>
-Node
-  <record>
-    <t2>Leaf</t2>
-    <t1>10</t1>
-    <t0>
-Node
-      <record>
-        <t2>Leaf</t2>
-        <t1>3</t1>
-        <t0>Leaf</t0>
-      </record>
-    </t0>
-  </record>
-</variant>
-=== Test__Test_poly.MutualRecursion ===
-<variant>
-T1
-  <variant>
-V
-    <variant>
-T
-      <variant>
-V
-        <variant>
-V1
-          <variant>
-V1
-            <variant>
-V1
-              <variant>
-V0
-                <p>5</p>
-              </variant>
-            </variant>
-          </variant>
-        </variant>
-      </variant>
-    </variant>
-  </variant>
-</variant>
-=== Test__Test_poly.InsideRec ===
-<record>
-  <c>c</c>
-  <V>A</V>
-  <a>a</a>
-</record>
 === Tuple ===
 <l>
   <record>
@@ -820,6 +420,223 @@ C
   <a>2</a>
   <a>3</a>
 </record>
+=== Test__Test_lists.SingleElem ===
+<l/>
+=== Test__Test_lists.SingleElem ===
+<l>
+  <p>2</p>
+</l>
+=== Test__Test_lists.Longlist ===
+<l>
+  <p>4</p>
+  <p>2</p>
+  <p>3</p>
+  <p>1</p>
+</l>
+=== Test__Test_lists.EmptyInsideRec ===
+<record>
+  <c>c</c>
+  <a>a</a>
+</record>
+=== Test__Test_lists.SingleInsideRec ===
+<record>
+  <c>c</c>
+  <V>2</V>
+  <a>a</a>
+</record>
+=== Test__Test_lists.MultiInsideRec ===
+<record>
+  <c>c</c>
+  <V>4</V>
+  <V>2</V>
+  <V>3</V>
+  <V>1</V>
+  <a>a</a>
+</record>
+=== Test__Test_lists.ListOfLists ===
+<record>
+  <a>
+    <p>2</p>
+    <p>3</p>
+  </a>
+  <a>
+    <p>4</p>
+    <p>5</p>
+  </a>
+</record>
+=== Test__Test_lists.ListOfLists2 ===
+<l>
+  <l/>
+  <l>
+    <l/>
+    <l>
+      <p>2</p>
+    </l>
+    <l>
+      <p>3</p>
+      <p>4</p>
+    </l>
+  </l>
+  <l>
+    <l/>
+  </l>
+  <l>
+    <l>
+      <p>2</p>
+    </l>
+  </l>
+</l>
+=== Test__Test_nonrec.Nonrec ===
+<variant>
+A
+  <variant>
+Cons
+    <p>4</p>
+    <variant>
+Cons
+      <p>3</p>
+      <variant>Nil</variant>
+    </variant>
+  </variant>
+</variant>
+=== Test__Test_nonrec.Nonrec2 ===
+<variant>
+Cons
+  <p>4</p>
+  <variant>
+Cons
+    <p>3</p>
+    <variant>Nil</variant>
+  </variant>
+</variant>
+=== None ===
+<__option/>
+=== Some None ===
+<__option>
+  <__option/>
+</__option>
+=== Some Some None ===
+<__option>
+  <__option>
+    <__option/>
+  </__option>
+</__option>
+=== Some Some Some Unit ===
+<p>()</p>
+=== simple ===
+<p>5</p>
+=== record ===
+<record>
+  <a>5</a>
+</record>
+=== multiple ===
+<record>
+  <t2>true</t2>
+  <t1>5</t1>
+  <t0>5</t0>
+</record>
+=== reference ===
+<record>
+  <a>
+    <a>5</a>
+  </a>
+</record>
+=== recursive ===
+<record>
+  <c>
+    <b>
+      <a>5</a>
+    </b>
+  </c>
+</record>
+=== Test__Test_poly.Simple ===
+<l>
+  <variant>A</variant>
+  <variant>
+B
+    <p>5</p>
+  </variant>
+  <variant>
+C
+    <record>
+      <t1>7</t1>
+      <t0>6</t0>
+    </record>
+  </variant>
+  <variant>
+D
+    <record>
+      <t1>9</t1>
+      <t0>8</t0>
+    </record>
+  </variant>
+</l>
+=== Test__Test_poly.Tree ===
+<variant>
+Node
+  <record>
+    <t2>Leaf</t2>
+    <t1>10</t1>
+    <t0>
+Node
+      <record>
+        <t2>Leaf</t2>
+        <t1>3</t1>
+        <t0>Leaf</t0>
+      </record>
+    </t0>
+  </record>
+</variant>
+=== Test__Test_poly.MutualRecursion ===
+<variant>
+T1
+  <variant>
+V
+    <variant>
+T
+      <variant>
+V
+        <variant>
+V1
+          <variant>
+V1
+            <variant>
+V1
+              <variant>
+V0
+                <p>5</p>
+              </variant>
+            </variant>
+          </variant>
+        </variant>
+      </variant>
+    </variant>
+  </variant>
+</variant>
+=== Test__Test_poly.InsideRec ===
+<record>
+  <c>c</c>
+  <V>A</V>
+  <a>a</a>
+</record>
+=== Test__Test_record.RecordList ===
+<record>
+  <objects>
+    <key>1</key>
+  </objects>
+  <objects>
+    <key>2</key>
+  </objects>
+</record>
+=== Test__Test_record.SimpleRecord ===
+<record>
+  <HostId>SDsd</HostId>
+  <RequestId>sdfsd</RequestId>
+  <Endpoint/>
+  <Bucket/>
+  <Message>Message</Message>
+  <Code>Error</Code>
+</record>
 === Test__Test_sig.Test_sig ===
 <record>
   <x>
@@ -839,3 +656,206 @@ A
     </record>
   </x>
 </record>
+=== Test__Test_sig.Test_sig2 ===
+<record>
+  <t6>
+A
+    <p>1</p>
+  </t6>
+  <t5>
+    <c>3.0</c>
+    <b>2.</b>
+    <a>1</a>
+  </t5>
+  <t4>
+A
+    <p>1</p>
+  </t4>
+  <t3>()</t3>
+  <t2>3.0</t2>
+  <t1>2.</t1>
+  <t0>1</t0>
+</record>
+=== Test__Test_types.S3 ===
+<record>
+  <Contents>
+    <ETag>Etag</ETag>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Prefix>prefix</Prefix>
+</record>
+=== Test__Test_types.Types ===
+<record>
+  <baz>
+    <y_yd>
+Variant_two1
+      <p>1</p>
+    </y_yd>
+    <y_yc>
+      <t1>100</t1>
+      <t1>200</t1>
+      <t1>300</t1>
+      <t0>three</t0>
+    </y_yc>
+    <y_b>
+      <t1>10</t1>
+      <t1>20</t1>
+      <t1>30</t1>
+      <t0>two</t0>
+    </y_b>
+    <y_a>2</y_a>
+  </baz>
+  <bar>one</bar>
+  <foo>1</foo>
+</record>
+=== Test__Test_unit.Some Some Some true ===
+<p>true</p>
+=== Test__Test_unit.Some Some None ===
+<__option>
+  <__option>
+    <__option/>
+  </__option>
+</__option>
+=== Test__Test_unit.Some None ===
+<__option>
+  <__option/>
+</__option>
+=== Test__Test_unit.None ===
+<__option/>
+=== Test__Test_unit.Some Some Some true ===
+<record>
+  <a>true</a>
+</record>
+=== Test__Test_unit.Some Some None ===
+<record>
+  <a>
+    <__option>
+      <__option/>
+    </__option>
+  </a>
+</record>
+=== Test__Test_unit.Some None ===
+<record>
+  <a>
+    <__option/>
+  </a>
+</record>
+=== Test__Test_unit.None ===
+<record>
+  <a/>
+</record>
+=== Test__Test_unit.unit option option list option option ===
+<l>
+  <p>()</p>
+  <__option>
+    <__option/>
+  </__option>
+  <__option/>
+</l>
+=== Test__Test_unit.confuse deserialization by using reserved word ===
+<record>
+  <o>
+    <option>true</option>
+  </o>
+</record>
+=== Test__Test_variant.Simple ===
+<l>
+  <variant>A</variant>
+  <variant>
+B
+    <p>5</p>
+  </variant>
+  <variant>
+C
+    <p>6</p>
+    <p>7</p>
+  </variant>
+  <variant>
+D
+    <record>
+      <t1>9</t1>
+      <t0>8</t0>
+    </record>
+  </variant>
+</l>
+=== Test__Test_variant.Tuple ===
+<variant>
+A
+  <record>
+    <t1>4</t1>
+    <t0>3</t0>
+  </record>
+</variant>
+=== Test__Test_variant.Tree ===
+<variant>
+Node
+  <variant>
+Node
+    <variant>Leaf</variant>
+    <p>3</p>
+    <variant>Leaf</variant>
+  </variant>
+  <p>10</p>
+  <variant>Leaf</variant>
+</variant>
+=== Test__Test_variant.MutualRecursion ===
+<variant>
+T1
+  <variant>
+V
+    <variant>
+T
+      <variant>
+V
+        <variant>
+V1
+          <variant>
+V1
+            <variant>
+V1
+              <variant>
+V0
+                <p>5</p>
+              </variant>
+            </variant>
+          </variant>
+        </variant>
+      </variant>
+    </variant>
+  </variant>
+</variant>
+=== Test__Test_variant.InsideRec ===
+<record>
+  <c>c</c>
+  <V>A</V>
+  <a>a</a>
+</record>
+=== Test__Test_variant.InlineRecord ===
+<variant>
+A
+  <record>
+    <a>a</a>
+  </record>
+</variant>
+=== Test__Test_variant.InlineRecord2 ===
+<variant>
+aa
+  <record>
+    <b>
+aa
+      <record>
+        <b>
+B
+          <p>5</p>
+        </b>
+        <A>a</A>
+      </record>
+    </b>
+    <A>a</A>
+  </record>
+</variant>
+=== Test__Test_variant.Poly ===
+<variant>
+aaa
+  <p>5</p>
+</variant>

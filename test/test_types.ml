@@ -1,11 +1,10 @@
-open OUnit2
 open Sexplib.Std
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
     module S3 : M.Testable = struct
-    let name = "S3"
+    let name = __MODULE__ ^ ".S3"
     type storage_class = Standard [@key "STANDARD"]
                        | Standard_ia [@key "STANDARD_IA"]
                        | Reduced_redundancy [@key "REDUCED_REDUNDANCY"]
@@ -30,7 +29,7 @@ module Make(Driver: Testable.Driver) = struct
 
 
   module T : M.Testable = struct
-    let name = "Types"
+    let name = __MODULE__ ^ ".Types"
 
     type a = string * int list
     and aopt = a option
@@ -58,7 +57,7 @@ module Make(Driver: Testable.Driver) = struct
                   };
             }
   end
-  let unittest = __MODULE__ >: test_list [
+  let unittest = __MODULE__, [
       M.test (module S3);
       M.test (module T);
     ]

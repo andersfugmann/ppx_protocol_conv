@@ -1,41 +1,7 @@
 (executable
  (name       unittest)
- (modules    :standard \ test test_expect bench)
  (libraries  test ppx_protocol_conv_json)
  (preprocess (pps ppx_protocol_conv ppx_sexp_conv ppx_expect))
 )
 
-(rule
- (targets test.out)
- (deps    unittest.exe)
- (action  (run %{deps} -runner sequential))
-)
-
-(alias
- (name runtest)
- (package ppx_protocol_conv_json)
- (action (diff tests.expected test.out))
-)
-
-(executable
- (name        test)
- (modules     test)
- (libraries   ppx_protocol_conv_json)
- (preprocess (pps ppx_protocol_conv)))
-
-(executable
- (name        bench)
- (modules     bench)
- (libraries   ppx_protocol_conv_json core_bench)
- (preprocess (pps ppx_protocol_conv ppx_deriving_yojson)))
-
-(library
- (name        test_expect)
- (public_name ppx_protocol_conv_json.test_expect)
- (modules     test_expect)
- (private_modules     test_expect bench )
- (inline_tests)
- (optional)
- (libraries   ppx_protocol_conv_json)
- (preprocess (pps ppx_protocol_conv ppx_inline_test ppx_expect))
-)
+(include ../../../test/dune.inc)

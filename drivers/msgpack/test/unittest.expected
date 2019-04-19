@@ -1,73 +1,3 @@
-=== Some Some Some true ===
-
-=== Some Some None ===
-
-=== Some None ===
-
-=== None ===
-
-=== Some Some Some true ===
-
-=== Some Some None ===
-
-=== Some None ===
-
-=== None ===
-
-=== unit option option list option option ===
-
-=== confuse deserialization by using reserved word ===
-
-=== S3 ===
-
-=== Types ===
-{baz:
- {y_yd: [Variant_two1, 1], y_yc: [three, [100, 200, 300]], y_b:
-  [two, [10, 20, 30]], y_a: 2}, bar: one, foo: 1}
-=== Simple ===
-
-=== Test__Test_variant.Tuple ===
-
-=== Test__Test_variant.Tree ===
-
-=== Test__Test_variant.MutualRecursion ===
-
-=== Test__Test_variant.InsideRec ===
-
-=== Test__Test_variant.InlineRecord ===
-
-=== Test__Test_variant.InlineRecord2 ===
-
-=== Test__Test_variant.Poly ===
-
-=== Nonrec ===
-
-=== Nonrec2 ===
-
-=== None ===
-
-=== Some None ===
-
-=== Some Some None ===
-
-=== Some Some Some Unit ===
-
-=== Test__Test_lists.SingleElem ===
-
-=== Test__Test_lists.SingleElem ===
-
-=== Test__Test_lists.Longlist ===
-
-=== Test__Test_lists.EmptyInsideRec ===
-
-=== Test__Test_lists.SingleInsideRec ===
-
-=== Test__Test_lists.MultiInsideRec ===
-
-=== Test__Test_lists.ListOfLists ===
-
-=== Test__Test_lists.ListOfLists2 ===
-
 === Test__Test_arrays.SingleElem ===
 
 === Test__Test_arrays.SingleElem ===
@@ -83,29 +13,6 @@
 === Test__Test_arrays.ArrayOfArrays ===
 
 === Test__Test_arrays.ArrayOfArrays2 ===
-
-=== RecordList ===
-
-=== SimpleRecord ===
-{HostId: SDsd, RequestId: sdfsd, Endpoint: (), Bucket: (), Message: Message,
- Code: Error}
-=== simple ===
-
-=== record ===
-
-=== multiple ===
-
-=== reference ===
-
-=== recursive ===
-
-=== Test__Test_poly.Simple ===
-
-=== Test__Test_poly.Tree ===
-
-=== Test__Test_poly.MutualRecursion ===
-
-=== Test__Test_poly.InsideRec ===
 
 === Tuple ===
 [[10, [20, 30, 40], [s50, s60, s70], [[100, 200], [300, 400], [500, 600]]],
@@ -141,5 +48,100 @@
  [[8, 9], [10, 20, 30, 40]], a: [[1, 2, 3], [], [10, 20, 30, 40], [100, 101]]}
 === array ===
 
+=== Test__Test_lists.SingleElem ===
+
+=== Test__Test_lists.SingleElem ===
+
+=== Test__Test_lists.Longlist ===
+
+=== Test__Test_lists.EmptyInsideRec ===
+
+=== Test__Test_lists.SingleInsideRec ===
+
+=== Test__Test_lists.MultiInsideRec ===
+
+=== Test__Test_lists.ListOfLists ===
+
+=== Test__Test_lists.ListOfLists2 ===
+
+=== Test__Test_nonrec.Nonrec ===
+
+=== Test__Test_nonrec.Nonrec2 ===
+
+=== None ===
+
+=== Some None ===
+
+=== Some Some None ===
+
+=== Some Some Some Unit ===
+
+=== simple ===
+
+=== record ===
+
+=== multiple ===
+
+=== reference ===
+
+=== recursive ===
+
+=== Test__Test_poly.Simple ===
+
+=== Test__Test_poly.Tree ===
+
+=== Test__Test_poly.MutualRecursion ===
+
+=== Test__Test_poly.InsideRec ===
+
+=== Test__Test_record.RecordList ===
+
+=== Test__Test_record.SimpleRecord ===
+{HostId: SDsd, RequestId: sdfsd, Endpoint: (), Bucket: (), Message: Message,
+ Code: Error}
 === Test__Test_sig.Test_sig ===
+
+=== Test__Test_sig.Test_sig2 ===
+
+=== Test__Test_types.S3 ===
+
+=== Test__Test_types.Types ===
+{baz:
+ {y_yd: [Variant_two1, 1], y_yc: [three, [100, 200, 300]], y_b:
+  [two, [10, 20, 30]], y_a: 2}, bar: one, foo: 1}
+=== Test__Test_unit.Some Some Some true ===
+
+=== Test__Test_unit.Some Some None ===
+
+=== Test__Test_unit.Some None ===
+
+=== Test__Test_unit.None ===
+
+=== Test__Test_unit.Some Some Some true ===
+
+=== Test__Test_unit.Some Some None ===
+
+=== Test__Test_unit.Some None ===
+
+=== Test__Test_unit.None ===
+
+=== Test__Test_unit.unit option option list option option ===
+
+=== Test__Test_unit.confuse deserialization by using reserved word ===
+
+=== Test__Test_variant.Simple ===
+
+=== Test__Test_variant.Tuple ===
+
+=== Test__Test_variant.Tree ===
+
+=== Test__Test_variant.MutualRecursion ===
+
+=== Test__Test_variant.InsideRec ===
+
+=== Test__Test_variant.InlineRecord ===
+
+=== Test__Test_variant.InlineRecord2 ===
+
+=== Test__Test_variant.Poly ===
 

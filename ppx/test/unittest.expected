@@ -1,101 +1,3 @@
-=== Some Some Some true ===
-(Option ((Option ((Option ((Bool true)))))))
-=== Some Some None ===
-(Option ((Option ((Option ())))))
-=== Some None ===
-(Option ((Option ())))
-=== None ===
-(Option ())
-=== Some Some Some true ===
-(Record ((a (Option ((Option ((Option ((Bool true))))))))))
-=== Some Some None ===
-(Record ((a (Option ((Option ((Option ()))))))))
-=== Some None ===
-(Record ((a (Option ((Option ()))))))
-=== None ===
-(Record ((a (Option ()))))
-=== unit option option list option option ===
-(Option
- ((Option
-   ((List ((Option ((Option (Unit)))) (Option ((Option ()))) (Option ())))))))
-=== confuse deserialization by using reserved word ===
-(Record ((o (Record ((option (Option ((Option ((Bool true)))))))))))
-=== S3 ===
-(Record
- ((Contents
-   (List
-    ((Record ((ETag (String Etag)) (StorageClass (Variant STANDARD ())))))))
-  (Prefix (Option ((String prefix))))))
-=== Types ===
-(Record
- ((baz
-   (Record
-    ((y_yd (Variant Variant_two1 ((Int 1))))
-     (y_yc
-      (Option
-       ((List ((String three) (List ((Int 100) (Int 200) (Int 300))))))))
-     (y_b (List ((String two) (List ((Int 10) (Int 20) (Int 30))))))
-     (y_a (Int 2)))))
-  (bar (String one)) (foo (Int 1))))
-=== Simple ===
-(List
- ((Variant A ()) (Variant B ((Int 5))) (Variant C ((Int 6) (Int 7)))
-  (Variant D ((List ((Int 8) (Int 9)))))))
-=== Test__Test_variant.Tuple ===
-(Variant A ((List ((Int 3) (Int 4)))))
-=== Test__Test_variant.Tree ===
-(Variant Node
- ((Variant Node ((Variant Leaf ()) (Int 3) (Variant Leaf ()))) (Int 10)
-  (Variant Leaf ())))
-=== Test__Test_variant.MutualRecursion ===
-(Variant T1
- ((Variant V
-   ((Variant T
-     ((Variant V
-       ((Variant V1 ((Variant V1 ((Variant V1 ((Variant V0 ((Int 5)))))))))))))))))
-=== Test__Test_variant.InsideRec ===
-(Record ((c (String c)) (V (Variant A ())) (a (String a))))
-=== Test__Test_variant.InlineRecord ===
-(Variant A ((Record ((a (String a))))))
-=== Test__Test_variant.InlineRecord2 ===
-(Variant aa
- ((Record
-   ((b (Variant aa ((Record ((b (Variant B ((Int 5)))) (A (String a)))))))
-    (A (String a))))))
-=== Test__Test_variant.Poly ===
-(Variant aaa ((Int 5)))
-=== Nonrec ===
-(Variant A
- ((Variant Cons ((Int 4) (Variant Cons ((Int 3) (Variant Nil ())))))))
-=== Nonrec2 ===
-(Variant Cons ((Int 4) (Variant Cons ((Int 3) (Variant Nil ())))))
-=== None ===
-(Option ())
-=== Some None ===
-(Option ((Option ())))
-=== Some Some None ===
-(Option ((Option ((Option ())))))
-=== Some Some Some Unit ===
-(Option ((Option ((Option ((Option (Unit))))))))
-=== Test__Test_lists.SingleElem ===
-(List ())
-=== Test__Test_lists.SingleElem ===
-(List ((Int 2)))
-=== Test__Test_lists.Longlist ===
-(List ((Int 4) (Int 2) (Int 3) (Int 1)))
-=== Test__Test_lists.EmptyInsideRec ===
-(Record ((c (String c)) (V (List ())) (a (String a))))
-=== Test__Test_lists.SingleInsideRec ===
-(Record ((c (String c)) (V (List ((Int 2)))) (a (String a))))
-=== Test__Test_lists.MultiInsideRec ===
-(Record
- ((c (String c)) (V (List ((Int 4) (Int 2) (Int 3) (Int 1)))) (a (String a))))
-=== Test__Test_lists.ListOfLists ===
-(Record ((a (List ((List ((Int 2) (Int 3))) (List ((Int 4) (Int 5))))))))
-=== Test__Test_lists.ListOfLists2 ===
-(List
- ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
-  (List ((List ()))) (List ((List ((Int 2)))))))
 === Test__Test_arrays.SingleElem ===
 (List ())
 === Test__Test_arrays.SingleElem ===
@@ -115,40 +17,6 @@
 (List
  ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
   (List ((List ()))) (List ((List ((Int 2)))))))
-=== RecordList ===
-(Record
- ((objects (List ((Record ((key (Int 1)))) (Record ((key (Int 2)))))))))
-=== SimpleRecord ===
-(Record
- ((HostId (String SDsd)) (RequestId (String sdfsd)) (Endpoint (Option ()))
-  (Bucket (Option ())) (Message (String Message)) (Code (String Error))))
-=== simple ===
-(Int 5)
-=== record ===
-(Record ((a (Int 5))))
-=== multiple ===
-(List ((Int 5) (String 5) (Bool true)))
-=== reference ===
-(Record ((a (Record ((a (Int 5)))))))
-=== recursive ===
-(Record ((c (Record ((b (Record ((a (Int 5))))))))))
-=== Test__Test_poly.Simple ===
-(List
- ((Variant A ()) (Variant B ((Int 5))) (Variant C ((List ((Int 6) (Int 7)))))
-  (Variant D ((List ((Int 8) (Int 9)))))))
-=== Test__Test_poly.Tree ===
-(Variant Node
- ((List
-   ((Variant Node ((List ((Variant Leaf ()) (Int 3) (Variant Leaf ())))))
-    (Int 10) (Variant Leaf ())))))
-=== Test__Test_poly.MutualRecursion ===
-(Variant T1
- ((Variant V
-   ((Variant T
-     ((Variant V
-       ((Variant V1 ((Variant V1 ((Variant V1 ((Variant V0 ((Int 5)))))))))))))))))
-=== Test__Test_poly.InsideRec ===
-(Record ((c (String c)) (V (Variant A ())) (a (String a))))
 === Tuple ===
 (List
  ((List
@@ -251,6 +119,72 @@
      (List ((Int 100) (Int 101))))))))
 === array ===
 (Record ((a (List ((Int 1) (Int 2) (Int 3))))))
+=== Test__Test_lists.SingleElem ===
+(List ())
+=== Test__Test_lists.SingleElem ===
+(List ((Int 2)))
+=== Test__Test_lists.Longlist ===
+(List ((Int 4) (Int 2) (Int 3) (Int 1)))
+=== Test__Test_lists.EmptyInsideRec ===
+(Record ((c (String c)) (V (List ())) (a (String a))))
+=== Test__Test_lists.SingleInsideRec ===
+(Record ((c (String c)) (V (List ((Int 2)))) (a (String a))))
+=== Test__Test_lists.MultiInsideRec ===
+(Record
+ ((c (String c)) (V (List ((Int 4) (Int 2) (Int 3) (Int 1)))) (a (String a))))
+=== Test__Test_lists.ListOfLists ===
+(Record ((a (List ((List ((Int 2) (Int 3))) (List ((Int 4) (Int 5))))))))
+=== Test__Test_lists.ListOfLists2 ===
+(List
+ ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
+  (List ((List ()))) (List ((List ((Int 2)))))))
+=== Test__Test_nonrec.Nonrec ===
+(Variant A
+ ((Variant Cons ((Int 4) (Variant Cons ((Int 3) (Variant Nil ())))))))
+=== Test__Test_nonrec.Nonrec2 ===
+(Variant Cons ((Int 4) (Variant Cons ((Int 3) (Variant Nil ())))))
+=== None ===
+(Option ())
+=== Some None ===
+(Option ((Option ())))
+=== Some Some None ===
+(Option ((Option ((Option ())))))
+=== Some Some Some Unit ===
+(Option ((Option ((Option ((Option (Unit))))))))
+=== simple ===
+(Int 5)
+=== record ===
+(Record ((a (Int 5))))
+=== multiple ===
+(List ((Int 5) (String 5) (Bool true)))
+=== reference ===
+(Record ((a (Record ((a (Int 5)))))))
+=== recursive ===
+(Record ((c (Record ((b (Record ((a (Int 5))))))))))
+=== Test__Test_poly.Simple ===
+(List
+ ((Variant A ()) (Variant B ((Int 5))) (Variant C ((List ((Int 6) (Int 7)))))
+  (Variant D ((List ((Int 8) (Int 9)))))))
+=== Test__Test_poly.Tree ===
+(Variant Node
+ ((List
+   ((Variant Node ((List ((Variant Leaf ()) (Int 3) (Variant Leaf ())))))
+    (Int 10) (Variant Leaf ())))))
+=== Test__Test_poly.MutualRecursion ===
+(Variant T1
+ ((Variant V
+   ((Variant T
+     ((Variant V
+       ((Variant V1 ((Variant V1 ((Variant V1 ((Variant V0 ((Int 5)))))))))))))))))
+=== Test__Test_poly.InsideRec ===
+(Record ((c (String c)) (V (Variant A ())) (a (String a))))
+=== Test__Test_record.RecordList ===
+(Record
+ ((objects (List ((Record ((key (Int 1)))) (Record ((key (Int 2)))))))))
+=== Test__Test_record.SimpleRecord ===
+(Record
+ ((HostId (String SDsd)) (RequestId (String sdfsd)) (Endpoint (Option ()))
+  (Bucket (Option ())) (Message (String Message)) (Code (String Error))))
 === Test__Test_sig.Test_sig ===
 (Record
  ((x
@@ -258,3 +192,74 @@
     ((List
       ((Variant A ((Int 7))) (Int 7) (Int 7) (Variant B ((Float 0.7)))
        (Int 7))))))))
+=== Test__Test_sig.Test_sig2 ===
+(List
+ ((Int 1) (Float 2) (String 3.0) Unit (Variant A ((Int 1)))
+  (Record ((c (String 3.0)) (b (Float 2)) (a (Int 1))))
+  (Variant A ((Int 1)))))
+=== Test__Test_types.S3 ===
+(Record
+ ((Contents
+   (List
+    ((Record ((ETag (String Etag)) (StorageClass (Variant STANDARD ())))))))
+  (Prefix (Option ((String prefix))))))
+=== Test__Test_types.Types ===
+(Record
+ ((baz
+   (Record
+    ((y_yd (Variant Variant_two1 ((Int 1))))
+     (y_yc
+      (Option
+       ((List ((String three) (List ((Int 100) (Int 200) (Int 300))))))))
+     (y_b (List ((String two) (List ((Int 10) (Int 20) (Int 30))))))
+     (y_a (Int 2)))))
+  (bar (String one)) (foo (Int 1))))
+=== Test__Test_unit.Some Some Some true ===
+(Option ((Option ((Option ((Bool true)))))))
+=== Test__Test_unit.Some Some None ===
+(Option ((Option ((Option ())))))
+=== Test__Test_unit.Some None ===
+(Option ((Option ())))
+=== Test__Test_unit.None ===
+(Option ())
+=== Test__Test_unit.Some Some Some true ===
+(Record ((a (Option ((Option ((Option ((Bool true))))))))))
+=== Test__Test_unit.Some Some None ===
+(Record ((a (Option ((Option ((Option ()))))))))
+=== Test__Test_unit.Some None ===
+(Record ((a (Option ((Option ()))))))
+=== Test__Test_unit.None ===
+(Record ((a (Option ()))))
+=== Test__Test_unit.unit option option list option option ===
+(Option
+ ((Option
+   ((List ((Option ((Option (Unit)))) (Option ((Option ()))) (Option ())))))))
+=== Test__Test_unit.confuse deserialization by using reserved word ===
+(Record ((o (Record ((option (Option ((Option ((Bool true)))))))))))
+=== Test__Test_variant.Simple ===
+(List
+ ((Variant A ()) (Variant B ((Int 5))) (Variant C ((Int 6) (Int 7)))
+  (Variant D ((List ((Int 8) (Int 9)))))))
+=== Test__Test_variant.Tuple ===
+(Variant A ((List ((Int 3) (Int 4)))))
+=== Test__Test_variant.Tree ===
+(Variant Node
+ ((Variant Node ((Variant Leaf ()) (Int 3) (Variant Leaf ()))) (Int 10)
+  (Variant Leaf ())))
+=== Test__Test_variant.MutualRecursion ===
+(Variant T1
+ ((Variant V
+   ((Variant T
+     ((Variant V
+       ((Variant V1 ((Variant V1 ((Variant V1 ((Variant V0 ((Int 5)))))))))))))))))
+=== Test__Test_variant.InsideRec ===
+(Record ((c (String c)) (V (Variant A ())) (a (String a))))
+=== Test__Test_variant.InlineRecord ===
+(Variant A ((Record ((a (String a))))))
+=== Test__Test_variant.InlineRecord2 ===
+(Variant aa
+ ((Record
+   ((b (Variant aa ((Record ((b (Variant B ((Int 5)))) (A (String a)))))))
+    (A (String a))))))
+=== Test__Test_variant.Poly ===
+(Variant aaa ((Int 5)))

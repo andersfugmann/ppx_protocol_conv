@@ -17,7 +17,7 @@ depends: [
   "ppxlib" {>= "0.3.0"}
   "ppx_sexp_conv" {with-test & < "v0.13"}
   "sexplib" {with-test & < "v0.13"}
-  "ounit" {with-test & < "3.0.0" }
+  "alcotest" {with-test & >= "0.8.0"}
 ]
 synopsis:
   "Ppx for generating serialisation and de-serialisation functions of ocaml types"
@@ -30,6 +30,6 @@ de-serialisation of basic types and structures.
 Pre-defined drivers are available in separate packages:
 ppx_protocol_conv_json (Yojson.Safe.json)
 ppx_protocol_conv_jsonm (Ezjson.value)
-ppx_protocol_conv_msgpack (Msgpck.t)(Xml.xml)
+ppx_protocol_conv_msgpack (Msgpck.t)
 ppx_protocol_conv_xml-light (Xml.xml)
-ppx_protocol_conv_yaml (Yaml.t)"""
+ppx_protocol_conv_yaml (Yaml.value)"""

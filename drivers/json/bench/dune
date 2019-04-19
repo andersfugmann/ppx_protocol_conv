@@ -1,0 +1,4 @@
+(executable
+ (name        bench)
+ (libraries   ppx_protocol_conv_json core_bench)
+ (preprocess (pps ppx_protocol_conv ppx_deriving_yojson)))

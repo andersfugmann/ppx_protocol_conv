@@ -1,10 +1,9 @@
-open OUnit2
 open Sexplib.Std
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module SimpleRecord : M.Testable = struct
-    let name = "SimpleRecord"
+    let name = __MODULE__ ^ ".SimpleRecord"
     type t = {
       code: string [@key "Code"];
       message: string [@key "Message"];
@@ -25,7 +24,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module RecordList : M.Testable = struct
-    let name = "RecordList"
+    let name = __MODULE__ ^ ".RecordList"
 
     type objekt = { key: int }
     and t = { objects : objekt list }
@@ -34,7 +33,7 @@ module Make(Driver: Testable.Driver) = struct
     let t = { objects = [ { key = 1 }; { key = 2 } ] }
   end
 
-  let unittest = __MODULE__ >: test_list [
+  let unittest = __MODULE__, [
       M.test (module RecordList);
       M.test (module SimpleRecord);
     ]
