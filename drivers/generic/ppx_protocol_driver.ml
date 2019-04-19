@@ -73,6 +73,8 @@ module Make(Driver: Driver)(P: Parameters) = struct
   type error = string * t option
   exception Protocol_error of error
 
+  let make_error ?value msg = (msg, value)
+
   let error_to_string_hum: error -> string = function
     | (s, Some t) -> Printf.sprintf "%s. Got: %s" s (Driver.to_string_hum t)
     | (s, None) -> s

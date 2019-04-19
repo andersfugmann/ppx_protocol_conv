@@ -6,6 +6,8 @@ type t = Xml.xml
 type error = string * t option
 exception Protocol_error of error
 
+let make_error ?value msg = (msg, value)
+
 let to_string_hum xml = Xml.to_string_fmt xml
 
 let error_to_string_hum: error -> string = function
