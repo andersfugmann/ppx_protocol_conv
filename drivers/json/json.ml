@@ -59,5 +59,5 @@ module Yojson = struct
 end
 
 (* Allow referencing Json.t in structures. *)
-let of_json t = t
+let of_json_exn t = t
 let to_json t = t

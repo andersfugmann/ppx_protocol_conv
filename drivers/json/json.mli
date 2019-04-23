@@ -7,5 +7,5 @@ module Yojson : sig
   val to_yojson: t -> t
 end
 
-val of_json: t -> t
+val of_json_exn: t -> t
 val to_json: t -> t
