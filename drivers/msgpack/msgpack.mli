@@ -2,6 +2,7 @@ module Make(P: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver w
 include Protocol_conv.Runtime.Driver with type t = Msgpck.t
 
 val of_msgpack_exn: t -> t
+val of_msgpack: t -> (t, error) Protocol_conv.Runtime.result
 val to_msgpack: t -> t
 
 type bytes = string

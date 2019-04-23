@@ -53,5 +53,6 @@ end
 module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
 include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
 
-let of_yaml t = t
+let of_yaml_exn t = t
+let of_yaml t = Ok t
 let to_yaml t = t

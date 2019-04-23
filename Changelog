@@ -3,6 +3,9 @@
 Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support extensible polymorphic variants
 
+5.1.0
+[x] Add of_<driver>_exn for deserializing of Driver.t
+
 5.0.0 (2019-04-19)
 [x] Add option make make lazy type indeed lazy
 [x] Add option to mangle variant names

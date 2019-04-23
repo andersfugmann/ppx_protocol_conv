@@ -73,4 +73,5 @@ let float32_of_msgpack_exn t = Msgpck.to_float32 t |> Int32.float_of_bits
 let float32_to_msgpack v = Int32.bits_of_float v |> Msgpck.of_float32
 
 let of_msgpack_exn t = t
+let of_msgpack t = Ok t
 let to_msgpack t = t

@@ -54,10 +54,12 @@ module Yojson = struct
       let eager = true
       let strict = true
     end)
+  let of_yojson_exn t = t
+  let of_yojson t = Ok t
   let to_yojson t = t
-  let of_yojson t = t
 end
 
 (* Allow referencing Json.t in structures. *)
 let of_json_exn t = t
+let of_json t = Ok t
 let to_json t = t

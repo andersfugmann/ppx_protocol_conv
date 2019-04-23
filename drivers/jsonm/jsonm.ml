@@ -48,5 +48,6 @@ end
 include Ppx_protocol_driver.Make(Driver)(Ppx_protocol_driver.Default_parameters)
 module Make(P: Ppx_protocol_driver.Parameters) = Ppx_protocol_driver.Make(Driver)(P)
 
-let of_jsonm = identity
+let of_jsonm_exn = identity
+let of_jsonm t = Ok t
 let to_jsonm = identity

@@ -125,5 +125,6 @@ let of_unit () = Unit
 let to_nativeint = function Nativeint n -> n | e -> raise_errorf e "Nativeint not found"
 let of_nativeint n = Nativeint n
 
-let t_of_test t = t
-let t_to_test t = t
+let of_test_exn t = t
+let of_test t = Ok t
+let to_test t = t

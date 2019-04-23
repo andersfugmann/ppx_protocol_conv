@@ -218,5 +218,6 @@ let to_unit = function Xml.Element (_, _, [ PCData "unit" ]) -> ()
 
 let of_unit () = Xml.Element ("u", [], [ PCData "unit" ])
 *)
-let of_xml_light t = t
+let of_xml_light_exn t = t
+let of_xml_light t = Ok t
 let to_xml_light t = t

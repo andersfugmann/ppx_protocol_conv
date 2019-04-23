@@ -15,5 +15,6 @@ type t =
   | Unit
 
 include Protocol_conv.Runtime.Driver with type  t := t
-val t_of_test: t -> t
-val t_to_test: t -> t
+val of_test_exn: t -> t
+val of_test: t -> (t, error) Protocol_conv.Runtime.result
+val to_test: t -> t
