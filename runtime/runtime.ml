@@ -1,6 +1,4 @@
-open Base
-
-type ('v, 'e) result = ('v, 'e) Result.t
+type nonrec ('v, 'e) result = ('v, 'e) result
 
 module Record_in = struct
   type (_, _, _) t =
@@ -109,6 +107,7 @@ end
     convert this exception into a [Driver.Protocol_exception]
 *)
 module Helper = struct
+  open Base
 
   (** Excpetion raised if the type could not be serialized *)
   exception Protocol_error of string
