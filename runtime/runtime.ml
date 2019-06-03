@@ -29,7 +29,7 @@ module Tuple_out = struct
 end
 
 module Variant_in = struct
-  type (_, _) t = Variant: string * ('a, 'constr, 'c) Tuple_in.t  * 'constr -> ('a, 'c) t
+  type (_, _) t = Variant: string * ('a, 'constr, 'c) Tuple_in.t * 'constr -> ('a, 'c) t
 end
 
 (** Signature for a driver. Serialization function are on the form [of_XXX] and
@@ -82,6 +82,8 @@ module type Driver = sig
   val of_array:   ('a -> t) -> 'a array -> t
   val to_lazy_t:  (t -> 'a) -> t -> 'a lazy_t
   val of_lazy_t:  ('a -> t) -> 'a lazy_t -> t
+  val to_result:  (t -> 'a) -> (t -> 'b) -> t -> ('a, 'b) result
+  val of_result:  ('a -> t) -> ('b -> t) -> ('a, 'b) result -> t
   val to_int:     t -> int
   val of_int:     int -> t
   val to_int32:   t -> int32

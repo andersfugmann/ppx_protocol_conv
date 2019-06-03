@@ -55,7 +55,7 @@ let is_primitive_type = function
 
 (** Test if the type is a type modifier *)
 let is_meta_type = function
-  | "option" | "array" | "list" | "lazy_t" | "ref" -> true
+  | "option" | "array" | "list" | "lazy_t" | "ref" | "result" -> true
   | _ -> false
 
 let module_name ?loc = function
@@ -305,12 +305,12 @@ and serialize_expr_of_tdecl t ~loc tdecl =
 
 (** Serialization expression for a given type *)
 and serialize_expr_of_type_descr t ~loc = function
-  | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
-    let to_p = serialize_expr_of_type_descr t ~loc ct.ptyp_desc in
-    pexp_apply ~loc (driver_func ~loc t ("of_" ^ ident)) [Nolabel, to_p]
-
-  | Ptyp_constr ({ txt=Lident ident; loc=_ }, _) when is_meta_type ident ->
-    raise_errorf ~loc "Unsupported type descr containing list of sub-types"
+  | Ptyp_constr ({ txt=Lident ident; loc }, cts) when is_meta_type ident ->
+    let args =
+      List.map ~f:(fun ct -> serialize_expr_of_type_descr t ~loc ct.ptyp_desc) cts
+      |> List.map ~f:(fun to_p -> (Nolabel, to_p))
+    in
+    pexp_apply ~loc (driver_func ~loc t ("of_" ^ ident)) args
 
   | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
     driver_func t ~loc ("of_" ^ s)
@@ -476,12 +476,12 @@ and deserialize_expr_of_tdecl t ~loc tdecl =
 
 (** Deserialization expression for a given type *)
 and deserialize_expr_of_type_descr t ~loc = function
-  | Ptyp_constr ({ txt=Lident ident; loc }, [ct]) when is_meta_type ident ->
-    let to_t = deserialize_expr_of_type_descr t ~loc ct.ptyp_desc in
-    pexp_apply ~loc (driver_func t ~loc ("to_" ^ ident)) [Nolabel, to_t]
-
-  | Ptyp_constr ({ txt=Lident ident; _ }, _) when is_meta_type ident ->
-    raise_errorf ~loc "Unsupported type descr containing list of sub-types"
+  | Ptyp_constr ({ txt=Lident ident; loc }, cts) when is_meta_type ident ->
+    let args =
+      List.map ~f:(fun ct -> deserialize_expr_of_type_descr t ~loc ct.ptyp_desc) cts
+      |> List.map ~f:(fun to_t -> (Nolabel, to_t))
+    in
+    pexp_apply ~loc (driver_func ~loc t ("to_" ^ ident)) args
 
   | Ptyp_constr ({ txt=Lident s; loc }, _) when is_primitive_type s ->
     driver_func t ~loc ("to_" ^ s)

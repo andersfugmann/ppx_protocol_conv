@@ -64,7 +64,7 @@ let to_variant: (t, 'a) Variant_in.t list -> t -> 'a = fun spec ->
 let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
   Helper.of_record ~omit_default:false record_to_xml spec
 
-let to_record:  (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec constr ->
+let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec constr ->
   let rec inner: type constr b. (t, constr, b) Record_in.t -> string list = function
     | Record_in.Cons ((field, _, _), xs) -> field :: inner xs
     | Record_in.Nil ->  []
@@ -124,7 +124,6 @@ let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   | t ->
     Some (to_value_fun t)
 
-
 let of_option: ('a -> t) -> 'a option -> t = fun of_value_fun v ->
   match v with
   | None ->
@@ -143,6 +142,19 @@ let to_ref: (t -> 'a) -> t -> 'a ref = fun to_value_fun t ->
 
 let of_ref: ('a -> t) -> 'a ref -> t = fun of_value_fun v ->
   of_value_fun !v
+
+let to_result: (t -> 'a) -> (t -> 'b) -> t -> ('a, 'b) result = fun to_ok to_err ->
+  let ok = Tuple_in.(Cons (to_ok, Nil)) in
+  let err = Tuple_in.(Cons (to_err, Nil)) in
+  to_variant Variant_in.[Variant ("Ok", ok, fun v -> Ok v); Variant ("Error", err, fun v -> Error v)]
+
+let of_result: ('a -> t) -> ('b -> t) -> ('a, 'b) result -> t = fun of_ok of_err ->
+  let of_ok = of_variant "Ok" Tuple_out.(Cons (of_ok, Nil)) in
+  let of_err = of_variant "Error" Tuple_out.(Cons (of_err, Nil)) in
+  function
+  | Ok ok -> of_ok ok
+  | Error err -> of_err err
+
 
 (** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function

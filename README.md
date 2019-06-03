@@ -3,8 +3,8 @@ Ppx protocol conv (de)serializers using deriving, which allows for
 plugable
 (de)serializers. [Api](https://andersfugmann.github.io/ppx_protocol_conv).
 
-This page contains an simple overview of functionality provided. More
-information is available in the [wiki pages](https://github.com/andersfugmann/ppx_protocol_conv/wiki)
+This page contains an simple overview of functionality provided.
+More information is available in the [wiki pages](https://github.com/andersfugmann/ppx_protocol_conv/wiki)
 
 [![Build Status](https://travis-ci.org/andersfugmann/ppx_protocol_conv.svg?branch=master)](https://travis-ci.org/andersfugmann/ppx_protocol_conv)
 
