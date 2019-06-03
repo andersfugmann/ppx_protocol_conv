@@ -1,6 +1,6 @@
 open Protocol_conv
 open Runtime
-open Base
+open StdLabels
 
 module type Parameters = sig
   val field_name: string -> string
@@ -62,7 +62,7 @@ module type Driver = sig
 end
 
 let mangle str =
-  match String.split_on_chars ~on:['_'] str with
+  match String.split_on_char ~sep:'_' str with
   | s :: sx ->
     String.concat ~sep:""
       (s :: List.map ~f:String.capitalize sx)
@@ -87,7 +87,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let to_string_hum = Driver.to_string_hum
 
   let raise_errorf t fmt =
-    Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+    Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
   let try_with: (t -> 'a) -> t -> ('a, error) Runtime.result = fun f t ->
     match f t with
@@ -170,7 +170,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
       let mk_option t = Driver.of_alist [ ("__option", t) ] in
       match of_value_fun v with
       | t when Driver.is_null t -> mk_option t
-      | t when Option.is_some (get_option t) ->
+      | t when (get_option t) <> None ->
         mk_option t
       | t -> t
 
