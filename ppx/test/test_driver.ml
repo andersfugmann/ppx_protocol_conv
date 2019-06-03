@@ -98,6 +98,15 @@ let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun t ->
 let of_lazy_t: ('a -> t) -> 'a lazy_t -> t = fun of_value_fun v ->
   Lazy.force v |> of_value_fun
 
+let to_result:  (t -> 'a) -> (t -> 'b) -> t -> ('a, 'b) Result.t = fun to_ok to_err -> function
+  | Variant ("Ok", [ok]) -> Ok (to_ok ok)
+  | Variant ("Error", [err]) -> Error (to_err err)
+  | e -> raise_errorf e "Variant OK | Error expected"
+
+let of_result:  ('a -> t) -> ('b -> t) -> ('a, 'b) Result.t -> t = fun of_ok of_err -> function
+  | Ok ok -> Variant ("Ok", [of_ok ok])
+  | Error err -> Variant ("Error", [of_err err])
+
 let to_int = function Int i -> i | e -> raise_errorf e "Int type not found"
 let of_int i = Int i
 

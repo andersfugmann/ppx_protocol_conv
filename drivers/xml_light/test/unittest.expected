@@ -755,3 +755,13 @@ B
 aaa
   <p>5</p>
 </variant>
+=== Test__Test_result.Option.Ok ===
+<variant>
+Ok
+  <p>2</p>
+</variant>
+=== Test__Test_result.Option.Error ===
+<variant>
+Error
+  <p>Error string</p>
+</variant>

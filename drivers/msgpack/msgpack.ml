@@ -1,10 +1,7 @@
 module Driver : Ppx_protocol_driver.Driver with type t = Msgpck.t = struct
   type t = Msgpck.t
 
-  let to_string_hum t =
-    let b = Buffer.create 64 in
-    Msgpck.pp (Format.formatter_of_buffer b ) t;
-    Buffer.contents b
+  let to_string_hum t = Format.asprintf "%a" Msgpck.pp t
 
   let of_list = Msgpck.of_list
   let to_list = Msgpck.to_list

@@ -266,3 +266,7 @@
     (A (String a))))))
 === Test__Test_variant.Poly ===
 (Variant aaa ((Int 5)))
+=== Test__Test_result.Option.Ok ===
+(Variant Ok ((Int 2)))
+=== Test__Test_result.Option.Error ===
+(Variant Error ((String "Error string")))
