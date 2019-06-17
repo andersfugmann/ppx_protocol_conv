@@ -20,6 +20,7 @@ module Make(Driver : Testable.Driver) = struct
       (module Test_types);
       (module Test_unit);
       (module Test_variant);
+      (module Test_result);
     ]
 
   (* Create a list of tests *)

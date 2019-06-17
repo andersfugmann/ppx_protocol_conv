@@ -15,11 +15,10 @@ module Make(Driver: Testable.Driver) = struct
       storage_class: storage_class [@key "StorageClass"];
       etag: string [@key "ETag"];
     }
-    and result = {
+    and t = {
       prefix: string option [@key "Prefix"];
       contents: content list [@key "Contents"];
     }
-    and t = result
     [@@deriving protocol ~driver:(module Driver), sexp]
 
     let t = { prefix = Some "prefix";

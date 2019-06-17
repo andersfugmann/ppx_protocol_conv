@@ -158,7 +158,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     | _ -> None
 
   (* If the type is an empty list, thats also null. *)
-  let to_option: (t -> 'a) -> t -> 'a option = fun  to_value_fun -> function
+  let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun -> function
     | t when Driver.is_null t -> None
     | t ->
       let t = match (get_option t) with Some t -> t | None -> t in
@@ -174,23 +174,35 @@ module Make(Driver: Driver)(P: Parameters) = struct
         mk_option t
       | t -> t
 
-  let to_ref: (t -> 'a) -> t -> 'a ref = fun  to_value_fun t ->
+  let to_ref: (t -> 'a) -> t -> 'a ref = fun to_value_fun t ->
       let v = to_value_fun t in
       ref v
 
-  let of_ref: ('a -> t) -> 'a ref -> t = fun  of_value_fun v ->
+  let of_ref: ('a -> t) -> 'a ref -> t = fun of_value_fun v ->
     of_value_fun !v
 
-  let to_list: (t -> 'a) -> t -> 'a list = fun  to_value_fun t ->
+  let to_result: (t -> 'a) -> (t -> 'b) -> t -> ('a, 'b) result = fun to_ok to_err ->
+    let ok = Runtime.Tuple_in.(Cons (to_ok, Nil)) in
+    let err = Runtime.Tuple_in.(Cons (to_err, Nil)) in
+    to_variant Runtime.Variant_in.[Variant ("Ok", ok, fun v -> Ok v); Variant ("Error", err, fun v -> Error v)]
+
+  let of_result: ('a -> t) -> ('b -> t) -> ('a, 'b) result -> t = fun of_ok of_err ->
+    let of_ok = of_variant "Ok" Runtime.Tuple_out.(Cons (of_ok, Nil)) in
+    let of_err = of_variant "Error" Runtime.Tuple_out.(Cons (of_err, Nil)) in
+    function
+    | Ok ok -> of_ok ok
+    | Error err -> of_err err
+
+  let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun t ->
     List.map ~f:to_value_fun (wrap t Driver.to_list t)
 
-  let of_list: ('a -> t) -> 'a list -> t = fun  of_value_fun v ->
+  let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun v ->
     List.map ~f:of_value_fun v |> Driver.of_list
 
-  let to_array: (t -> 'a) -> t -> 'a array = fun  to_value_fun t ->
+  let to_array: (t -> 'a) -> t -> 'a array = fun to_value_fun t ->
     to_list to_value_fun t |> Array.of_list
 
-  let of_array: ('a -> t) -> 'a array -> t = fun  of_value_fun v ->
+  let of_array: ('a -> t) -> 'a array -> t = fun of_value_fun v ->
     Array.to_list v |> of_list of_value_fun
 
   let to_lazy_t: (t -> 'a) -> t -> 'a lazy_t = fun to_value_fun ->

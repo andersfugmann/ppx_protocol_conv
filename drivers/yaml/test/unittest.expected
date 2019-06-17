@@ -586,3 +586,11 @@ a: a
 - aaa
 - 5
 
+=== Test__Test_result.Option.Ok ===
+- Ok
+- 2
+
+=== Test__Test_result.Option.Error ===
+- Error
+- Error string
+

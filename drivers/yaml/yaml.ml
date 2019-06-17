@@ -1,8 +1,7 @@
 module Yaml = Global.Yaml
 module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   type t = Yaml.value
-  let to_string_hum t =
-    Yaml.to_string_exn t
+  let to_string_hum t = Format.asprintf "%a" Yaml.pp t
 
   let of_list l = `A l
   let to_list = function `A l -> l | _ -> failwith "List expected"
