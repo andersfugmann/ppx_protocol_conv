@@ -109,7 +109,7 @@ end
     convert this exception into a [Driver.Protocol_exception]
 *)
 module Helper = struct
-  open Base
+  open StdLabels
 
   (** Excpetion raised if the type could not be serialized *)
   exception Protocol_error of string
@@ -120,8 +120,9 @@ module Helper = struct
   end
   module Hashtbl_lookup : Lookup = struct (* 20.22% *)
     let of_alist alist =
-      let tbl = Hashtbl.of_alist_exn (module String) alist in
-      Hashtbl.find tbl
+      let tbl = Hashtbl.create 0 in
+      List.iter ~f:(fun (k, v) -> Hashtbl.add tbl k v) alist;
+      Hashtbl.find_opt tbl
   end
   module Lookup = Hashtbl_lookup
 
@@ -169,7 +170,7 @@ module Helper = struct
       let f = inner 0 spec constr in
 
       fun values ->
-        let value_array = Array.create ~len:count None in
+        let value_array = Array.make count None in
         List.iter ~f:(fun (field, t) ->
             match lookup field with
             | None when strict -> raise_errorf "Unused field when deserialising record: %s" field
@@ -205,7 +206,7 @@ module Helper = struct
       | Cons ((n1, f1, Some d1), xs) when omit_default ->
         begin
           let cont = inner xs in
-          fun acc v1 -> match Poly.equal d1 v1 with
+          fun acc v1 -> match d1 = v1 with
             | true -> cont acc
             | false -> cont ((n1, f1 v1) :: acc)
         end
