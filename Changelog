@@ -3,15 +3,15 @@
 Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support extensible polymorphic variants
 
-5.2.0
-[x] Support Pervasive result
-
-5.1.0
+5.1.0 (unreleased)
 [x] Add of_<driver>_exn for deserializing of Driver.t
 [ ] Switch to use result type for all serialization
 [ ] Support attribute [@nobuiltin] attribute to treat types as abstract
 [ ] Support Result.t, List.t, Option.t, Int.t, et. al
-
+[x] Dont depend on ppxlib for the runtime
+[x] Remove dependency on base
+[*] Support result type
+[ ] Add namespaces to attributes
 
 5.0.0 (2019-04-19)
 [x] Add option make make lazy type indeed lazy
