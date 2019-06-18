@@ -62,11 +62,20 @@ module type Driver = sig
 end
 
 let mangle str =
-  match String.split_on_char ~sep:'_' str with
-  | s :: sx ->
-    String.concat ~sep:""
-      (s :: List.map ~f:String.capitalize sx)
-  | _ -> str
+  let chars =
+    let chars = ref [] in
+    String.iter ~f:(fun ch -> chars := ch :: !chars) str;
+    List.rev !chars
+  in
+  let rec inner = function
+    | '_' :: '_' :: cs -> inner ('_' :: cs)
+    | '_' :: c :: cs -> Char.uppercase_ascii c :: inner cs
+    | '_' :: [] -> []
+    | c :: cs -> c :: inner cs
+    | [] -> []
+  in
+  let res_arr = inner chars |> Array.of_list in
+  String.init (Array.length res_arr) ~f:(fun i -> res_arr.(i))
 
 module Make(Driver: Driver)(P: Parameters) = struct
   type t = Driver.t
