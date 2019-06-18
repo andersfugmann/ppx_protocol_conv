@@ -122,7 +122,9 @@ module Helper = struct
     let of_alist alist =
       let tbl = Hashtbl.create 0 in
       List.iter ~f:(fun (k, v) -> Hashtbl.add tbl k v) alist;
-      Hashtbl.find_opt tbl
+      fun k -> match Hashtbl.find tbl k with
+        | k -> Some k
+        | exception Not_found -> None
   end
   module Lookup = Hashtbl_lookup
 
