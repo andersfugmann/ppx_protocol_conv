@@ -1,10 +1,12 @@
 (* Xml driver for ppx_protocol_conv *)
-open Base
+open StdLabels
 open Protocol_conv.Runtime
+module Helper = Protocol_conv.Runtime.Helper
 type t = Xml.xml
 
 type error = string * t option
 exception Protocol_error of error
+module StringMap = Map.Make(String)
 
 let make_error ?value msg = (msg, value)
 
@@ -71,7 +73,7 @@ let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec con
   in
   let fields = inner spec in
   (* Join all elements, including default empty ones *)
-  let default_map = Map.of_alist_exn (module String) (List.map fields ~f:(fun f -> f, [])) in
+  let default_map = List.fold_left fields ~init:StringMap.empty ~f:(fun acc field -> StringMap.add field [] acc) in
   let f = Helper.to_record spec constr in
   function
   | Xml.Element (_, _, xs) as t ->
@@ -79,15 +81,19 @@ let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec con
       List.fold_left ~init:default_map
         ~f:(fun map -> function
             | (Xml.Element(name, _, _) as x) ->
-              Map.update map name ~f:(function Some l -> x :: l | None -> [x])
+              let v = match StringMap.find name map with
+                | l -> x :: l
+                | exception Not_found -> [x]
+              in
+              StringMap.add name v map
             | _ -> map
           ) xs
-            |> Map.to_alist
-            |> List.map ~f:(function
-                | field, [ Xml.Element (name, _, xs) ] -> field, Xml.Element (name, ["record", "unwrapped"], xs)
-                | field, [ Xml.PCData _ as d ] -> field, d
-                | field, xs -> field, Xml.Element (field, [], List.rev xs)
-              )
+      |> (fun map -> StringMap.fold (fun key v acc -> (key, v) :: acc) map [])
+      |> List.map ~f:(function
+          | field, [ Xml.Element (name, _, xs) ] -> field, Xml.Element (name, ["record", "unwrapped"], xs)
+          | field, [ Xml.PCData _ as d ] -> field, d
+          | field, xs -> field, Xml.Element (field, [], List.rev xs)
+        )
     in
     wrap t f args
   | t -> raise_errorf (Some t) "Expected record element"
@@ -162,11 +168,11 @@ let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
     (* If the given list has been unwrapped since its part of a record, we "rewrap it". *)
     [ to_value_fun elm ]
   | Xml.Element (_, _, ts) ->
-    List.map ~f:(fun t -> to_value_fun t) ts
+    Helper.list_map ~f:(fun t -> to_value_fun t) ts
   | e -> raise_errorf (Some e) "Must be an element type"
 
 let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun vs ->
-  Xml.Element("l", [], List.map ~f:(fun v -> of_value_fun v) vs)
+  Xml.Element("l", [], Helper.list_map ~f:(fun v -> of_value_fun v) vs)
 
 let to_array: (t -> 'a) -> t -> 'a array = fun to_value_fun t ->
   to_list to_value_fun t |> Array.of_list

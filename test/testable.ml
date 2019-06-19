@@ -33,7 +33,6 @@ module Make (Driver: Driver) = struct
             (Base.Sexp.to_string_hum (T.sexp_of_t T.t));
           raise exn
       in
-      (* Need to create a formatter:  *)
       let fmt : T.t Fmt.t = fun formatter t ->
         Format.fprintf formatter "%s" (Base.Sexp.to_string_hum (T.sexp_of_t t))
       in

@@ -203,10 +203,10 @@ module Make(Driver: Driver)(P: Parameters) = struct
     | Error err -> of_err err
 
   let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun t ->
-    List.map ~f:to_value_fun (wrap t Driver.to_list t)
+    Helper.list_map ~f:to_value_fun (wrap t Driver.to_list t)
 
   let of_list: ('a -> t) -> 'a list -> t = fun of_value_fun v ->
-    List.map ~f:of_value_fun v |> Driver.of_list
+    Helper.list_map ~f:of_value_fun v |> Driver.of_list
 
   let to_array: (t -> 'a) -> t -> 'a array = fun to_value_fun t ->
     to_list to_value_fun t |> Array.of_list

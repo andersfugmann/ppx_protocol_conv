@@ -1,4 +1,6 @@
+open StdLabels
 open Sexplib.Std
+
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
@@ -23,7 +25,7 @@ module Make(Driver: Testable.Driver) = struct
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
 
-    let t = [4; 2; 3; 1]
+    let t = [4;3;2;1]
   end
 
   module EmptyInsideRec : M.Testable = struct
@@ -79,6 +81,22 @@ module Make(Driver: Testable.Driver) = struct
     let t = [ []; [ []; [2]; [3;4]; ]; [ [] ]; [ [2] ]; ]
   end
 
+  module Stack_overflow = struct
+    type t = int list
+    [@@deriving protocol ~driver:(module Driver), sexp]
+    let t = List.init ~len:1_000_000 ~f:(fun i -> i)
+    let name = __MODULE__ ^ "Stack_overflow"
+    let test =
+      Alcotest.test_case name `Quick (fun () ->
+          try
+            to_driver t
+            |> of_driver_exn
+            |> ignore
+          with
+          | Failure "ignore" [@warning "-52"] -> ()
+        )
+  end
+
   let unittest = __MODULE__, [
       M.test (module EmptyList);
       M.test (module Singleton);
@@ -88,5 +106,6 @@ module Make(Driver: Testable.Driver) = struct
       M.test (module MultiInsideRec);
       M.test (module ListOfLists);
       M.test (module ListOfLists2);
+      Stack_overflow.test
     ]
 end

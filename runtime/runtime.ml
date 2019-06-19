@@ -111,6 +111,57 @@ end
 module Helper = struct
   open StdLabels
 
+
+  (** Tail recursive version of map *)
+
+  let list_map ~f l =
+    let slow_map ~f tl =
+      List.rev_map ~f tl |> List.rev
+    in
+
+    let rec count_map ~f l ctr =
+      match l with
+      | [] -> []
+      | [ x1 ] ->
+        let f1 = f x1 in
+        [ f1 ]
+      | [ x1; x2 ] ->
+        let f1 = f x1 in
+        let f2 = f x2 in
+        [ f1; f2 ]
+      | [ x1; x2; x3 ] ->
+        let f1 = f x1 in
+        let f2 = f x2 in
+        let f3 = f x3 in
+        [ f1; f2; f3 ]
+      | [ x1; x2; x3; x4 ] ->
+        let f1 = f x1 in
+        let f2 = f x2 in
+        let f3 = f x3 in
+        let f4 = f x4 in
+        [ f1; f2; f3; f4 ]
+      | x1 :: x2 :: x3 :: x4 :: x5 :: tl ->
+        let f1 = f x1 in
+        let f2 = f x2 in
+        let f3 = f x3 in
+        let f4 = f x4 in
+        let f5 = f x5 in
+        f1
+        :: f2
+        :: f3
+        :: f4
+        :: f5
+        :: (if ctr > 1000 then slow_map ~f tl else count_map ~f tl (ctr + 1))
+    in
+    count_map ~f l 0
+
+  let () =
+    let l = [1;2;3;4;5] in
+    let l' = list_map ~f:(fun x -> x + 2) l in
+    let l'' = List.map ~f:(fun x -> x + 2) l in
+    assert (l' = l'');
+
+
   (** Excpetion raised if the type could not be serialized *)
   exception Protocol_error of string
 
