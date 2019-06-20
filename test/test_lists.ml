@@ -4,7 +4,7 @@ module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module EmptyList : M.Testable = struct
-    let name = __MODULE__ ^ ".SingleElem"
+    let name = __MODULE__ ^ ".EmptyList"
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
 
