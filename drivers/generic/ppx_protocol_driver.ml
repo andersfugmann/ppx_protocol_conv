@@ -106,11 +106,13 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let wrap t f x = match f x with
     | v -> v
     | exception Helper.Protocol_error s -> raise (Protocol_error (s, Some t))
+    | exception e -> raise (Protocol_error (Printexc.to_string e, Some t))
+
 
   let to_record: (t, 'a, 'b) Record_in.t -> 'a -> t -> 'b = fun spec constr ->
     let spec = Helper.map_record_in P.field_name spec in
     let f = Helper.to_record ~strict:P.strict spec constr in
-    fun t -> wrap t f (Driver.to_alist t)
+    fun t -> wrap t f (wrap t Driver.to_alist t)
 
   let of_record: type a. (t, a, t) Record_out.t -> a = fun spec ->
     let spec = Helper.map_record_out P.field_name spec in
@@ -118,7 +120,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
 
   let to_tuple: (t, 'a, 'b) Tuple_in.t -> 'a -> t -> 'b = fun spec constr ->
     let f = Helper.to_tuple spec constr in
-    fun t -> wrap t f (Driver.to_list t)
+    fun t -> wrap t f (wrap t Driver.to_list t)
 
   let of_tuple: (t, 'a, t) Tuple_out.t -> 'a = fun spec ->
     Helper.of_tuple Driver.of_list spec
@@ -129,7 +131,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
     match P.constructors_without_arguments_as_string with
     | true -> begin
         function
-        | t when Driver.is_string t -> wrap t (f (Driver.to_string t)) []
+        | t when Driver.is_string t -> wrap t (f (wrap t Driver.to_string t)) []
         | t when Driver.is_list t -> begin
             match Driver.to_list t with
             | name :: args when Driver.is_string name -> wrap t f ((Driver.to_string name)) args
