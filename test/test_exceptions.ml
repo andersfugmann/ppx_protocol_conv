@@ -1,5 +1,11 @@
-open StdLabels
 open Sexplib.Std
+
+let list_init ~len ~f =
+  let rec inner acc = function
+    | 0 -> acc
+    | n -> inner (f (n-1) :: acc) (n - 1)
+  in
+  inner [] len
 
 module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
@@ -7,7 +13,7 @@ module Make(Driver: Testable.Driver) = struct
   module Stack_overflow = struct
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
-    let t = List.init ~len:1_000_000 ~f:(fun i -> i)
+    let t = list_init ~len:1_000_000 ~f:(fun i -> i)
     let name = __MODULE__ ^ "Stack_overflow"
     let test =
       Alcotest.test_case name `Quick (fun () ->

@@ -316,7 +316,7 @@ C
   <a>2</a>
   <a>3</a>
 </record>
-=== Test__Test_lists.SingleElem ===
+=== Test__Test_lists.EmptyList ===
 <l/>
 === Test__Test_lists.SingleElem ===
 <l>

@@ -114,7 +114,7 @@
 }
 === array ===
 { "a": [ 1, 2, 3 ] }
-=== Test__Test_lists.SingleElem ===
+=== Test__Test_lists.EmptyList ===
 []
 === Test__Test_lists.SingleElem ===
 [ 2 ]
