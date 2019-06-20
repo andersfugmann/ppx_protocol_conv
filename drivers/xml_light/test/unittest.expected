@@ -325,8 +325,8 @@ C
 === Test__Test_lists.Longlist ===
 <l>
   <p>4</p>
-  <p>2</p>
   <p>3</p>
+  <p>2</p>
   <p>1</p>
 </l>
 === Test__Test_lists.EmptyInsideRec ===

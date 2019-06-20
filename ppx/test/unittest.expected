@@ -127,7 +127,7 @@
 === Test__Test_lists.SingleElem ===
 (List ((Int 2)))
 === Test__Test_lists.Longlist ===
-(List ((Int 4) (Int 2) (Int 3) (Int 1)))
+(List ((Int 4) (Int 3) (Int 2) (Int 1)))
 === Test__Test_lists.EmptyInsideRec ===
 (Record ((c (String c)) (V (List ())) (a (String a))))
 === Test__Test_lists.SingleInsideRec ===

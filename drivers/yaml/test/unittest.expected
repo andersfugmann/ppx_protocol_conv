@@ -300,8 +300,8 @@ a:
 
 === Test__Test_lists.Longlist ===
 - 4
-- 2
 - 3
+- 2
 - 1
 
 === Test__Test_lists.EmptyInsideRec ===

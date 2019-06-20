@@ -53,7 +53,7 @@
 === Test__Test_lists.SingleElem ===
 [2]
 === Test__Test_lists.Longlist ===
-[4, 2, 3, 1]
+[4, 3, 2, 1]
 === Test__Test_lists.EmptyInsideRec ===
 {c: c, V: [], a: a}
 === Test__Test_lists.SingleInsideRec ===
