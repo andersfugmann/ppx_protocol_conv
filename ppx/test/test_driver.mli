@@ -9,6 +9,7 @@ type t =
   | Int64 of int64
   | Nativeint of nativeint
   | String of string
+  | Bytes of bytes
   | Float of float
   | Char of char
   | Bool of bool
