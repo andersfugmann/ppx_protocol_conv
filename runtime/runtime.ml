@@ -100,6 +100,8 @@ module type Driver = sig
   val of_float:   float -> t
   val to_bool:    t -> bool
   val of_bool:    bool -> t
+  val to_bytes:   t -> bytes
+  val of_bytes:   bytes -> t
   val to_unit:    t -> unit
   val of_unit:    unit -> t
 end
