@@ -2,9 +2,9 @@
 
 Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support extensible polymorphic variants
+[x] Add support for primitive type 'bytes'
 
 5.1.0 (unreleased)
-[x] Add support for primitive type 'bytes'
 [x] Add of_<driver>_exn for deserializing of Driver.t
 [ ] Switch to use result type for all serialization
 [ ] Support attribute [@nobuiltin] attribute to treat types as abstract
