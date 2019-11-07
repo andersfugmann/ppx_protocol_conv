@@ -47,8 +47,8 @@ module Driver : Ppx_protocol_driver.Driver with type t = Msgpck.t = struct
   let of_bool = Msgpck.of_bool
   let to_bool = Msgpck.to_bool
 
-  let of_bytes b = b |> Bytes.to_string |> Msgpck.of_bytes
-  let to_bytes m = m |> Msgpck.to_bytes |> Bytes.of_string
+  let of_bytes b = Bytes.to_string b |> Msgpck.of_bytes
+  let to_bytes m = Msgpck.to_bytes m |> Bytes.of_string
 
   let null = Msgpck.Nil
   let is_null = function Msgpck.Nil -> true | _ -> false
