@@ -1,4 +1,5 @@
 _build
+_opam
 .merlin
 drivers/json/test/types.ml
 test.ml
