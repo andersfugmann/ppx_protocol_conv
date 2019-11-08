@@ -2,6 +2,7 @@
 
 Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support extensible polymorphic variants
+[x] Add support for primitive type 'bytes'
 
 5.1.0 (unreleased)
 [x] Add of_<driver>_exn for deserializing of Driver.t

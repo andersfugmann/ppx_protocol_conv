@@ -218,7 +218,8 @@ let to_char = to_value "char" (function s when String.length s = 1 -> s.[0]
                                       | s -> raise_errorf None "Expected char, got %s" s)
 let of_char = of_value (fun c -> (String.make 1 c))
 
-
+let to_bytes = to_value "bytes" Bytes.of_string
+let of_bytes = of_value Bytes.to_string
 
 let to_unit = to_value "unit" (function "()" -> () | _ -> raise_errorf None "Expected char")
 let of_unit = of_value (fun () -> "()")

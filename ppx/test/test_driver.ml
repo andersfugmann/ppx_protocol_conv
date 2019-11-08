@@ -13,6 +13,7 @@ type t =
   | Int64 of int64
   | Nativeint of nativeint
   | String of string
+  | Bytes of bytes
   | Float of float
   | Char of char
   | Bool of bool
@@ -127,6 +128,9 @@ let of_char c = Char c
 
 let to_bool = function Bool b -> b | e -> raise_errorf e "Bool type not found"
 let of_bool b = Bool b
+
+let to_bytes = function Bytes b -> b | e -> raise_errorf e "Bytes type not found"
+let of_bytes b = Bytes b
 
 let to_unit = function Unit -> () | e -> raise_errorf e "Unit type not found"
 let of_unit () = Unit

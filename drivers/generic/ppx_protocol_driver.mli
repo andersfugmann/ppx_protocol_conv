@@ -87,6 +87,9 @@ module type Driver = sig
   val to_bool: t -> bool
   val of_bool: bool -> t
 
+  val to_bytes: t -> bytes
+  val of_bytes: bytes -> t
+
   val null: t
   val is_null: t -> bool
 end

@@ -167,6 +167,7 @@ intlist:
 - 3
 - 4
 - 5
+bytes: bytes
 string: string
 float: 3.14
 nativeint: 20

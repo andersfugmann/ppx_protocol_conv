@@ -41,6 +41,9 @@ module Driver : Ppx_protocol_driver.Driver with type t = Ezjsonm.value = struct
   let to_bool = Ezjsonm.get_bool
   let of_bool = Ezjsonm.bool
 
+  let to_bytes j = j |> Ezjsonm.get_string |> Bytes.of_string
+  let of_bytes b = b |> Bytes.to_string |> Ezjsonm.string
+
   let null = `Null
   let is_null = function `Null -> true | _ -> false
 end

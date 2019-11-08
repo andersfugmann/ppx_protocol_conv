@@ -46,6 +46,10 @@ module Driver : Ppx_protocol_driver.Driver with type t = Yaml.value = struct
   let to_bool = function `Bool b -> b
                        | _ -> failwith "Bool expected"
 
+  let of_bytes b = `String (Bytes.to_string b)
+  let to_bytes = function `String b -> Bytes.of_string b
+                        | _ -> failwith "Bytes expected"
+
   let null = `Null
   let is_null = function `Null -> true | _ -> false
 end

@@ -60,6 +60,7 @@
   "intref": 4,
   "intoption": 100,
   "intlist": [ 3, 4, 5 ],
+  "bytes": "bytes",
   "string": "string",
   "float": 3.14,
   "nativeint": 20,
