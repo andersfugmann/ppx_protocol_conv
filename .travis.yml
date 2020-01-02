@@ -13,13 +13,13 @@ env:
   matrix:
 
   - PACKAGE="ppx_protocol_conv"           OCAML_VERSION=4.04
-  - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.08
-  - PACKAGE="ppx_protocol_conv_msgpack"   OCAML_VERSION=4.08
-  - PACKAGE="ppx_protocol_conv_xml_light" OCAML_VERSION=4.08
-  - PACKAGE="ppx_protocol_conv_yaml"      OCAML_VERSION=4.08
-  - PACKAGE="ppx_protocol_conv_jsonm"     OCAML_VERSION=4.08
-  - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.08 TEST=false
   - PACKAGE="ppx_protocol_conv"           OCAML_VERSION=4.09
+  - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.10
+  - PACKAGE="ppx_protocol_conv_msgpack"   OCAML_VERSION=4.10
+  - PACKAGE="ppx_protocol_conv_xml_light" OCAML_VERSION=4.10
+  - PACKAGE="ppx_protocol_conv_yaml"      OCAML_VERSION=4.10
+  - PACKAGE="ppx_protocol_conv_jsonm"     OCAML_VERSION=4.10
+  - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.10 TEST=false
 
 os:
   - linux
