@@ -1,19 +1,22 @@
 -*- mode: fundamental -*-
 
 Changes marked with '*' indicates a changes that breaks backward compatibility
-[ ] Support extensible polymorphic variants
-[x] Add support for primitive type 'bytes'
 
-5.1.0 (unreleased)
-[x] Add of_<driver>_exn for deserializing of Driver.t
+
+[ ] Support extensible polymorphic variants
 [ ] Switch to use result type for all serialization
 [ ] Support attribute [@nobuiltin] attribute to treat types as abstract
 [ ] Support Result.t, List.t, Option.t, Int.t, et. al
-[x] Dont depend on ppxlib for the runtime
-[x] Remove dependency on base
-[*] Support result type
 [ ] Add namespaces to attributes
 [ ] Make sure List.map is tail recursive for list types
+
+5.1.0 (02-01-2020)
+[x] Add support for primitive type 'bytes'
+[x] Add of_<driver>_exn for deserializing of Driver.t
+[x] Dont depend on ppxlib for the runtime
+[x] Remove dependency on base
+[x] Support result type
+[x] Require ppx >= 0.9.0 => support ocaml 4.10 (Thanks kit-ty-kate)
 
 5.0.0 (2019-04-19)
 [x] Add option make make lazy type indeed lazy
