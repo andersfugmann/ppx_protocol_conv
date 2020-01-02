@@ -86,13 +86,11 @@ let location_of_attrib t name (attribs:attributes) =
   let prefix = module_name t.driver in
   let has_name s = String.equal s name || String.equal s (sprintf "%s.%s" prefix name) in
   List.find_map_exn
-    ~f:(function ({ loc=_; txt}, Parsetree.PStr [{pstr_loc; _}]) when has_name txt -> Some pstr_loc
+    ~f:(function {attr_name = {txt; _}; attr_payload = Parsetree.PStr [{pstr_loc; _}]; _} when has_name txt -> Some pstr_loc
                | _ -> None
       ) attribs
 
-let row_loc = function
-  | Rtag (sloc, _, _, _) -> sloc.loc
-  | Rinherit typ -> typ.ptyp_loc
+let row_loc row = row.prf_loc
 
 let get_variant_name t row =
   match Attribute.get t.variant_name row, Attribute.get t.variant_key row with
@@ -132,9 +130,9 @@ let test_constructor_mapping t constrs =
 
 let test_row_mapping t rows =
   let base, mapped = List.partition_map ~f:(fun row ->
-      let (row_name, attrs) = match row with
+      let (row_name, attrs) = match row.prf_desc with
         | Rinherit _ -> raise_errorf "Inherited polymorphic variant types not supported"
-        | Rtag (name, attrs, _, _) -> name, attrs
+        | Rtag (name, _, _) -> name, row.prf_attributes
       in
       match get_variant_name t row with
       | Some name when String.equal row_name.txt name -> `Fst name
@@ -248,7 +246,7 @@ and serialize_variant t ~loc type_ ~name ~alias pcstr  =
     let f_name = { loc; txt = sprintf "_%s_of_record_" name } in
     let lhs = ppat_constr ~loc name (Some patt) in
     let rhs = pexp_apply ~loc (pexp_ident_string_loc f_name) [Nolabel, pexp_tuple ~loc (List.map ~f:snd args)] in
-    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
+    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]; ppat_loc_stack=[]} ~expr:f in
     binding, case ~lhs ~guard:None ~rhs
   | Pcstr_tuple core_types ->
     let f_name = { loc; txt = sprintf "_%s_of_tuple" name } in
@@ -261,7 +259,7 @@ and serialize_variant t ~loc type_ ~name ~alias pcstr  =
           [%e estring ~loc alias] Protocol_conv.Runtime.Tuple_out.([%e spec])
       ]
     in
-    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]} ~expr:f in
+    let binding = value_binding ~loc ~pat:{ppat_desc = Ppat_var f_name; ppat_loc = loc; ppat_attributes=[]; ppat_loc_stack=[]} ~expr:f in
 
     let lhs = ppat_constr ~loc name (mk_pattern core_types) in
     let args =
@@ -331,9 +329,9 @@ and serialize_expr_of_type_descr t ~loc = function
   | Ptyp_variant (rows, _closed, None) ->
     test_row_mapping t rows;
     let bindings, cases =
-      List.map ~f:(function
+      List.map ~f:(fun row -> match row.prf_desc with
           | Rinherit _ -> raise_errorf ~loc "Inherited types not supported"
-          | Rtag (name, _attributes, _bool, core_types) as row ->
+          | Rtag (name, _bool, core_types) ->
             let alias = match get_variant_name t row with
               | Some key -> key
               | None -> name.txt
@@ -510,9 +508,9 @@ and deserialize_expr_of_type_descr t ~loc = function
 
   | Ptyp_variant (rows, _closed, None) ->
     test_row_mapping t rows;
-    let mk_elem = function
+    let mk_elem row = match row.prf_desc with
       | Rinherit _ -> raise_errorf ~loc "Inherited variant types not supported"
-      | Rtag (name, _attributes, _bool, core_types) as row ->
+      | Rtag (name, _bool, core_types) ->
         let ser_name = match get_variant_name t row with
           | Some key -> key
           | None -> name.txt
@@ -602,8 +600,8 @@ let rec is_recursive_ct types = function
   | { ptyp_desc = Ptyp_class _; _} -> false
   | { ptyp_desc = Ptyp_alias (c, _); _} -> is_recursive_ct types c
   | { ptyp_desc = Ptyp_variant (rows, _, _); _} ->
-    List.exists ~f:(function
-        | Rtag (_, _, _, cts) -> List.exists ~f:(is_recursive_ct types) cts
+    List.exists ~f:(fun row -> match row.prf_desc with
+        | Rtag (_, _, cts) -> List.exists ~f:(is_recursive_ct types) cts
         | Rinherit _ -> false
       ) rows
   | { ptyp_desc = Ptyp_poly (_, ct); _} -> is_recursive_ct types ct
