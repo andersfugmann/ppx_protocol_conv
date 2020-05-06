@@ -40,7 +40,7 @@ let record_to_xml (assoc:(string * t) list) =
     function
     | (field, `El (((_,"record"), attrs), xs)) -> [`El ((("",field), attrs), xs)]
     | (field, `El (((_,"variant"), attrs), xs)) -> [`El ((("",field), attrs), xs)]
-    | (field, `El (((_,"__option)"), attrs), xs)) -> [`El ((("",field), attrs), xs)]
+    | (field, `El (((_,"__option"), attrs), xs)) -> [`El ((("",field), attrs), xs)]
     | (field, `El (((_,_), _), xs)) ->
       List.map ~f:(function
           | `El (((_,_), attrs), xs) -> `El ((("",field), attrs), xs)
