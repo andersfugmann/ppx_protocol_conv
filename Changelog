@@ -10,7 +10,11 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Add namespaces to attributes
 [ ] Make sure List.map is tail recursive for list types
 
-5.1.0 (02-01-2020)
+5.1.1 (2020-05-10)
+[x] Add xmlm driver for xml (by Nick Betteridge)
+
+
+5.1.0 (2002-02-01)
 [x] Add support for primitive type 'bytes'
 [x] Add of_<driver>_exn for deserializing of Driver.t
 [x] Dont depend on ppxlib for the runtime

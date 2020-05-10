@@ -31,4 +31,5 @@ ppx_protocol_conv_json (Yojson.Safe.json)
 ppx_protocol_conv_jsonm (Ezjson.value)
 ppx_protocol_conv_msgpack (Msgpck.t)
 ppx_protocol_conv_xml-light (Xml.xml)
+ppx_protocol_conv_xmlm (Xmlm.node)
 ppx_protocol_conv_yaml (Yaml.value)"""
