@@ -29,6 +29,7 @@ The following drivers exists
  * `Msgpack` which serializes to `Msgpck.t`
  * `Yaml` which serializes to `Yaml.t`
  * `Xml_light` which serializes to `Xml.xml list`
+ * `Xmlm` which serializes to `Ezxmlm.node`
 
 ## Examples
 ```ocaml
@@ -94,6 +95,7 @@ Users of the library can elect to implement their own driver see
  * `Msgpack` which serializes to `Msgpck.t`
  * `Yaml` which serializes to `Yaml.t`
  * `Xml_light` which serializes to `Xml.xml list`
+ * `Xmlm` which serializes to `Ezxmlm.node`
 
 ## Custom drivers
 It is easy to provide custom drivers by implementing the signature:
