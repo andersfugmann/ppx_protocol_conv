@@ -113,9 +113,9 @@ let get_constr_name t constr =
 let test_constructor_mapping t constrs =
   let base, mapped = List.partition_map ~f:(fun constr ->
       match get_constr_name t constr with
-      | Some name when String.equal constr.pcd_name.txt name -> `Fst name
-      | Some name -> `Snd (name, constr.pcd_attributes)
-      | None -> `Fst constr.pcd_name.txt
+      | Some name when String.equal constr.pcd_name.txt name -> Either.First name
+      | Some name -> Either.Second (name, constr.pcd_attributes)
+      | None -> Either.First constr.pcd_name.txt
     ) constrs
   in
   let _: string list = List.fold_left ~init:base
@@ -135,9 +135,9 @@ let test_row_mapping t rows =
         | Rtag (name, _, _) -> name, row.prf_attributes
       in
       match get_variant_name t row with
-      | Some name when String.equal row_name.txt name -> `Fst name
-      | Some name -> `Snd (name, attrs)
-      | None -> `Fst row_name.txt
+      | Some name when String.equal row_name.txt name -> Either.First name
+      | Some name -> Either.Second (name, attrs)
+      | None -> Either.First row_name.txt
     ) rows
   in
   let _: string list = List.fold_left ~init:base
@@ -153,9 +153,9 @@ let test_row_mapping t rows =
 let test_label_mapping t labels =
   let base, mapped = List.partition_map ~f:(fun label ->
       match Attribute.get t.field_key label with
-      | Some name when String.equal label.pld_name.txt name -> `Fst name
-      | Some name -> `Snd (name, label.pld_attributes)
-      | None -> `Fst label.pld_name.txt
+      | Some name when String.equal label.pld_name.txt name -> Either.First name
+      | Some name -> Either.Second (name, label.pld_attributes)
+      | None -> Either.First label.pld_name.txt
     ) labels
   in
   let _: string list = List.fold_left ~init:base
