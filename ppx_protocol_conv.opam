@@ -11,7 +11,7 @@ build: [
 ]
 depends: [
   "ocaml" {>= "4.04"}
-  "base"
+  "base" {>= "v0.14.0" }
   "dune" {>= "1.2"}
   "ppxlib" {>= "0.9.0"}
   "ppx_sexp_conv" {with-test}
