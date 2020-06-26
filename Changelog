@@ -2,13 +2,15 @@
 
 Changes marked with '*' indicates a changes that breaks backward compatibility
 
-
 [ ] Support extensible polymorphic variants
 [ ] Switch to use result type for all serialization
 [ ] Support attribute [@nobuiltin] attribute to treat types as abstract
 [ ] Support Result.t, List.t, Option.t, Int.t, et. al
 [ ] Add namespaces to attributes
 [ ] Make sure List.map is tail recursive for list types
+
+5.1.2 (not released yet)
+[x] Compatible with Base v0.14
 
 5.1.1 (2020-05-10)
 [x] Add xmlm driver for xml (by Nick Betteridge)

@@ -12,7 +12,7 @@ env:
   - PINS="ppx_protocol_conv:. ppx_protocol_conv_json:. ppx_protocol_conv_msgpack:. ppx_protocol_conv_xml_light:. ppx_protocol_conv_jsonm:. ppx_protocol_conv_xmlm:. ppx_protocol_conv_yaml:."
   matrix:
 
-  - PACKAGE="ppx_protocol_conv"           OCAML_VERSION=4.04
+  - PACKAGE="ppx_protocol_conv"           OCAML_VERSION=4.07
   - PACKAGE="ppx_protocol_conv"           OCAML_VERSION=4.09
   - PACKAGE="ppx_protocol_conv_json"      OCAML_VERSION=4.10
   - PACKAGE="ppx_protocol_conv_msgpack"   OCAML_VERSION=4.10
