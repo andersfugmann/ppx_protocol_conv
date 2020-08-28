@@ -19,7 +19,7 @@ let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^
 let debug = false
 let debug fmt = match debug with
   | true -> eprintf (fmt ^^ "\n%!")
-  | false -> ifprintf Stdio.stderr fmt [@@warning "-32"]
+  | false -> ifprintf Caml.stderr fmt [@@warning "-32"]
 
 let string_of_ident_loc { loc; txt } =
   let rec inner = function
