@@ -2,7 +2,7 @@
  (name ppx_protocol_conv)
  (public_name ppx_protocol_conv)
  (kind ppx_deriver)
- (libraries base ppxlib)
+ (libraries base stdio ppxlib)
  (preprocess (pps ppxlib.metaquot))
  (synopsis "ppx to derive (de)serializers of a type")
 )
