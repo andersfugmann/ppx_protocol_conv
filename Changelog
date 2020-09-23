@@ -9,6 +9,10 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Add namespaces to attributes
 [ ] Make sure List.map is tail recursive for list types
 
+5.1.3
+[x] Remove dependency on stdio
+[x] Fix warning when compiling with 4.11
+
 5.1.2 (2020-06-26)
 [x] Compatible with Base v0.14
 

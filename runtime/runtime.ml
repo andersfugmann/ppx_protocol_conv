@@ -253,7 +253,7 @@ module Helper = struct
       The [map_f] function is called to produce the serialized result from a field_name, t association list.
       If [omit_default] is true, then default values are omitted from the output
   *)
-  let of_record: type t a t. omit_default:bool -> t serialize_record -> (t, a, t) Record_out.t -> a =
+  let of_record: type a t. omit_default:bool -> t serialize_record -> (t, a, t) Record_out.t -> a =
     fun ~omit_default serialize_record ->
     let rec inner: type a. (t, a, t) Record_out.t -> (string * t) list -> a =
       let open Record_out in
