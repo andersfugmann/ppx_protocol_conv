@@ -22,10 +22,10 @@ module Driver : Ppx_protocol_driver.Driver with type t = Msgpck.t = struct
   let of_int = Msgpck.of_int
 
   let of_int32 = Msgpck.of_int32
-  let to_int32 = Msgpck.to_int32
+  let to_int32 v = to_int v |> Int32.of_int
 
   let of_int64 = Msgpck.of_int64
-  let to_int64 = Msgpck.to_int64
+  let to_int64 v = to_int v |> Int64.of_int
 
   let of_nativeint v = Nativeint.to_int v |> of_int
   let to_nativeint t = to_int t |> Nativeint.of_int
