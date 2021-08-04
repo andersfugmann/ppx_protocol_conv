@@ -3,7 +3,7 @@ module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module Simple : M.Testable = struct
-    let name = __MODULE__ ^ ".Simple"
+    let name = "Simple"
     type v = [ `A | `B of int | `C of int * int | `D of (int * int) ]
     and t = v list
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -12,7 +12,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module Tree : M.Testable = struct
-    let name = __MODULE__ ^ ".Tree"
+    let name = "Tree"
     type t = [ `Node of t * int * t | `Leaf ]
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -20,7 +20,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module MutualRecursion : M.Testable = struct
-    let name = __MODULE__ ^ ".MutualRecursion"
+    let name = "MutualRecursion"
     type v = [ `V1 of v | `V0 of int | `T of t ]
     and t = [ `T1 of t | `T2 of int | `V of v ]
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -29,7 +29,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module InsideRec : M.Testable = struct
-    let name = __MODULE__ ^ ".InsideRec"
+    let name = "InsideRec"
     type v = [ `V0 [@key "A"]
              | `V1 [@key "B"] ]
 

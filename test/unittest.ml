@@ -25,7 +25,7 @@ module Make(Driver : Testable.Driver) = struct
     ]
 
   (* Create a list of tests *)
-  let run ?(extra = []) ~name () =
+  let run ?(extra = []) () =
     let tests =
       List.map (fun (module Test : Test_module) ->
           let module T = Test.Make(Driver) in
@@ -34,5 +34,5 @@ module Make(Driver : Testable.Driver) = struct
     in
     let tests = tests @ extra in
     open_out "unittest.output" |> close_out;
-    Alcotest.run name tests
+    Alcotest.run Driver.name tests
 end

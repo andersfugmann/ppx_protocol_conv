@@ -5,14 +5,14 @@ module Make(Driver: Testable.Driver) = struct
   let sexp_of_result = Base.Result.sexp_of_t
 
   module Result_ok : M.Testable = struct
-    let name = __MODULE__ ^ ".Option.Ok"
+    let name = "Option.Ok"
     type t = (int, string) result
     [@@deriving protocol ~driver:(module Driver), sexp]
     let t = Ok 2
   end
 
   module Result_error : M.Testable = struct
-    let name = __MODULE__ ^ ".Option.Error"
+    let name = "Option.Error"
     type t = (int, string) result
     [@@deriving protocol ~driver:(module Driver), sexp]
     let t = Error "Error string"

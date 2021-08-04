@@ -1,20 +1,20 @@
-=== Test__Test_arrays.SingleElem ===
+=== json.SingleElem ===
 []
-=== Test__Test_arrays.SingleElem ===
+=== json.SingleElem ===
 [ 2 ]
-=== Test__Test_arrays.Longarray ===
+=== json.Longarray ===
 [ 4, 2, 3, 1 ]
-=== Test__Test_arrays.EmptyInsideRec ===
+=== json.EmptyInsideRec ===
 { "c": "c", "V": [], "a": "a" }
-=== Test__Test_arrays.SingleInsideRec ===
+=== json.SingleInsideRec ===
 { "c": "c", "V": [ 2 ], "a": "a" }
-=== Test__Test_arrays.MultiInsideRec ===
+=== json.MultiInsideRec ===
 { "c": "c", "V": [ 4, 2, 3, 1 ], "a": "a" }
-=== Test__Test_arrays.ArrayOfArrays ===
+=== json.ArrayOfArrays ===
 { "a": [ [ 2, 3 ], [ 4, 5 ] ] }
-=== Test__Test_arrays.ArrayOfArrays2 ===
+=== json.ArrayOfArrays2 ===
 [ [], [ [], [ 2 ], [ 3, 4 ] ], [ [] ], [ [ 2 ] ] ]
-=== Tuple ===
+=== json.Tuple ===
 [
   [
     10,
@@ -41,7 +41,7 @@
     [ [ 103, 203 ], [ 303, 403 ], [ 503, 603 ] ]
   ]
 ]
-=== Any ===
+=== json.Any ===
 {
   "t": [ "B", [ 5, 6, 7 ], [ 10, 11, 12 ] ],
   "z": 101,
@@ -61,6 +61,7 @@
   "intoption": 100,
   "intlist": [ 3, 4, 5 ],
   "bytes": "bytes",
+  "string2": "1",
   "string": "string",
   "float": 3.14,
   "nativeint": 20,
@@ -70,7 +71,7 @@
   "char": "x",
   "bool": true
 }
-=== Record ===
+=== json.Record ===
 {
   "t_il": [ 1000, 1001, 1002 ],
   "t_tl": [
@@ -100,9 +101,9 @@
   ],
   "t_a": { "a_string": "s1", "a_int": 1 }
 }
-=== list ===
+=== json.list ===
 { "a": [ 1, 2, 3 ] }
-=== Lists ===
+=== json.Lists ===
 {
   "l": [
     [ "A", [ 1, 2, 3 ] ],
@@ -113,60 +114,60 @@
   "b": [ [ 8, 9 ], [ 10, 20, 30, 40 ] ],
   "a": [ [ 1, 2, 3 ], [], [ 10, 20, 30, 40 ], [ 100, 101 ] ]
 }
-=== array ===
+=== json.array ===
 { "a": [ 1, 2, 3 ] }
-=== Test__Test_lists.EmptyList ===
+=== json.EmptyList ===
 []
-=== Test__Test_lists.SingleElem ===
+=== json.SingleElem ===
 [ 2 ]
-=== Test__Test_lists.Longlist ===
+=== json.Longlist ===
 [ 4, 3, 2, 1 ]
-=== Test__Test_lists.EmptyInsideRec ===
+=== json.EmptyInsideRec ===
 { "c": "c", "V": [], "a": "a" }
-=== Test__Test_lists.SingleInsideRec ===
+=== json.SingleInsideRec ===
 { "c": "c", "V": [ 2 ], "a": "a" }
-=== Test__Test_lists.MultiInsideRec ===
+=== json.MultiInsideRec ===
 { "c": "c", "V": [ 4, 2, 3, 1 ], "a": "a" }
-=== Test__Test_lists.ListOfLists ===
+=== json.ListOfLists ===
 { "a": [ [ 2, 3 ], [ 4, 5 ] ] }
-=== Test__Test_lists.ListOfLists2 ===
+=== json.ListOfLists2 ===
 [ [], [ [], [ 2 ], [ 3, 4 ] ], [ [] ], [ [ 2 ] ] ]
-=== Test__Test_nonrec.Nonrec ===
+=== json.Nonrec ===
 [ "A", [ "Cons", 4, [ "Cons", 3, "Nil" ] ] ]
-=== Test__Test_nonrec.Nonrec2 ===
+=== json.Nonrec2 ===
 [ "Cons", 4, [ "Cons", 3, "Nil" ] ]
-=== None ===
+=== json.None ===
 null
-=== Some None ===
+=== json.Some None ===
 { "__option": null }
-=== Some Some None ===
+=== json.Some Some None ===
 { "__option": { "__option": null } }
-=== Some Some Some Unit ===
+=== json.Some Some Some Unit ===
 { "__option": { "__option": { "__option": { "__option": null } } } }
-=== simple ===
+=== json.simple ===
 5
-=== record ===
+=== json.record ===
 { "a": 5 }
-=== multiple ===
+=== json.multiple ===
 [ 5, "5", true ]
-=== reference ===
+=== json.reference ===
 { "a": { "a": 5 } }
-=== recursive ===
+=== json.recursive ===
 { "c": { "b": { "a": 5 } } }
-=== Test__Test_poly.Simple ===
+=== json.Simple ===
 [ "A", [ "B", 5 ], [ "C", [ 6, 7 ] ], [ "D", [ 8, 9 ] ] ]
-=== Test__Test_poly.Tree ===
+=== json.Tree ===
 [ "Node", [ [ "Node", [ "Leaf", 3, "Leaf" ] ], 10, "Leaf" ] ]
-=== Test__Test_poly.MutualRecursion ===
+=== json.MutualRecursion ===
 [
   "T1",
   [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
 ]
-=== Test__Test_poly.InsideRec ===
+=== json.InsideRec ===
 { "c": "c", "V": "A", "a": "a" }
-=== Test__Test_record.RecordList ===
+=== json.RecordList ===
 { "objects": [ { "key": 1 }, { "key": 2 } ] }
-=== Test__Test_record.SimpleRecord ===
+=== json.SimpleRecord ===
 {
   "HostId": "SDsd",
   "RequestId": "sdfsd",
@@ -175,9 +176,9 @@ null
   "Message": "Message",
   "Code": "Error"
 }
-=== Test__Test_sig.Test_sig ===
+=== json.Test_sig ===
 { "x": [ "A", [ [ "A", 7 ], 7, 7, [ "B", 0.7 ], 7 ] ] }
-=== Test__Test_sig.Test_sig2 ===
+=== json.Test_sig2 ===
 [
   1,
   2.0,
@@ -187,12 +188,12 @@ null
   { "c": "3.0", "b": 2.0, "a": 1 },
   [ "A", 1 ]
 ]
-=== Test__Test_types.S3 ===
+=== json.S3 ===
 {
   "Contents": [ { "ETag": "Etag", "StorageClass": "STANDARD" } ],
   "Prefix": "prefix"
 }
-=== Test__Test_types.Types ===
+=== json.Types ===
 {
   "baz": {
     "y_yd": [ "Variant_two1", 1 ],
@@ -200,49 +201,49 @@ null
     "y_b": [ "two", [ 10, 20, 30 ] ],
     "y_a": 2
   },
-  "bar": "one",
+  "bar": "true",
   "foo": 1
 }
-=== Test__Test_unit.Some Some Some true ===
+=== json.Some Some Some true ===
 true
-=== Test__Test_unit.Some Some None ===
+=== json.Some Some None ===
 { "__option": { "__option": null } }
-=== Test__Test_unit.Some None ===
+=== json.Some None ===
 { "__option": null }
-=== Test__Test_unit.None ===
+=== json.None ===
 null
-=== Test__Test_unit.Some Some Some true ===
+=== json.Some Some Some true ===
 { "a": true }
-=== Test__Test_unit.Some Some None ===
+=== json.Some Some None ===
 { "a": { "__option": { "__option": null } } }
-=== Test__Test_unit.Some None ===
+=== json.Some None ===
 { "a": { "__option": null } }
-=== Test__Test_unit.None ===
+=== json.None ===
 { "a": null }
-=== Test__Test_unit.unit option option list option option ===
+=== json.unit option option list option option ===
 [ { "__option": { "__option": null } }, { "__option": null }, null ]
-=== Test__Test_unit.confuse deserialization by using reserved word ===
+=== json.confuse deserialization by using reserved word ===
 { "o": { "option": true } }
-=== Test__Test_variant.Simple ===
+=== json.Simple ===
 [ "A", [ "B", 5 ], [ "C", 6, 7 ], [ "D", [ 8, 9 ] ] ]
-=== Test__Test_variant.Tuple ===
+=== json.Tuple ===
 [ "A", [ 3, 4 ] ]
-=== Test__Test_variant.Tree ===
+=== json.Tree ===
 [ "Node", [ "Node", "Leaf", 3, "Leaf" ], 10, "Leaf" ]
-=== Test__Test_variant.MutualRecursion ===
+=== json.MutualRecursion ===
 [
   "T1",
   [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
 ]
-=== Test__Test_variant.InsideRec ===
+=== json.InsideRec ===
 { "c": "c", "V": "A", "a": "a" }
-=== Test__Test_variant.InlineRecord ===
+=== json.InlineRecord ===
 [ "A", { "a": "a" } ]
-=== Test__Test_variant.InlineRecord2 ===
+=== json.InlineRecord2 ===
 [ "aa", { "b": [ "aa", { "b": [ "B", 5 ], "A": "a" } ], "A": "a" } ]
-=== Test__Test_variant.Poly ===
+=== json.Poly ===
 [ "aaa", 5 ]
-=== Test__Test_result.Option.Ok ===
+=== json.Option.Ok ===
 [ "Ok", 2 ]
-=== Test__Test_result.Option.Error ===
+=== json.Option.Error ===
 [ "Error", "Error string" ]

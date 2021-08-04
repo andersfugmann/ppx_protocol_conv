@@ -3,7 +3,7 @@ module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module SimpleRecord : M.Testable = struct
-    let name = __MODULE__ ^ ".SimpleRecord"
+    let name = "SimpleRecord"
     type t = {
       code: string [@key "Code"];
       message: string [@key "Message"];
@@ -24,7 +24,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module RecordList : M.Testable = struct
-    let name = __MODULE__ ^ ".RecordList"
+    let name = "RecordList"
 
     type objekt = { key: int }
     and t = { objects : objekt list }

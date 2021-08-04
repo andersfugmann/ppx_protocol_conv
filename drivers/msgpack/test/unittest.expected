@@ -1,33 +1,34 @@
-=== Test__Test_arrays.SingleElem ===
+=== msgpack.SingleElem ===
 []
-=== Test__Test_arrays.SingleElem ===
+=== msgpack.SingleElem ===
 [2]
-=== Test__Test_arrays.Longarray ===
+=== msgpack.Longarray ===
 [4, 2, 3, 1]
-=== Test__Test_arrays.EmptyInsideRec ===
+=== msgpack.EmptyInsideRec ===
 {c: c, V: [], a: a}
-=== Test__Test_arrays.SingleInsideRec ===
+=== msgpack.SingleInsideRec ===
 {c: c, V: [2], a: a}
-=== Test__Test_arrays.MultiInsideRec ===
+=== msgpack.MultiInsideRec ===
 {c: c, V: [4, 2, 3, 1], a: a}
-=== Test__Test_arrays.ArrayOfArrays ===
+=== msgpack.ArrayOfArrays ===
 {a: [[2, 3], [4, 5]]}
-=== Test__Test_arrays.ArrayOfArrays2 ===
+=== msgpack.ArrayOfArrays2 ===
 [[], [[], [2], [3, 4]], [[]], [[2]]]
-=== Tuple ===
+=== msgpack.Tuple ===
 [[10, [20, 30, 40], [s50, s60, s70], [[100, 200], [300, 400], [500, 600]]],
  [11, [21, 31, 41], [s51, s61, s71], [[101, 201], [301, 401], [501, 601]]],
  [12, [22, 32, 42], [s52, s62, s72], [[102, 202], [302, 402], [502, 602]]],
  [13, [23, 33, 43], [s53, s63, s73], [[103, 203], [303, 403], [503, 603]]]]
-=== Any ===
+=== msgpack.Any ===
 {t: [B, [5, 6, 7], [10, 11, 12]], z: 101, record: {y: string, x: 5}, varray:
  [[B, [5, 6, 7], [10, 11, 12]], [B, [5, 6, 7], [10, 11, 12]],
   [B, [5, 6, 7], [10, 11, 12]]], vlist:
  [[B, [5, 6, 7], [10, 11, 12]], [B, [5, 6, 7], [10, 11, 12]],
   [B, [5, 6, 7], [10, 11, 12]]], tuple: [5, protocol, false], intref: 4,
- intoption: 100, intlist: [3, 4, 5], bytes: "bytes", string: string, float:
- 3.14, nativeint: 20, int64: 10, int32: 5, int: 2, char: x, bool: true}
-=== Record ===
+ intoption: 100, intlist: [3, 4, 5], bytes: "bytes", string2: 1, string:
+ string, float: 3.14, nativeint: 20, int64: 10L, int32: 5l, int: 2, char: x,
+ bool: true}
+=== msgpack.Record ===
 {t_il: [1000, 1001, 1002], t_tl:
  [[100, 101, [s100, s101]], [110, 111, [s110, s111]],
   [120, 121, [s120, s121]], [130, 131, [s130, s131]],
@@ -39,113 +40,113 @@
   b_int: 5}, t_al:
  [{a_string: s2, a_int: 2}, {a_string: s3, a_int: 3},
   {a_string: s4, a_int: 4}], t_a: {a_string: s1, a_int: 1}}
-=== list ===
+=== msgpack.list ===
 {a: [1, 2, 3]}
-=== Lists ===
+=== msgpack.Lists ===
 {l:
  [[A, [1, 2, 3]], [B, [[1, 2], [3, 4, 5], [2]], [3, 1], 5],
   [C, [1, 2, 3], [3, 4, 5]]], c: [100, 101, 102, 103], b:
  [[8, 9], [10, 20, 30, 40]], a: [[1, 2, 3], [], [10, 20, 30, 40], [100, 101]]}
-=== array ===
+=== msgpack.array ===
 {a: [1, 2, 3]}
-=== Test__Test_lists.EmptyList ===
+=== msgpack.EmptyList ===
 []
-=== Test__Test_lists.SingleElem ===
+=== msgpack.SingleElem ===
 [2]
-=== Test__Test_lists.Longlist ===
+=== msgpack.Longlist ===
 [4, 3, 2, 1]
-=== Test__Test_lists.EmptyInsideRec ===
+=== msgpack.EmptyInsideRec ===
 {c: c, V: [], a: a}
-=== Test__Test_lists.SingleInsideRec ===
+=== msgpack.SingleInsideRec ===
 {c: c, V: [2], a: a}
-=== Test__Test_lists.MultiInsideRec ===
+=== msgpack.MultiInsideRec ===
 {c: c, V: [4, 2, 3, 1], a: a}
-=== Test__Test_lists.ListOfLists ===
+=== msgpack.ListOfLists ===
 {a: [[2, 3], [4, 5]]}
-=== Test__Test_lists.ListOfLists2 ===
+=== msgpack.ListOfLists2 ===
 [[], [[], [2], [3, 4]], [[]], [[2]]]
-=== Test__Test_nonrec.Nonrec ===
+=== msgpack.Nonrec ===
 [A, [Cons, 4, [Cons, 3, Nil]]]
-=== Test__Test_nonrec.Nonrec2 ===
+=== msgpack.Nonrec2 ===
 [Cons, 4, [Cons, 3, Nil]]
-=== None ===
+=== msgpack.None ===
 ()
-=== Some None ===
+=== msgpack.Some None ===
 {__option: ()}
-=== Some Some None ===
+=== msgpack.Some Some None ===
 {__option: {__option: ()}}
-=== Some Some Some Unit ===
+=== msgpack.Some Some Some Unit ===
 {__option: {__option: {__option: {__option: ()}}}}
-=== simple ===
+=== msgpack.simple ===
 5
-=== record ===
+=== msgpack.record ===
 {a: 5}
-=== multiple ===
+=== msgpack.multiple ===
 [5, 5, true]
-=== reference ===
+=== msgpack.reference ===
 {a: {a: 5}}
-=== recursive ===
+=== msgpack.recursive ===
 {c: {b: {a: 5}}}
-=== Test__Test_poly.Simple ===
+=== msgpack.Simple ===
 [A, [B, 5], [C, [6, 7]], [D, [8, 9]]]
-=== Test__Test_poly.Tree ===
+=== msgpack.Tree ===
 [Node, [[Node, [Leaf, 3, Leaf]], 10, Leaf]]
-=== Test__Test_poly.MutualRecursion ===
+=== msgpack.MutualRecursion ===
 [T1, [V, [T, [V, [V1, [V1, [V1, [V0, 5]]]]]]]]
-=== Test__Test_poly.InsideRec ===
+=== msgpack.InsideRec ===
 {c: c, V: A, a: a}
-=== Test__Test_record.RecordList ===
+=== msgpack.RecordList ===
 {objects: [{key: 1}, {key: 2}]}
-=== Test__Test_record.SimpleRecord ===
+=== msgpack.SimpleRecord ===
 {HostId: SDsd, RequestId: sdfsd, Endpoint: (), Bucket: (), Message: Message,
  Code: Error}
-=== Test__Test_sig.Test_sig ===
+=== msgpack.Test_sig ===
 {x: [A, [[A, 7], 7, 7, [B, 0.7], 7]]}
-=== Test__Test_sig.Test_sig2 ===
+=== msgpack.Test_sig2 ===
 [1, 2., 3.0, (), [A, 1], {c: 3.0, b: 2., a: 1}, [A, 1]]
-=== Test__Test_types.S3 ===
+=== msgpack.S3 ===
 {Contents: [{ETag: Etag, StorageClass: STANDARD}], Prefix: prefix}
-=== Test__Test_types.Types ===
+=== msgpack.Types ===
 {baz:
  {y_yd: [Variant_two1, 1], y_yc: [three, [100, 200, 300]], y_b:
-  [two, [10, 20, 30]], y_a: 2}, bar: one, foo: 1}
-=== Test__Test_unit.Some Some Some true ===
+  [two, [10, 20, 30]], y_a: 2}, bar: true, foo: 1}
+=== msgpack.Some Some Some true ===
 true
-=== Test__Test_unit.Some Some None ===
+=== msgpack.Some Some None ===
 {__option: {__option: ()}}
-=== Test__Test_unit.Some None ===
+=== msgpack.Some None ===
 {__option: ()}
-=== Test__Test_unit.None ===
+=== msgpack.None ===
 ()
-=== Test__Test_unit.Some Some Some true ===
+=== msgpack.Some Some Some true ===
 {a: true}
-=== Test__Test_unit.Some Some None ===
+=== msgpack.Some Some None ===
 {a: {__option: {__option: ()}}}
-=== Test__Test_unit.Some None ===
+=== msgpack.Some None ===
 {a: {__option: ()}}
-=== Test__Test_unit.None ===
+=== msgpack.None ===
 {a: ()}
-=== Test__Test_unit.unit option option list option option ===
+=== msgpack.unit option option list option option ===
 [{__option: {__option: ()}}, {__option: ()}, ()]
-=== Test__Test_unit.confuse deserialization by using reserved word ===
+=== msgpack.confuse deserialization by using reserved word ===
 {o: {option: true}}
-=== Test__Test_variant.Simple ===
+=== msgpack.Simple ===
 [A, [B, 5], [C, 6, 7], [D, [8, 9]]]
-=== Test__Test_variant.Tuple ===
+=== msgpack.Tuple ===
 [A, [3, 4]]
-=== Test__Test_variant.Tree ===
+=== msgpack.Tree ===
 [Node, [Node, Leaf, 3, Leaf], 10, Leaf]
-=== Test__Test_variant.MutualRecursion ===
+=== msgpack.MutualRecursion ===
 [T1, [V, [T, [V, [V1, [V1, [V1, [V0, 5]]]]]]]]
-=== Test__Test_variant.InsideRec ===
+=== msgpack.InsideRec ===
 {c: c, V: A, a: a}
-=== Test__Test_variant.InlineRecord ===
+=== msgpack.InlineRecord ===
 [A, {a: a}]
-=== Test__Test_variant.InlineRecord2 ===
+=== msgpack.InlineRecord2 ===
 [aa, {b: [aa, {b: [B, 5], A: a}], A: a}]
-=== Test__Test_variant.Poly ===
+=== msgpack.Poly ===
 [aaa, 5]
-=== Test__Test_result.Option.Ok ===
+=== msgpack.Option.Ok ===
 [Ok, 2]
-=== Test__Test_result.Option.Error ===
+=== msgpack.Option.Error ===
 [Error, Error string]

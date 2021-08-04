@@ -1,28 +1,28 @@
-=== Test__Test_arrays.SingleElem ===
+=== xml_light.SingleElem ===
 <l/>
-=== Test__Test_arrays.SingleElem ===
+=== xml_light.SingleElem ===
 <l>
   <p>2</p>
 </l>
-=== Test__Test_arrays.Longarray ===
+=== xml_light.Longarray ===
 <l>
   <p>4</p>
   <p>2</p>
   <p>3</p>
   <p>1</p>
 </l>
-=== Test__Test_arrays.EmptyInsideRec ===
+=== xml_light.EmptyInsideRec ===
 <record>
   <c>c</c>
   <a>a</a>
 </record>
-=== Test__Test_arrays.SingleInsideRec ===
+=== xml_light.SingleInsideRec ===
 <record>
   <c>c</c>
   <V>2</V>
   <a>a</a>
 </record>
-=== Test__Test_arrays.MultiInsideRec ===
+=== xml_light.MultiInsideRec ===
 <record>
   <c>c</c>
   <V>4</V>
@@ -31,7 +31,7 @@
   <V>1</V>
   <a>a</a>
 </record>
-=== Test__Test_arrays.ArrayOfArrays ===
+=== xml_light.ArrayOfArrays ===
 <record>
   <a>
     <p>2</p>
@@ -42,7 +42,7 @@
     <p>5</p>
   </a>
 </record>
-=== Test__Test_arrays.ArrayOfArrays2 ===
+=== xml_light.ArrayOfArrays2 ===
 <l>
   <l/>
   <l>
@@ -64,7 +64,7 @@
     </l>
   </l>
 </l>
-=== Tuple ===
+=== xml_light.Tuple ===
 <l>
   <record>
     <t3>
@@ -151,7 +151,7 @@
     <t0>13</t0>
   </record>
 </l>
-=== Record ===
+=== xml_light.Record ===
 <record>
   <t_il>1000</t_il>
   <t_il>1001</t_il>
@@ -230,13 +230,13 @@
     <a_int>1</a_int>
   </t_a>
 </record>
-=== list ===
+=== xml_light.list ===
 <record>
   <a>1</a>
   <a>2</a>
   <a>3</a>
 </record>
-=== Lists ===
+=== xml_light.Lists ===
 <record>
   <l>
 A
@@ -310,37 +310,37 @@ C
     <p>101</p>
   </a>
 </record>
-=== array ===
+=== xml_light.array ===
 <record>
   <a>1</a>
   <a>2</a>
   <a>3</a>
 </record>
-=== Test__Test_lists.EmptyList ===
+=== xml_light.EmptyList ===
 <l/>
-=== Test__Test_lists.SingleElem ===
+=== xml_light.SingleElem ===
 <l>
   <p>2</p>
 </l>
-=== Test__Test_lists.Longlist ===
+=== xml_light.Longlist ===
 <l>
   <p>4</p>
   <p>3</p>
   <p>2</p>
   <p>1</p>
 </l>
-=== Test__Test_lists.EmptyInsideRec ===
+=== xml_light.EmptyInsideRec ===
 <record>
   <c>c</c>
   <a>a</a>
 </record>
-=== Test__Test_lists.SingleInsideRec ===
+=== xml_light.SingleInsideRec ===
 <record>
   <c>c</c>
   <V>2</V>
   <a>a</a>
 </record>
-=== Test__Test_lists.MultiInsideRec ===
+=== xml_light.MultiInsideRec ===
 <record>
   <c>c</c>
   <V>4</V>
@@ -349,7 +349,7 @@ C
   <V>1</V>
   <a>a</a>
 </record>
-=== Test__Test_lists.ListOfLists ===
+=== xml_light.ListOfLists ===
 <record>
   <a>
     <p>2</p>
@@ -360,7 +360,7 @@ C
     <p>5</p>
   </a>
 </record>
-=== Test__Test_lists.ListOfLists2 ===
+=== xml_light.ListOfLists2 ===
 <l>
   <l/>
   <l>
@@ -382,7 +382,7 @@ C
     </l>
   </l>
 </l>
-=== Test__Test_nonrec.Nonrec ===
+=== xml_light.Nonrec ===
 <variant>
 A
   <variant>
@@ -395,7 +395,7 @@ Cons
     </variant>
   </variant>
 </variant>
-=== Test__Test_nonrec.Nonrec2 ===
+=== xml_light.Nonrec2 ===
 <variant>
 Cons
   <p>4</p>
@@ -405,39 +405,39 @@ Cons
     <variant>Nil</variant>
   </variant>
 </variant>
-=== None ===
+=== xml_light.None ===
 <__option/>
-=== Some None ===
+=== xml_light.Some None ===
 <__option>
   <__option/>
 </__option>
-=== Some Some None ===
+=== xml_light.Some Some None ===
 <__option>
   <__option>
     <__option/>
   </__option>
 </__option>
-=== Some Some Some Unit ===
+=== xml_light.Some Some Some Unit ===
 <p>()</p>
-=== simple ===
+=== xml_light.simple ===
 <p>5</p>
-=== record ===
+=== xml_light.record ===
 <record>
   <a>5</a>
 </record>
-=== multiple ===
+=== xml_light.multiple ===
 <record>
   <t2>true</t2>
   <t1>5</t1>
   <t0>5</t0>
 </record>
-=== reference ===
+=== xml_light.reference ===
 <record>
   <a>
     <a>5</a>
   </a>
 </record>
-=== recursive ===
+=== xml_light.recursive ===
 <record>
   <c>
     <b>
@@ -445,7 +445,7 @@ Cons
     </b>
   </c>
 </record>
-=== Test__Test_poly.Simple ===
+=== xml_light.Simple ===
 <l>
   <variant>A</variant>
   <variant>
@@ -467,7 +467,7 @@ D
     </record>
   </variant>
 </l>
-=== Test__Test_poly.Tree ===
+=== xml_light.Tree ===
 <variant>
 Node
   <record>
@@ -483,7 +483,7 @@ Node
     </t0>
   </record>
 </variant>
-=== Test__Test_poly.MutualRecursion ===
+=== xml_light.MutualRecursion ===
 <variant>
 T1
   <variant>
@@ -509,13 +509,13 @@ V0
     </variant>
   </variant>
 </variant>
-=== Test__Test_poly.InsideRec ===
+=== xml_light.InsideRec ===
 <record>
   <c>c</c>
   <V>A</V>
   <a>a</a>
 </record>
-=== Test__Test_record.RecordList ===
+=== xml_light.RecordList ===
 <record>
   <objects>
     <key>1</key>
@@ -524,7 +524,7 @@ V0
     <key>2</key>
   </objects>
 </record>
-=== Test__Test_record.SimpleRecord ===
+=== xml_light.SimpleRecord ===
 <record>
   <HostId>SDsd</HostId>
   <RequestId>sdfsd</RequestId>
@@ -533,7 +533,7 @@ V0
   <Message>Message</Message>
   <Code>Error</Code>
 </record>
-=== Test__Test_sig.Test_sig ===
+=== xml_light.Test_sig ===
 <record>
   <x>
 A
@@ -552,7 +552,7 @@ A
     </record>
   </x>
 </record>
-=== Test__Test_sig.Test_sig2 ===
+=== xml_light.Test_sig2 ===
 <record>
   <t6>
 A
@@ -572,7 +572,7 @@ A
   <t1>2.</t1>
   <t0>1</t0>
 </record>
-=== Test__Test_types.S3 ===
+=== xml_light.S3 ===
 <record>
   <Contents>
     <ETag>Etag</ETag>
@@ -580,7 +580,7 @@ A
   </Contents>
   <Prefix>prefix</Prefix>
 </record>
-=== Test__Test_types.Types ===
+=== xml_light.Types ===
 <record>
   <baz>
     <y_yd>
@@ -601,28 +601,28 @@ Variant_two1
     </y_b>
     <y_a>2</y_a>
   </baz>
-  <bar>one</bar>
+  <bar>true</bar>
   <foo>1</foo>
 </record>
-=== Test__Test_unit.Some Some Some true ===
+=== xml_light.Some Some Some true ===
 <p>true</p>
-=== Test__Test_unit.Some Some None ===
+=== xml_light.Some Some None ===
 <__option>
   <__option>
     <__option/>
   </__option>
 </__option>
-=== Test__Test_unit.Some None ===
+=== xml_light.Some None ===
 <__option>
   <__option/>
 </__option>
-=== Test__Test_unit.None ===
+=== xml_light.None ===
 <__option/>
-=== Test__Test_unit.Some Some Some true ===
+=== xml_light.Some Some Some true ===
 <record>
   <a>true</a>
 </record>
-=== Test__Test_unit.Some Some None ===
+=== xml_light.Some Some None ===
 <record>
   <a>
     <__option>
@@ -630,17 +630,17 @@ Variant_two1
     </__option>
   </a>
 </record>
-=== Test__Test_unit.Some None ===
+=== xml_light.Some None ===
 <record>
   <a>
     <__option/>
   </a>
 </record>
-=== Test__Test_unit.None ===
+=== xml_light.None ===
 <record>
   <a/>
 </record>
-=== Test__Test_unit.unit option option list option option ===
+=== xml_light.unit option option list option option ===
 <l>
   <p>()</p>
   <__option>
@@ -648,13 +648,13 @@ Variant_two1
   </__option>
   <__option/>
 </l>
-=== Test__Test_unit.confuse deserialization by using reserved word ===
+=== xml_light.confuse deserialization by using reserved word ===
 <record>
   <o>
     <option>true</option>
   </o>
 </record>
-=== Test__Test_variant.Simple ===
+=== xml_light.Simple ===
 <l>
   <variant>A</variant>
   <variant>
@@ -674,7 +674,7 @@ D
     </record>
   </variant>
 </l>
-=== Test__Test_variant.Tuple ===
+=== xml_light.Tuple ===
 <variant>
 A
   <record>
@@ -682,7 +682,7 @@ A
     <t0>3</t0>
   </record>
 </variant>
-=== Test__Test_variant.Tree ===
+=== xml_light.Tree ===
 <variant>
 Node
   <variant>
@@ -694,7 +694,7 @@ Node
   <p>10</p>
   <variant>Leaf</variant>
 </variant>
-=== Test__Test_variant.MutualRecursion ===
+=== xml_light.MutualRecursion ===
 <variant>
 T1
   <variant>
@@ -720,20 +720,20 @@ V0
     </variant>
   </variant>
 </variant>
-=== Test__Test_variant.InsideRec ===
+=== xml_light.InsideRec ===
 <record>
   <c>c</c>
   <V>A</V>
   <a>a</a>
 </record>
-=== Test__Test_variant.InlineRecord ===
+=== xml_light.InlineRecord ===
 <variant>
 A
   <record>
     <a>a</a>
   </record>
 </variant>
-=== Test__Test_variant.InlineRecord2 ===
+=== xml_light.InlineRecord2 ===
 <variant>
 aa
   <record>
@@ -750,17 +750,17 @@ B
     <A>a</A>
   </record>
 </variant>
-=== Test__Test_variant.Poly ===
+=== xml_light.Poly ===
 <variant>
 aaa
   <p>5</p>
 </variant>
-=== Test__Test_result.Option.Ok ===
+=== xml_light.Option.Ok ===
 <variant>
 Ok
   <p>2</p>
 </variant>
-=== Test__Test_result.Option.Error ===
+=== xml_light.Option.Error ===
 <variant>
 Error
   <p>Error string</p>

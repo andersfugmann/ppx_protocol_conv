@@ -7,7 +7,7 @@ module Make(Driver: Testable.Driver) = struct
   [@@deriving protocol ~driver:(module Driver), sexp]
 
   module T1 : M.Testable = struct
-    let name = __MODULE__ ^ ".Some Some Some true"
+    let name = "Some Some Some true"
     type nonrec t = t
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -15,7 +15,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T2 : M.Testable = struct
-    let name = __MODULE__ ^ ".Some Some None"
+    let name = "Some Some None"
     type nonrec t = t
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -23,7 +23,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T3 : M.Testable = struct
-    let name = __MODULE__ ^ ".Some None"
+    let name = "Some None"
     type nonrec t = t
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -31,7 +31,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T4 : M.Testable = struct
-    let name = __MODULE__ ^ ".None"
+    let name = "None"
     type nonrec t = t
     [@@deriving protocol ~driver:(module Driver), sexp]
     let t = None
@@ -41,7 +41,7 @@ module Make(Driver: Testable.Driver) = struct
     [@@deriving protocol ~driver:(module Driver), sexp]
 
   module T5 : M.Testable = struct
-    let name = __MODULE__ ^ ".Some Some Some true"
+    let name = "Some Some Some true"
     type t = u
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -49,7 +49,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T6 : M.Testable = struct
-    let name = __MODULE__ ^ ".Some Some None"
+    let name = "Some Some None"
     type t = u
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -57,7 +57,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T7 : M.Testable = struct
-    let name = __MODULE__ ^ ".Some None"
+    let name = "Some None"
     type t = u
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -65,7 +65,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T8 : M.Testable = struct
-    let name = __MODULE__ ^ ".None"
+    let name = "None"
     type t = u
     [@@deriving protocol ~driver:(module Driver), sexp]
 
@@ -73,14 +73,14 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module T9 : M.Testable = struct
-    let name = __MODULE__ ^ ".unit option option list option option"
+    let name = "unit option option list option option"
     type t = unit option option list option option
     [@@deriving protocol ~driver:(module Driver), sexp]
     let t = Some (Some ([Some (Some ()); Some None; None]))
   end
 
   module T10 : M.Testable = struct
-    let name = __MODULE__ ^ ".confuse deserialization by using reserved word"
+    let name = "confuse deserialization by using reserved word"
     type v = { option: bool option option }
     [@@deriving protocol ~driver:(module Driver), sexp]
     type t = { o: v }

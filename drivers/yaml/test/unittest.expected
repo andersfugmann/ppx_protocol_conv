@@ -1,27 +1,27 @@
-=== Test__Test_arrays.SingleElem ===
+=== yaml.SingleElem ===
 []
 
-=== Test__Test_arrays.SingleElem ===
+=== yaml.SingleElem ===
 - 2
 
-=== Test__Test_arrays.Longarray ===
+=== yaml.Longarray ===
 - 4
 - 2
 - 3
 - 1
 
-=== Test__Test_arrays.EmptyInsideRec ===
+=== yaml.EmptyInsideRec ===
 c: c
 V: []
 a: a
 
-=== Test__Test_arrays.SingleInsideRec ===
+=== yaml.SingleInsideRec ===
 c: c
 V:
 - 2
 a: a
 
-=== Test__Test_arrays.MultiInsideRec ===
+=== yaml.MultiInsideRec ===
 c: c
 V:
 - 4
@@ -30,14 +30,14 @@ V:
 - 1
 a: a
 
-=== Test__Test_arrays.ArrayOfArrays ===
+=== yaml.ArrayOfArrays ===
 a:
 - - 2
   - 3
 - - 4
   - 5
 
-=== Test__Test_arrays.ArrayOfArrays2 ===
+=== yaml.ArrayOfArrays2 ===
 - []
 - - []
   - - 2
@@ -46,7 +46,7 @@ a:
 - - []
 - - - 2
 
-=== Tuple ===
+=== yaml.Tuple ===
 - - 10
   - - 20
     - 30
@@ -100,7 +100,7 @@ a:
     - - 503
       - 603
 
-=== Any ===
+=== yaml.Any ===
 t:
 - B
 - - 5
@@ -111,7 +111,7 @@ t:
   - 12
 z: 101
 record:
-  y: string
+  "y": string
   x: 5
 varray:
 - - B
@@ -168,6 +168,7 @@ intlist:
 - 4
 - 5
 bytes: bytes
+string2: "1"
 string: string
 float: 3.14
 nativeint: 20
@@ -177,7 +178,7 @@ int: 2
 char: x
 bool: true
 
-=== Record ===
+=== yaml.Record ===
 t_il:
 - 1000
 - 1001
@@ -234,13 +235,13 @@ t_a:
   a_string: s1
   a_int: 1
 
-=== list ===
+=== yaml.list ===
 a:
 - 1
 - 2
 - 3
 
-=== Lists ===
+=== yaml.Lists ===
 l:
 - - A
   - - 1
@@ -287,36 +288,36 @@ a:
 - - 100
   - 101
 
-=== array ===
+=== yaml.array ===
 a:
 - 1
 - 2
 - 3
 
-=== Test__Test_lists.EmptyList ===
+=== yaml.EmptyList ===
 []
 
-=== Test__Test_lists.SingleElem ===
+=== yaml.SingleElem ===
 - 2
 
-=== Test__Test_lists.Longlist ===
+=== yaml.Longlist ===
 - 4
 - 3
 - 2
 - 1
 
-=== Test__Test_lists.EmptyInsideRec ===
+=== yaml.EmptyInsideRec ===
 c: c
 V: []
 a: a
 
-=== Test__Test_lists.SingleInsideRec ===
+=== yaml.SingleInsideRec ===
 c: c
 V:
 - 2
 a: a
 
-=== Test__Test_lists.MultiInsideRec ===
+=== yaml.MultiInsideRec ===
 c: c
 V:
 - 4
@@ -325,14 +326,14 @@ V:
 - 1
 a: a
 
-=== Test__Test_lists.ListOfLists ===
+=== yaml.ListOfLists ===
 a:
 - - 2
   - 3
 - - 4
   - 5
 
-=== Test__Test_lists.ListOfLists2 ===
+=== yaml.ListOfLists2 ===
 - []
 - - []
   - - 2
@@ -341,7 +342,7 @@ a:
 - - []
 - - - 2
 
-=== Test__Test_nonrec.Nonrec ===
+=== yaml.Nonrec ===
 - A
 - - Cons
   - 4
@@ -349,50 +350,50 @@ a:
     - 3
     - Nil
 
-=== Test__Test_nonrec.Nonrec2 ===
+=== yaml.Nonrec2 ===
 - Cons
 - 4
 - - Cons
   - 3
   - Nil
 
-=== None ===
+=== yaml.None ===
 
 
-=== Some None ===
-__option: 
-
-=== Some Some None ===
+=== yaml.Some None ===
 __option:
-  __option: 
 
-=== Some Some Some Unit ===
+=== yaml.Some Some None ===
+__option:
+  __option:
+
+=== yaml.Some Some Some Unit ===
 __option:
   __option:
     __option:
-      __option: 
+      __option:
 
-=== simple ===
+=== yaml.simple ===
 5
 
-=== record ===
+=== yaml.record ===
 a: 5
 
-=== multiple ===
+=== yaml.multiple ===
 - 5
-- 5
+- "5"
 - true
 
-=== reference ===
+=== yaml.reference ===
 a:
   a: 5
 
-=== recursive ===
+=== yaml.recursive ===
 c:
   b:
     a: 5
 
-=== Test__Test_poly.Simple ===
+=== yaml.Simple ===
 - A
 - - B
   - 5
@@ -403,7 +404,7 @@ c:
   - - 8
     - 9
 
-=== Test__Test_poly.Tree ===
+=== yaml.Tree ===
 - Node
 - - - Node
     - - Leaf
@@ -412,7 +413,7 @@ c:
   - 10
   - Leaf
 
-=== Test__Test_poly.MutualRecursion ===
+=== yaml.MutualRecursion ===
 - T1
 - - V
   - - T
@@ -423,25 +424,25 @@ c:
             - - V0
               - 5
 
-=== Test__Test_poly.InsideRec ===
+=== yaml.InsideRec ===
 c: c
 V: A
 a: a
 
-=== Test__Test_record.RecordList ===
+=== yaml.RecordList ===
 objects:
 - key: 1
 - key: 2
 
-=== Test__Test_record.SimpleRecord ===
+=== yaml.SimpleRecord ===
 HostId: SDsd
 RequestId: sdfsd
-Endpoint: 
-Bucket: 
+Endpoint:
+Bucket:
 Message: Message
 Code: Error
 
-=== Test__Test_sig.Test_sig ===
+=== yaml.Test_sig ===
 x:
 - A
 - - - A
@@ -452,26 +453,26 @@ x:
     - 0.7
   - 7
 
-=== Test__Test_sig.Test_sig2 ===
+=== yaml.Test_sig2 ===
 - 1
 - 2
-- 3.0
-- 
+- "3.0"
+-
 - - A
   - 1
-- c: 3.0
+- c: "3.0"
   b: 2
   a: 1
 - - A
   - 1
 
-=== Test__Test_types.S3 ===
+=== yaml.S3 ===
 Contents:
 - ETag: Etag
   StorageClass: STANDARD
 Prefix: prefix
 
-=== Test__Test_types.Types ===
+=== yaml.Types ===
 baz:
   y_yd:
   - Variant_two1
@@ -487,48 +488,48 @@ baz:
     - 20
     - 30
   y_a: 2
-bar: one
+bar: "true"
 foo: 1
 
-=== Test__Test_unit.Some Some Some true ===
+=== yaml.Some Some Some true ===
 true
 
-=== Test__Test_unit.Some Some None ===
+=== yaml.Some Some None ===
 __option:
-  __option: 
+  __option:
 
-=== Test__Test_unit.Some None ===
-__option: 
+=== yaml.Some None ===
+__option:
 
-=== Test__Test_unit.None ===
+=== yaml.None ===
 
 
-=== Test__Test_unit.Some Some Some true ===
+=== yaml.Some Some Some true ===
 a: true
 
-=== Test__Test_unit.Some Some None ===
+=== yaml.Some Some None ===
 a:
   __option:
-    __option: 
+    __option:
 
-=== Test__Test_unit.Some None ===
+=== yaml.Some None ===
 a:
-  __option: 
+  __option:
 
-=== Test__Test_unit.None ===
-a: 
+=== yaml.None ===
+a:
 
-=== Test__Test_unit.unit option option list option option ===
+=== yaml.unit option option list option option ===
 - __option:
-    __option: 
-- __option: 
-- 
+    __option:
+- __option:
+-
 
-=== Test__Test_unit.confuse deserialization by using reserved word ===
+=== yaml.confuse deserialization by using reserved word ===
 o:
   option: true
 
-=== Test__Test_variant.Simple ===
+=== yaml.Simple ===
 - A
 - - B
   - 5
@@ -539,12 +540,12 @@ o:
   - - 8
     - 9
 
-=== Test__Test_variant.Tuple ===
+=== yaml.Tuple ===
 - A
 - - 3
   - 4
 
-=== Test__Test_variant.Tree ===
+=== yaml.Tree ===
 - Node
 - - Node
   - Leaf
@@ -553,7 +554,7 @@ o:
 - 10
 - Leaf
 
-=== Test__Test_variant.MutualRecursion ===
+=== yaml.MutualRecursion ===
 - T1
 - - V
   - - T
@@ -564,16 +565,16 @@ o:
             - - V0
               - 5
 
-=== Test__Test_variant.InsideRec ===
+=== yaml.InsideRec ===
 c: c
 V: A
 a: a
 
-=== Test__Test_variant.InlineRecord ===
+=== yaml.InlineRecord ===
 - A
 - a: a
 
-=== Test__Test_variant.InlineRecord2 ===
+=== yaml.InlineRecord2 ===
 - aa
 - b:
   - aa
@@ -583,15 +584,15 @@ a: a
     A: a
   A: a
 
-=== Test__Test_variant.Poly ===
+=== yaml.Poly ===
 - aaa
 - 5
 
-=== Test__Test_result.Option.Ok ===
+=== yaml.Option.Ok ===
 - Ok
 - 2
 
-=== Test__Test_result.Option.Error ===
+=== yaml.Option.Error ===
 - Error
 - Error string
 

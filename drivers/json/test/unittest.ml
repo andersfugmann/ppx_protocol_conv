@@ -1,5 +1,8 @@
 open Protocol_conv_json
 module Driver = struct
+  let name = "json"
+  let serialize t = Yojson.Safe.pretty_to_string t
+  let deserialize t = Yojson.Safe.from_string t
   include Json
   let of_driver_exn = of_json_exn
   let of_driver = of_json
@@ -11,7 +14,10 @@ end
 module Unittest = Test.Unittest.Make(Driver)
 
 module Yojson_Driver = struct
-  include Json.Yojson
+  let name = "yojson"
+  let serialize t = Yojson.Safe.pretty_to_string t
+  let deserialize t = Yojson.Safe.from_string t
+    include Json.Yojson
   let of_driver_exn = of_yojson_exn
   let of_driver = of_yojson
   let to_driver = to_yojson
@@ -35,5 +41,5 @@ module Identity = struct
 
 end
 *)
-let () = Unittest.run ~extra:[Test_attrib.test] ~name:"json" ()
-let () = Unittest_yojson.run ~extra:[Test_attrib.test] ~name:"yojson" ()
+let () = Unittest.run ~extra:[Test_attrib.test] ()
+let () = Unittest_yojson.run ~extra:[Test_attrib.test] ()

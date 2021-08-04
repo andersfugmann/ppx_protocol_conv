@@ -1,14 +1,14 @@
-=== Test__Test_arrays.SingleElem ===
+=== jsonm.SingleElem ===
 [
   []
 ]
-=== Test__Test_arrays.SingleElem ===
+=== jsonm.SingleElem ===
 [
   [
     2
   ]
 ]
-=== Test__Test_arrays.Longarray ===
+=== jsonm.Longarray ===
 [
   [
     4,
@@ -17,7 +17,7 @@
     1
   ]
 ]
-=== Test__Test_arrays.EmptyInsideRec ===
+=== jsonm.EmptyInsideRec ===
 [
   {
     "c": "c",
@@ -25,7 +25,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_arrays.SingleInsideRec ===
+=== jsonm.SingleInsideRec ===
 [
   {
     "c": "c",
@@ -35,7 +35,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_arrays.MultiInsideRec ===
+=== jsonm.MultiInsideRec ===
 [
   {
     "c": "c",
@@ -48,7 +48,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_arrays.ArrayOfArrays ===
+=== jsonm.ArrayOfArrays ===
 [
   {
     "a": [
@@ -63,7 +63,7 @@
     ]
   }
 ]
-=== Test__Test_arrays.ArrayOfArrays2 ===
+=== jsonm.ArrayOfArrays2 ===
 [
   [
     [],
@@ -87,7 +87,7 @@
     ]
   ]
 ]
-=== Tuple ===
+=== jsonm.Tuple ===
 [
   [
     [
@@ -200,7 +200,7 @@
     ]
   ]
 ]
-=== Any ===
+=== jsonm.Any ===
 [
   {
     "t": [
@@ -316,6 +316,7 @@
       5
     ],
     "bytes": "bytes",
+    "string2": "1",
     "string": "string",
     "float": 3.14,
     "nativeint": 20,
@@ -326,7 +327,7 @@
     "bool": true
   }
 ]
-=== Record ===
+=== jsonm.Record ===
 [
   {
     "t_il": [
@@ -428,7 +429,7 @@
     }
   }
 ]
-=== list ===
+=== jsonm.list ===
 [
   {
     "a": [
@@ -438,7 +439,7 @@
     ]
   }
 ]
-=== Lists ===
+=== jsonm.Lists ===
 [
   {
     "l": [
@@ -524,7 +525,7 @@
     ]
   }
 ]
-=== array ===
+=== jsonm.array ===
 [
   {
     "a": [
@@ -534,17 +535,17 @@
     ]
   }
 ]
-=== Test__Test_lists.EmptyList ===
+=== jsonm.EmptyList ===
 [
   []
 ]
-=== Test__Test_lists.SingleElem ===
+=== jsonm.SingleElem ===
 [
   [
     2
   ]
 ]
-=== Test__Test_lists.Longlist ===
+=== jsonm.Longlist ===
 [
   [
     4,
@@ -553,7 +554,7 @@
     1
   ]
 ]
-=== Test__Test_lists.EmptyInsideRec ===
+=== jsonm.EmptyInsideRec ===
 [
   {
     "c": "c",
@@ -561,7 +562,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_lists.SingleInsideRec ===
+=== jsonm.SingleInsideRec ===
 [
   {
     "c": "c",
@@ -571,7 +572,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_lists.MultiInsideRec ===
+=== jsonm.MultiInsideRec ===
 [
   {
     "c": "c",
@@ -584,7 +585,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_lists.ListOfLists ===
+=== jsonm.ListOfLists ===
 [
   {
     "a": [
@@ -599,7 +600,7 @@
     ]
   }
 ]
-=== Test__Test_lists.ListOfLists2 ===
+=== jsonm.ListOfLists2 ===
 [
   [
     [],
@@ -623,7 +624,7 @@
     ]
   ]
 ]
-=== Test__Test_nonrec.Nonrec ===
+=== jsonm.Nonrec ===
 [
   [
     "A",
@@ -638,7 +639,7 @@
     ]
   ]
 ]
-=== Test__Test_nonrec.Nonrec2 ===
+=== jsonm.Nonrec2 ===
 [
   [
     "Cons",
@@ -650,17 +651,17 @@
     ]
   ]
 ]
-=== None ===
+=== jsonm.None ===
 [
   null
 ]
-=== Some None ===
+=== jsonm.Some None ===
 [
   {
     "__option": null
   }
 ]
-=== Some Some None ===
+=== jsonm.Some Some None ===
 [
   {
     "__option": {
@@ -668,7 +669,7 @@
     }
   }
 ]
-=== Some Some Some Unit ===
+=== jsonm.Some Some Some Unit ===
 [
   {
     "__option": {
@@ -680,17 +681,17 @@
     }
   }
 ]
-=== simple ===
+=== jsonm.simple ===
 [
   5
 ]
-=== record ===
+=== jsonm.record ===
 [
   {
     "a": 5
   }
 ]
-=== multiple ===
+=== jsonm.multiple ===
 [
   [
     5,
@@ -698,7 +699,7 @@
     true
   ]
 ]
-=== reference ===
+=== jsonm.reference ===
 [
   {
     "a": {
@@ -706,7 +707,7 @@
     }
   }
 ]
-=== recursive ===
+=== jsonm.recursive ===
 [
   {
     "c": {
@@ -716,7 +717,7 @@
     }
   }
 ]
-=== Test__Test_poly.Simple ===
+=== jsonm.Simple ===
 [
   [
     "A",
@@ -740,7 +741,7 @@
     ]
   ]
 ]
-=== Test__Test_poly.Tree ===
+=== jsonm.Tree ===
 [
   [
     "Node",
@@ -758,7 +759,7 @@
     ]
   ]
 ]
-=== Test__Test_poly.MutualRecursion ===
+=== jsonm.MutualRecursion ===
 [
   [
     "T1",
@@ -786,7 +787,7 @@
     ]
   ]
 ]
-=== Test__Test_poly.InsideRec ===
+=== jsonm.InsideRec ===
 [
   {
     "c": "c",
@@ -794,7 +795,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_record.RecordList ===
+=== jsonm.RecordList ===
 [
   {
     "objects": [
@@ -807,7 +808,7 @@
     ]
   }
 ]
-=== Test__Test_record.SimpleRecord ===
+=== jsonm.SimpleRecord ===
 [
   {
     "HostId": "SDsd",
@@ -818,7 +819,7 @@
     "Code": "Error"
   }
 ]
-=== Test__Test_sig.Test_sig ===
+=== jsonm.Test_sig ===
 [
   {
     "x": [
@@ -839,7 +840,7 @@
     ]
   }
 ]
-=== Test__Test_sig.Test_sig2 ===
+=== jsonm.Test_sig2 ===
 [
   [
     1,
@@ -861,7 +862,7 @@
     ]
   ]
 ]
-=== Test__Test_types.S3 ===
+=== jsonm.S3 ===
 [
   {
     "Contents": [
@@ -873,7 +874,7 @@
     "Prefix": "prefix"
   }
 ]
-=== Test__Test_types.Types ===
+=== jsonm.Types ===
 [
   {
     "baz": {
@@ -899,15 +900,15 @@
       ],
       "y_a": 2
     },
-    "bar": "one",
+    "bar": "true",
     "foo": 1
   }
 ]
-=== Test__Test_unit.Some Some Some true ===
+=== jsonm.Some Some Some true ===
 [
   true
 ]
-=== Test__Test_unit.Some Some None ===
+=== jsonm.Some Some None ===
 [
   {
     "__option": {
@@ -915,23 +916,23 @@
     }
   }
 ]
-=== Test__Test_unit.Some None ===
+=== jsonm.Some None ===
 [
   {
     "__option": null
   }
 ]
-=== Test__Test_unit.None ===
+=== jsonm.None ===
 [
   null
 ]
-=== Test__Test_unit.Some Some Some true ===
+=== jsonm.Some Some Some true ===
 [
   {
     "a": true
   }
 ]
-=== Test__Test_unit.Some Some None ===
+=== jsonm.Some Some None ===
 [
   {
     "a": {
@@ -941,7 +942,7 @@
     }
   }
 ]
-=== Test__Test_unit.Some None ===
+=== jsonm.Some None ===
 [
   {
     "a": {
@@ -949,13 +950,13 @@
     }
   }
 ]
-=== Test__Test_unit.None ===
+=== jsonm.None ===
 [
   {
     "a": null
   }
 ]
-=== Test__Test_unit.unit option option list option option ===
+=== jsonm.unit option option list option option ===
 [
   [
     {
@@ -969,7 +970,7 @@
     null
   ]
 ]
-=== Test__Test_unit.confuse deserialization by using reserved word ===
+=== jsonm.confuse deserialization by using reserved word ===
 [
   {
     "o": {
@@ -977,7 +978,7 @@
     }
   }
 ]
-=== Test__Test_variant.Simple ===
+=== jsonm.Simple ===
 [
   [
     "A",
@@ -999,7 +1000,7 @@
     ]
   ]
 ]
-=== Test__Test_variant.Tuple ===
+=== jsonm.Tuple ===
 [
   [
     "A",
@@ -1009,7 +1010,7 @@
     ]
   ]
 ]
-=== Test__Test_variant.Tree ===
+=== jsonm.Tree ===
 [
   [
     "Node",
@@ -1023,7 +1024,7 @@
     "Leaf"
   ]
 ]
-=== Test__Test_variant.MutualRecursion ===
+=== jsonm.MutualRecursion ===
 [
   [
     "T1",
@@ -1051,7 +1052,7 @@
     ]
   ]
 ]
-=== Test__Test_variant.InsideRec ===
+=== jsonm.InsideRec ===
 [
   {
     "c": "c",
@@ -1059,7 +1060,7 @@
     "a": "a"
   }
 ]
-=== Test__Test_variant.InlineRecord ===
+=== jsonm.InlineRecord ===
 [
   [
     "A",
@@ -1068,7 +1069,7 @@
     }
   ]
 ]
-=== Test__Test_variant.InlineRecord2 ===
+=== jsonm.InlineRecord2 ===
 [
   [
     "aa",
@@ -1087,21 +1088,21 @@
     }
   ]
 ]
-=== Test__Test_variant.Poly ===
+=== jsonm.Poly ===
 [
   [
     "aaa",
     5
   ]
 ]
-=== Test__Test_result.Option.Ok ===
+=== jsonm.Option.Ok ===
 [
   [
     "Ok",
     2
   ]
 ]
-=== Test__Test_result.Option.Error ===
+=== jsonm.Option.Error ===
 [
   [
     "Error",

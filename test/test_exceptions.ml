@@ -14,7 +14,7 @@ module Make(Driver: Testable.Driver) = struct
     type t = int list
     [@@deriving protocol ~driver:(module Driver), sexp]
     let t = list_init ~len:1_000_000 ~f:(fun i -> i)
-    let name = __MODULE__ ^ "Stack_overflow"
+    let name = "stack_overflow"
     let test =
       Alcotest.test_case name `Quick (fun () ->
           try
@@ -35,7 +35,7 @@ module Make(Driver: Testable.Driver) = struct
 
     (* This should raise an exception *)
     let test =
-      Alcotest.test_case "text exception handling" `Quick (fun () ->
+      Alcotest.test_case "Test exception handling" `Quick (fun () ->
           of_driver t' |> ignore
     )
   end

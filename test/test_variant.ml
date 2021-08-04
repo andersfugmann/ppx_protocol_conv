@@ -4,7 +4,7 @@ module Make(Driver: Testable.Driver) = struct
   module M = Testable.Make(Driver)
 
   module Simple : M.Testable = struct
-    let name = __MODULE__ ^ ".Simple"
+    let name = "Simple"
 
     type v = A | B of int | C of int * int | D of (int * int)
     and t = v list
@@ -14,7 +14,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module Tuple : M.Testable = struct
-    let name = __MODULE__ ^ ".Tuple"
+    let name = "Tuple"
     type t = A of (int * int)
            | B of int * int
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -23,7 +23,7 @@ module Make(Driver: Testable.Driver) = struct
 
 
   module Tree : M.Testable = struct
-    let name = __MODULE__ ^ ".Tree"
+    let name = "Tree"
     type t =
       | Node of t * int * t
       | Leaf
@@ -33,7 +33,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module MutualRecursion : M.Testable = struct
-    let name = __MODULE__ ^ ".MutualRecursion"
+    let name = "MutualRecursion"
     type v = V1 of v
            | V0 of int
            | T of t
@@ -46,7 +46,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module InsideRec : M.Testable = struct
-    let name = __MODULE__ ^ ".InsideRec"
+    let name = "InsideRec"
     type v = V0 [@key "A"]
            | V1 [@key "B"]
 
@@ -60,7 +60,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
   module InlineRecord : M.Testable = struct
-    let name = __MODULE__ ^ ".InlineRecord"
+    let name = "InlineRecord"
     type t = A of { a : string; }
            | B of int
            | C of { x : int; y: int; }
@@ -70,7 +70,7 @@ module Make(Driver: Testable.Driver) = struct
 
 
   module InlineRecord2 : M.Testable = struct
-    let name = __MODULE__ ^ ".InlineRecord2"
+    let name = "InlineRecord2"
     type t = A of { a : string [@key "A"]; b: t} [@key "aa"]
            | B of int
            | C of { x : int [@key "X"]; y: int [@key "Y"]; }
@@ -79,7 +79,7 @@ module Make(Driver: Testable.Driver) = struct
   end
 
 module Poly : M.Testable = struct
-  let name = __MODULE__ ^ ".Poly"
+  let name = "Poly"
   type t = [ `A of int [@key "aaa"]| `B of string ]
   [@@deriving protocol ~driver:(module Driver), sexp]
   let t = `A 5

@@ -1,23 +1,23 @@
-=== Test__Test_arrays.SingleElem ===
+=== ppx_test.SingleElem ===
 (List ())
-=== Test__Test_arrays.SingleElem ===
+=== ppx_test.SingleElem ===
 (List ((Int 2)))
-=== Test__Test_arrays.Longarray ===
+=== ppx_test.Longarray ===
 (List ((Int 4) (Int 2) (Int 3) (Int 1)))
-=== Test__Test_arrays.EmptyInsideRec ===
+=== ppx_test.EmptyInsideRec ===
 (Record ((c (String c)) (V (List ())) (a (String a))))
-=== Test__Test_arrays.SingleInsideRec ===
+=== ppx_test.SingleInsideRec ===
 (Record ((c (String c)) (V (List ((Int 2)))) (a (String a))))
-=== Test__Test_arrays.MultiInsideRec ===
+=== ppx_test.MultiInsideRec ===
 (Record
  ((c (String c)) (V (List ((Int 4) (Int 2) (Int 3) (Int 1)))) (a (String a))))
-=== Test__Test_arrays.ArrayOfArrays ===
+=== ppx_test.ArrayOfArrays ===
 (Record ((a (List ((List ((Int 2) (Int 3))) (List ((Int 4) (Int 5))))))))
-=== Test__Test_arrays.ArrayOfArrays2 ===
+=== ppx_test.ArrayOfArrays2 ===
 (List
  ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
   (List ((List ()))) (List ((List ((Int 2)))))))
-=== Tuple ===
+=== ppx_test.Tuple ===
 (List
  ((List
    ((Int 10) (List ((Int 20) (Int 30) (Int 40)))
@@ -43,7 +43,7 @@
     (List
      ((List ((Int 103) (Int 203))) (List ((Int 303) (Int 403)))
       (List ((Int 503) (Int 603)))))))))
-=== Any ===
+=== ppx_test.Any ===
 (Record
  ((t
    (Variant B
@@ -67,10 +67,10 @@
       ((List ((Int 5) (Int 6) (Int 7))) (List ((Int 10) (Int 11) (Int 12))))))))
   (tuple (List ((Int 5) (String protocol) (Bool false)))) (intref (Int 4))
   (intoption (Option ((Int 100)))) (intlist (List ((Int 3) (Int 4) (Int 5))))
-  (bytes (Bytes bytes)) (string (String string)) (float (Float 3.14))
-  (nativeint (Nativeint 20)) (int64 (Int64 10)) (int32 (Int32 5))
-  (int (Int 2)) (char (Char x)) (bool (Bool true))))
-=== Record ===
+  (bytes (Bytes bytes)) (string2 (String 1)) (string (String string))
+  (float (Float 3.14)) (nativeint (Nativeint 20)) (int64 (Int64 10))
+  (int32 (Int32 5)) (int (Int 2)) (char (Char x)) (bool (Bool true))))
+=== ppx_test.Record ===
 (Record
  ((t_il (List ((Int 1000) (Int 1001) (Int 1002))))
   (t_tl
@@ -97,9 +97,9 @@
      (Record ((a_string (String s3)) (a_int (Int 3))))
      (Record ((a_string (String s4)) (a_int (Int 4)))))))
   (t_a (Record ((a_string (String s1)) (a_int (Int 1)))))))
-=== list ===
+=== ppx_test.list ===
 (Record ((a (List ((Int 1) (Int 2) (Int 3))))))
-=== Lists ===
+=== ppx_test.Lists ===
 (Record
  ((l
    (List
@@ -120,93 +120,93 @@
     ((List ((Int 1) (Int 2) (Int 3))) (List ())
      (List ((Int 10) (Int 20) (Int 30) (Int 40)))
      (List ((Int 100) (Int 101))))))))
-=== array ===
+=== ppx_test.array ===
 (Record ((a (List ((Int 1) (Int 2) (Int 3))))))
-=== Test__Test_lists.EmptyList ===
+=== ppx_test.EmptyList ===
 (List ())
-=== Test__Test_lists.SingleElem ===
+=== ppx_test.SingleElem ===
 (List ((Int 2)))
-=== Test__Test_lists.Longlist ===
+=== ppx_test.Longlist ===
 (List ((Int 4) (Int 3) (Int 2) (Int 1)))
-=== Test__Test_lists.EmptyInsideRec ===
+=== ppx_test.EmptyInsideRec ===
 (Record ((c (String c)) (V (List ())) (a (String a))))
-=== Test__Test_lists.SingleInsideRec ===
+=== ppx_test.SingleInsideRec ===
 (Record ((c (String c)) (V (List ((Int 2)))) (a (String a))))
-=== Test__Test_lists.MultiInsideRec ===
+=== ppx_test.MultiInsideRec ===
 (Record
  ((c (String c)) (V (List ((Int 4) (Int 2) (Int 3) (Int 1)))) (a (String a))))
-=== Test__Test_lists.ListOfLists ===
+=== ppx_test.ListOfLists ===
 (Record ((a (List ((List ((Int 2) (Int 3))) (List ((Int 4) (Int 5))))))))
-=== Test__Test_lists.ListOfLists2 ===
+=== ppx_test.ListOfLists2 ===
 (List
  ((List ()) (List ((List ()) (List ((Int 2))) (List ((Int 3) (Int 4)))))
   (List ((List ()))) (List ((List ((Int 2)))))))
-=== Test__Test_nonrec.Nonrec ===
+=== ppx_test.Nonrec ===
 (Variant A
  ((Variant Cons ((Int 4) (Variant Cons ((Int 3) (Variant Nil ())))))))
-=== Test__Test_nonrec.Nonrec2 ===
+=== ppx_test.Nonrec2 ===
 (Variant Cons ((Int 4) (Variant Cons ((Int 3) (Variant Nil ())))))
-=== None ===
+=== ppx_test.None ===
 (Option ())
-=== Some None ===
+=== ppx_test.Some None ===
 (Option ((Option ())))
-=== Some Some None ===
+=== ppx_test.Some Some None ===
 (Option ((Option ((Option ())))))
-=== Some Some Some Unit ===
+=== ppx_test.Some Some Some Unit ===
 (Option ((Option ((Option ((Option (Unit))))))))
-=== simple ===
+=== ppx_test.simple ===
 (Int 5)
-=== record ===
+=== ppx_test.record ===
 (Record ((a (Int 5))))
-=== multiple ===
+=== ppx_test.multiple ===
 (List ((Int 5) (String 5) (Bool true)))
-=== reference ===
+=== ppx_test.reference ===
 (Record ((a (Record ((a (Int 5)))))))
-=== recursive ===
+=== ppx_test.recursive ===
 (Record ((c (Record ((b (Record ((a (Int 5))))))))))
-=== Test__Test_poly.Simple ===
+=== ppx_test.Simple ===
 (List
  ((Variant A ()) (Variant B ((Int 5))) (Variant C ((List ((Int 6) (Int 7)))))
   (Variant D ((List ((Int 8) (Int 9)))))))
-=== Test__Test_poly.Tree ===
+=== ppx_test.Tree ===
 (Variant Node
  ((List
    ((Variant Node ((List ((Variant Leaf ()) (Int 3) (Variant Leaf ())))))
     (Int 10) (Variant Leaf ())))))
-=== Test__Test_poly.MutualRecursion ===
+=== ppx_test.MutualRecursion ===
 (Variant T1
  ((Variant V
    ((Variant T
      ((Variant V
        ((Variant V1 ((Variant V1 ((Variant V1 ((Variant V0 ((Int 5)))))))))))))))))
-=== Test__Test_poly.InsideRec ===
+=== ppx_test.InsideRec ===
 (Record ((c (String c)) (V (Variant A ())) (a (String a))))
-=== Test__Test_record.RecordList ===
+=== ppx_test.RecordList ===
 (Record
  ((objects (List ((Record ((key (Int 1)))) (Record ((key (Int 2)))))))))
-=== Test__Test_record.SimpleRecord ===
+=== ppx_test.SimpleRecord ===
 (Record
  ((HostId (String SDsd)) (RequestId (String sdfsd)) (Endpoint (Option ()))
   (Bucket (Option ())) (Message (String Message)) (Code (String Error))))
-=== Test__Test_sig.Test_sig ===
+=== ppx_test.Test_sig ===
 (Record
  ((x
    (Variant A
     ((List
       ((Variant A ((Int 7))) (Int 7) (Int 7) (Variant B ((Float 0.7)))
        (Int 7))))))))
-=== Test__Test_sig.Test_sig2 ===
+=== ppx_test.Test_sig2 ===
 (List
  ((Int 1) (Float 2) (String 3.0) Unit (Variant A ((Int 1)))
   (Record ((c (String 3.0)) (b (Float 2)) (a (Int 1))))
   (Variant A ((Int 1)))))
-=== Test__Test_types.S3 ===
+=== ppx_test.S3 ===
 (Record
  ((Contents
    (List
     ((Record ((ETag (String Etag)) (StorageClass (Variant STANDARD ())))))))
   (Prefix (Option ((String prefix))))))
-=== Test__Test_types.Types ===
+=== ppx_test.Types ===
 (Record
  ((baz
    (Record
@@ -216,57 +216,57 @@
        ((List ((String three) (List ((Int 100) (Int 200) (Int 300))))))))
      (y_b (List ((String two) (List ((Int 10) (Int 20) (Int 30))))))
      (y_a (Int 2)))))
-  (bar (String one)) (foo (Int 1))))
-=== Test__Test_unit.Some Some Some true ===
+  (bar (String true)) (foo (Int 1))))
+=== ppx_test.Some Some Some true ===
 (Option ((Option ((Option ((Bool true)))))))
-=== Test__Test_unit.Some Some None ===
+=== ppx_test.Some Some None ===
 (Option ((Option ((Option ())))))
-=== Test__Test_unit.Some None ===
+=== ppx_test.Some None ===
 (Option ((Option ())))
-=== Test__Test_unit.None ===
+=== ppx_test.None ===
 (Option ())
-=== Test__Test_unit.Some Some Some true ===
+=== ppx_test.Some Some Some true ===
 (Record ((a (Option ((Option ((Option ((Bool true))))))))))
-=== Test__Test_unit.Some Some None ===
+=== ppx_test.Some Some None ===
 (Record ((a (Option ((Option ((Option ()))))))))
-=== Test__Test_unit.Some None ===
+=== ppx_test.Some None ===
 (Record ((a (Option ((Option ()))))))
-=== Test__Test_unit.None ===
+=== ppx_test.None ===
 (Record ((a (Option ()))))
-=== Test__Test_unit.unit option option list option option ===
+=== ppx_test.unit option option list option option ===
 (Option
  ((Option
    ((List ((Option ((Option (Unit)))) (Option ((Option ()))) (Option ())))))))
-=== Test__Test_unit.confuse deserialization by using reserved word ===
+=== ppx_test.confuse deserialization by using reserved word ===
 (Record ((o (Record ((option (Option ((Option ((Bool true)))))))))))
-=== Test__Test_variant.Simple ===
+=== ppx_test.Simple ===
 (List
  ((Variant A ()) (Variant B ((Int 5))) (Variant C ((Int 6) (Int 7)))
   (Variant D ((List ((Int 8) (Int 9)))))))
-=== Test__Test_variant.Tuple ===
+=== ppx_test.Tuple ===
 (Variant A ((List ((Int 3) (Int 4)))))
-=== Test__Test_variant.Tree ===
+=== ppx_test.Tree ===
 (Variant Node
  ((Variant Node ((Variant Leaf ()) (Int 3) (Variant Leaf ()))) (Int 10)
   (Variant Leaf ())))
-=== Test__Test_variant.MutualRecursion ===
+=== ppx_test.MutualRecursion ===
 (Variant T1
  ((Variant V
    ((Variant T
      ((Variant V
        ((Variant V1 ((Variant V1 ((Variant V1 ((Variant V0 ((Int 5)))))))))))))))))
-=== Test__Test_variant.InsideRec ===
+=== ppx_test.InsideRec ===
 (Record ((c (String c)) (V (Variant A ())) (a (String a))))
-=== Test__Test_variant.InlineRecord ===
+=== ppx_test.InlineRecord ===
 (Variant A ((Record ((a (String a))))))
-=== Test__Test_variant.InlineRecord2 ===
+=== ppx_test.InlineRecord2 ===
 (Variant aa
  ((Record
    ((b (Variant aa ((Record ((b (Variant B ((Int 5)))) (A (String a)))))))
     (A (String a))))))
-=== Test__Test_variant.Poly ===
+=== ppx_test.Poly ===
 (Variant aaa ((Int 5)))
-=== Test__Test_result.Option.Ok ===
+=== ppx_test.Option.Ok ===
 (Variant Ok ((Int 2)))
-=== Test__Test_result.Option.Error ===
+=== ppx_test.Option.Error ===
 (Variant Error ((String "Error string")))

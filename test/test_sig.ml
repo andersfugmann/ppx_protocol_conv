@@ -15,7 +15,7 @@ module Make(Driver: Testable.Driver) = struct
       and t = [`A of int | `B of float] v
       [@@deriving protocol ~driver:(module Driver), sexp]
     end
-    let name = __MODULE__ ^ ".Test_sig"
+    let name = "Test_sig"
 
     type t = Test_sig.t
     [@@deriving protocol ~driver:(module Driver), sexp]
@@ -47,7 +47,7 @@ module Make(Driver: Testable.Driver) = struct
       and t = (a, b, c, d, (a, b, c) e, (a, b, c) f, (a, b, c) g) w
       [@@deriving protocol ~driver:(module Driver), sexp]
     end
-    let name = __MODULE__ ^ ".Test_sig2"
+    let name = "Test_sig2"
     type t = Test_sig.t
     [@@deriving protocol ~driver:(module Driver), sexp]
     let a = 1

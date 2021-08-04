@@ -8,7 +8,7 @@ module Make(Driver: Testable.Driver) = struct
     [@@deriving protocol ~driver:(module Driver), sexp]
 
     module Nonrec : M.Testable = struct
-      let name = __MODULE__ ^ ".Nonrec"
+      let name = "Nonrec"
       type nonrec t = A of t
       [@@deriving protocol ~driver:(module Driver), sexp]
       let t = A (Cons (4, Cons (3, Nil)))
@@ -21,7 +21,7 @@ module Make(Driver: Testable.Driver) = struct
     [@@deriving protocol ~driver:(module Driver), sexp]
 
     module Nonrec : M.Testable = struct
-      let name = __MODULE__ ^ ".Nonrec2"
+      let name = "Nonrec2"
       type nonrec t = t
       [@@deriving protocol ~driver:(module Driver), sexp]
       let t = Cons (4, Cons (3, Nil))
