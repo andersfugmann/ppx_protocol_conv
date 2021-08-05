@@ -12,8 +12,8 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-version:
-          - 4.11.1
-          - 4.07.0
+          - 4.12.0
+          - 4.08.0
 
     runs-on: ${{ matrix.os }}
 
@@ -30,3 +30,20 @@ jobs:
       - run: opam install . --deps-only --with-doc --with-test
       - run: opam exec -- dune build
       - run: opam exec -- dune runtest
+
+  compat:
+    name: compat (ubuntu-latest, 4.04.0)
+    runs-on: ubuntu-latest
+
+    steps:
+     - name: Checkout code
+       uses: actions/checkout@v2
+
+     - name: Use OCaml 4.04.0
+       uses: avsm/setup-ocaml@v1
+       with:
+         ocaml-version: 4.04.0
+
+     - run: opam pin . --no-action
+     - run: opam install . --deps-only
+     - run: opam exec -- dune build
