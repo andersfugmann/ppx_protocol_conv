@@ -1,6 +1,6 @@
 open Protocol_conv_json
 open Base
-open Core_bench.Std
+open Core_bench
 
 (* Constant random number seed to make tests comparable *)
 let () = Random.init 12345678
@@ -17,9 +17,9 @@ module type Test = sig
   type t
   val t: unit -> t
   val to_json: t -> Json.t
-  val to_yojson: t -> Yojson.Safe.json
+  val to_yojson: t -> Yojson.Safe.t
   val of_json: Json.t -> (t, Json.error) Protocol_conv.Runtime.result
-  val of_yojson: Yojson.Safe.json -> t Ppx_deriving_yojson_runtime.error_or
+  val of_yojson: Yojson.Safe.t -> t Ppx_deriving_yojson_runtime.error_or
 end
 
 
