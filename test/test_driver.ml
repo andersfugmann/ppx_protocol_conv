@@ -21,6 +21,7 @@ module Make(Driver: Testable.Driver) = struct
 
     type t1 = { x: int; y: string }
     and v = A | B of int list * int list | C of string
+    and u = { ua: int }
     and t = {
       bool: bool;
       char: char;
@@ -40,12 +41,13 @@ module Make(Driver: Testable.Driver) = struct
       varray: v array;
       record: t1;
       mutable z: int;
-      t : Driver.t;
+      v : Driver.t;
+      u : Driver.t;
     }
     [@@deriving protocol ~driver:(module Driver), sexp_of]
 
     let v = B ([5; 6; 7], [10;11;12])
-
+    let u = { ua = 7 }
     let t = {
       bool = true;
       char = 'x';
@@ -65,7 +67,8 @@ module Make(Driver: Testable.Driver) = struct
       varray = [| v; v; v; |];
       record = { x = 5; y = "string" };
       z = 101;
-      t = v_to_driver v;
+      v = v_to_driver v;
+      u = u_to_driver u;
     }
   end
 

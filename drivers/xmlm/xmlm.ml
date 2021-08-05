@@ -89,10 +89,10 @@ let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec con
           ) xs
       |> (fun map -> StringMap.fold (fun key v acc -> (key, v) :: acc) map [])
       |> List.map ~f:(function
-          | (field, [ `El (((_,name), _), xs) ]) -> (field, `El ((("",name), [("","record"), "unwrapped"]), xs))
-          | (field, [ `Data _ as d ]) -> (field, d)
-          | (field, xs) -> (field, `El ((("",field), []), List.rev xs))
-        )
+        | (field, [ `El (((_, name), (attrs : ((string * string) * string) list)), xs) ]) -> (field, `El ((("",name), (("","record"), "unwrapped") :: attrs), xs))
+        | (field, [ `Data _ as d ]) -> (field, d)
+        | (field, xs) -> (field, `El ((("",field), []), List.rev xs))
+      )
     in
     wrap t f args
   | t -> raise_errorf (Some t) "Expected record element"
@@ -120,11 +120,11 @@ let to_tuple: type constr b. (t, constr, b) Tuple_in.t -> constr -> t -> b = fun
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   match t with
-  | (`El (((_,_), [(_,_), "unwrapped"]), []))
+  | (`El (((_,_), ((_,_), "unwrapped") :: _), []))
   | (`El (((_,_), _), []))
   | (`El (((_,_), _), [ `Data "" ] )) ->
     None
-  | (`El (((_,_), [(_,_), "unwrapped"]), [ (`El ((((_,"__option"), _), _)) as t)]))
+  | (`El (((_,_), ((_,_), "unwrapped") :: _), [ (`El ((((_,"__option"), _), _)) as t)]))
   | (`El (((_,"__option"), _), [t]))
   | t ->
     Some (to_value_fun t)
@@ -162,7 +162,7 @@ let of_result: ('a -> t) -> ('b -> t) -> ('a, 'b) result -> t = fun of_ok of_err
 
 (** If the given list has been unwrapped since its part of a record, we "rewrap it". *)
 let to_list: (t -> 'a) -> t -> 'a list = fun to_value_fun -> function
-  | (`El ((_, [_, "unwrapped"]), _)) as elm ->
+  | (`El ((_, (_, "unwrapped") :: _), _)) as elm ->
     (* If the given list has been unwrapped since its part of a record, we "rewrap it". *)
     [ to_value_fun elm ]
   | (`El ((_, _), ts)) ->
@@ -236,6 +236,14 @@ let to_unit = function `El (_, _, [ `Data "unit" ]) -> ()
 
 let of_unit () = `El ((("","u"), []), [ `Data "unit" ])
 *)
-let of_xmlm_exn t = t
-let of_xmlm t = Ok t
-let to_xmlm t = t
+let of_xmlm_exn: t -> t =
+  function
+  | (`El ((_v, (_, "unwrapped") :: ((_, "__name"), v') :: xs), d)) -> (`El ((("", v'), xs), d))
+  | (`El ((v, (_, "unwrapped") :: xs), d)) -> (`El ((v, xs), d))
+  | (`El ((_v, ((_, "__name"), v') :: xs), d)) -> (`El ((("", v'), xs), d))
+  | x -> x
+
+let of_xmlm t = Ok (of_xmlm_exn t)
+let to_xmlm: t -> t = function
+  | (`El ((v, attrs), d)) -> (`El ((v, (("", "__name"), snd v) :: attrs), d))
+  | v -> v

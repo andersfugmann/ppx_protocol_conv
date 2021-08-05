@@ -45,7 +45,8 @@
       (List ((Int 503) (Int 603)))))))))
 === ppx_test.Any ===
 (Record
- ((t
+ ((u (Record ((ua (Int 7)))))
+  (v
    (Variant B
     ((List ((Int 5) (Int 6) (Int 7))) (List ((Int 10) (Int 11) (Int 12))))))
   (z (Int 101)) (record (Record ((y (String string)) (x (Int 5)))))
