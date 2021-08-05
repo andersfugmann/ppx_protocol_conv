@@ -8,6 +8,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support Result.t, List.t, Option.t, Int.t, et. al
 [ ] Add namespaces to attributes
 [ ] Make sure List.map is tail recursive for list types
+[ ] Unify xmlm and xml_light driver to share codebase
 
 5.2.0
 [x] Extend tests to serialize and deserialize to string for completeness
