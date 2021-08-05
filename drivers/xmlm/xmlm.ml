@@ -89,7 +89,7 @@ let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec con
           ) xs
       |> (fun map -> StringMap.fold (fun key v acc -> (key, v) :: acc) map [])
       |> List.map ~f:(function
-        | (field, [ `El (((_, name), (attrs : ((string * string) * string) list)), xs) ]) -> (field, `El ((("",name), (("","record"), "unwrapped") :: attrs), xs))
+        | (field, [ `El (((_, name), attrs), xs) ]) -> (field, `El ((("",name), (("","record"), "unwrapped") :: attrs), xs))
         | (field, [ `Data _ as d ]) -> (field, d)
         | (field, xs) -> (field, `El ((("",field), []), List.rev xs))
       )
@@ -226,16 +226,6 @@ let of_unit = of_value (fun () -> "()")
 let to_nativeint = to_value "nativeint" Nativeint.of_string
 let of_nativeint = of_value Nativeint.to_string
 
-(*
-let to_unit t = to_tuple Nil () t
-let of_unit () = of_tuple []
-*)
-    (*
-let to_unit = function `El (_, _, [ `Data "unit" ]) -> ()
-                     | e -> raise_errorf e "Unit must be 'unit'"
-
-let of_unit () = `El ((("","u"), []), [ `Data "unit" ])
-*)
 let of_xmlm_exn: t -> t =
   function
   | (`El ((_v, (_, "unwrapped") :: ((_, "__name"), v') :: xs), d)) -> (`El ((("", v'), xs), d))

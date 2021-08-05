@@ -90,7 +90,7 @@ let to_record: (t, 'constr, 'b) Record_in.t -> 'constr -> t -> 'b = fun spec con
           ) xs
       |> (fun map -> StringMap.fold (fun key v acc -> (key, v) :: acc) map [])
       |> List.map ~f:(function
-          | field, [ Xml.Element (name, _, xs) ] -> field, Xml.Element (name, ["record", "unwrapped"], xs)
+          | field, [ Xml.Element (name, attrs, xs) ] -> field, Xml.Element (name, ("record", "unwrapped") :: attrs, xs)
           | field, [ Xml.PCData _ as d ] -> field, d
           | field, xs -> field, Xml.Element (field, [], List.rev xs)
         )
@@ -121,11 +121,11 @@ let to_tuple: type constr b. (t, constr, b) Tuple_in.t -> constr -> t -> b = fun
 
 let to_option: (t -> 'a) -> t -> 'a option = fun to_value_fun t ->
   match t with
-  | Xml.Element (_, [_, "unwrapped"], [])
+  | Xml.Element (_, (_, "unwrapped") :: _, [])
   | Xml.Element (_, _, [])
   | Xml.Element (_, _, [ PCData ""] ) ->
     None
-  | Xml.Element (_, [_, "unwrapped"], [ (Element ("__option", _, _) as t)])
+  | Xml.Element (_, (_, "unwrapped") :: _, [ (Element ("__option", _, _) as t)])
   | Xml.Element ("__option", _, [t])
   | t ->
     Some (to_value_fun t)
@@ -227,16 +227,14 @@ let of_unit = of_value (fun () -> "()")
 let to_nativeint = to_value "nativeint" Nativeint.of_string
 let of_nativeint = of_value Nativeint.to_string
 
-(*
-let to_unit t = to_tuple Nil () t
-let of_unit () = of_tuple []
-*)
-    (*
-let to_unit = function Xml.Element (_, _, [ PCData "unit" ]) -> ()
-                     | e -> raise_errorf e "Unit must be 'unit'"
+let of_xml_light_exn: t -> t =
+  function
+  | Xml.Element (_v, (_, "unwrapped") :: (("__name"), v') :: xs, d) -> Xml.Element (v', xs, d)
+  | Xml.Element (v, (_, "unwrapped") :: xs, d) -> Xml.Element (v, xs, d)
+  | Xml.Element (_v, (("__name"), v') :: xs, d) -> Xml.Element (v', xs, d)
+  | x -> x
 
-let of_unit () = Xml.Element ("u", [], [ PCData "unit" ])
-*)
-let of_xml_light_exn t = t
-let of_xml_light t = Ok t
-let to_xml_light t = t
+let of_xml_light t = Ok (of_xml_light_exn t)
+let to_xml_light: t -> t = function
+  | Xml.Element (v, attrs, d) -> Xml.Element (v, ( "__name", v) :: attrs, d)
+  | v -> v

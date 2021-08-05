@@ -13,8 +13,8 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Extend tests to serialize and deserialize to string for completeness
 [x] Fix bugs when deserializing msgpck
 [x] Test using yaml >= 3.0.0 and msgpck >= 1.7.0
-[x] Enable tests for xmlm driver, and fix naming of raw serialized composed types
-[ ] Enable tests for xml_light driver
+[x] Enable tests for xmlm driver and fix naming of raw serialized composed types
+[x] Enable tests for xml_light driver and fix naming of raw serialized composed types
 
 5.1.3 (2020-09-23)
 [x] Remove dependency on stdio
