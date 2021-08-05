@@ -1,4 +1,4 @@
-.PHONY: build clean install uninstall reinstall test update-version release doc
+.PHONY: build clean install uninstall reinstall test release doc
 .DEFAULT_GOAL = build
 build:
 	dune build @install
