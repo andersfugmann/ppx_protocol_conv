@@ -9,6 +9,8 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Add namespaces to attributes
 [ ] Make sure List.map is tail recursive for list types
 [ ] Unify xmlm and xml_light driver to share codebase
+[x] Require yojson >= 1.6.0 and remove upper constraint on yojson
+[x] Fix package description for yaml driver
 
 5.2.0
 [x] Extend tests to serialize and deserialize to string for completeness

@@ -161,8 +161,7 @@ null
 [ "Node", [ [ "Node", [ "Leaf", 3, "Leaf" ] ], 10, "Leaf" ] ]
 === json.MutualRecursion ===
 [
-  "T1",
-  [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
+  "T1", [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
 ]
 === json.InsideRec ===
 { "c": "c", "V": "A", "a": "a" }
@@ -233,8 +232,7 @@ null
 [ "Node", [ "Node", "Leaf", 3, "Leaf" ], 10, "Leaf" ]
 === json.MutualRecursion ===
 [
-  "T1",
-  [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
+  "T1", [ "V", [ "T", [ "V", [ "V1", [ "V1", [ "V1", [ "V0", 5 ] ] ] ] ] ] ]
 ]
 === json.InsideRec ===
 { "c": "c", "V": "A", "a": "a" }

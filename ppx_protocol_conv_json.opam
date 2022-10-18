@@ -13,7 +13,7 @@ build: [
 depends: [
   "ocaml" {>= "4.04.0"}
   "ppx_protocol_conv" {= version}
-  "yojson" {>= "1.5.0" & < "2.0.0"}
+  "yojson" {>= "1.6.0"}
   "dune" {>= "1.2"}
   "ppx_expect"
   "ppx_inline_test"
