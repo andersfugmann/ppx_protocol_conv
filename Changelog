@@ -7,10 +7,9 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Support attribute [@nobuiltin] attribute to treat types as abstract
 [ ] Support Result.t, List.t, Option.t, Int.t, et. al
 [ ] Add namespaces to attributes
-[ ] Make sure List.map is tail recursive for list types
 [ ] Unify xmlm and xml_light driver to share codebase
 
-[x] Remove warnings on using kprintf and switch to use stdlib
+[x] Remove warnings on using kprintf and switch to reference Stdlib and not Caml
 [x] Require yojson >= 1.6.0 and remove upper constraint on yojson
 [x] Fix package description for yaml driver
 
