@@ -12,22 +12,27 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - 5.0.0
-          - 4.14.0
-          - 4.08.0
-
+          - 4.08.x
+          - 5.0.x
+        include:
+          - ocaml-compiler: 4.08.x
+            packages: 'ppx_protocol_conv.opam ppx_protocol_conv_json.opam ppx_protocol_conv_msgpack.opam ppx_protocol_conv_xmlm.opam ppx_protocol_conv_yaml.opam ppx_protocol_conv_xml_light.opam'
+          - ocaml-compiler: 5.0.x
+            packages: 'ppx_protocol_conv.opam ppx_protocol_conv_json.opam ppx_protocol_conv_msgpack.opam ppx_protocol_conv_xmlm.opam ppx_protocol_conv_yaml.opam'
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: avsm/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          opam-local-packages: ${{ matrix.packages }}
 
       - run: opam pin . --no-action
-      - run: opam install . --deps-only --with-doc --with-test
-      - run: opam exec -- dune build
-      - run: opam exec -- dune runtest
+      - run: |
+          for package in ${{ matrix.packages }}; do
+            opam install ${package/.opam/} --with-doc --with-test
+          done
