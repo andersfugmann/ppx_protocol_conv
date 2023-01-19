@@ -9,10 +9,10 @@ type t = {
 } [@@deriving protocol ~driver:(module Json), sexp]
 
 let fmt formatter t =
-  Caml.Format.fprintf formatter "%s" (Base.Sexp.to_string_hum (sexp_of_t t))
+  Stdlib.Format.fprintf formatter "%s" (Base.Sexp.to_string_hum (sexp_of_t t))
 
 let fmt_yojson formatter t =
-  Caml.Format.fprintf formatter "%s" (Yojson.Safe.pretty_to_string t)
+  Stdlib.Format.fprintf formatter "%s" (Yojson.Safe.pretty_to_string t)
 
 
 let test_attrib_name () =

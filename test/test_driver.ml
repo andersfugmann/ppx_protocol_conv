@@ -175,7 +175,7 @@ module Make(Driver: Testable.Driver) = struct
       ]
     }
   end
-  let unittest = Caml.__MODULE__, [
+  let unittest = Stdlib.__MODULE__, [
       M.test (module Tuple);
       M.test (module Any);
       M.test (module Record);

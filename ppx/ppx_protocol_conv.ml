@@ -13,13 +13,14 @@ type t = {
   field_default: (label_declaration, expression) Attribute.t;
 }
 
-let (^^) = Caml.(^^)
+let (^^) = Stdlib.(^^)
 let raise_errorf ?loc fmt = Location.raise_errorf ?loc ("ppx_protocol_conv: " ^^ fmt)
 
 let debug = false
 let debug fmt = match debug with
   | true -> eprintf (fmt ^^ "\n%!")
-  | false -> ifprintf Caml.stderr fmt [@@warning "-32"]
+  | false -> ifprintf Stdlib.stderr fmt
+[@@warning "-32"]
 
 let string_of_ident_loc { loc; txt } =
   let rec inner = function

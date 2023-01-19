@@ -31,12 +31,12 @@ let error_to_string_hum: error -> string = function
   | (s, None) -> s
 
 (* Register exception printer *)
-let () = Caml.Printexc.register_printer (function
+let () = Stdlib.Printexc.register_printer (function
     | Protocol_error err -> Some (error_to_string_hum err)
     | _ -> None)
 
 let raise_errorf t fmt =
-  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, Some t))) fmt
+  Stdlib.Printf.ksprintf (fun s -> raise (Protocol_error (s, Some t))) fmt
 
 let try_with: (t -> 'a) -> t -> ('a, error) Runtime.result = fun f t ->
   match f t with
