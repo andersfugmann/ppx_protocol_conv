@@ -9,6 +9,8 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Add namespaces to attributes
 [ ] Unify xmlm and xml_light driver to share codebase
 
+5.2.1
+[x] Set minimum ocaml version to 4.08
 [x] Remove warnings on using kprintf and switch to reference Stdlib and not Caml
 [x] Require yojson >= 1.6.0 and remove upper constraint on yojson
 [x] Fix package description for yaml driver
