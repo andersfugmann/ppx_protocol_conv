@@ -27,7 +27,7 @@ let try_with: (t -> 'a) -> t -> ('a, error) result = fun f t ->
   | exception (Protocol_error e) -> Error e
 
 let raise_errorf t fmt =
-  Caml.Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+  Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
 let wrap t f x = match f x with
   | v -> v
