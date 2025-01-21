@@ -40,3 +40,4 @@ jobs:
           for package in ${{ matrix.packages }}; do
             opam install ${package/.opam/} --with-doc --with-test
           done
+          dune runtest
