@@ -9,35 +9,35 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [ ] Add namespaces to attributes
 [ ] Unify xmlm and xml_light driver to share codebase
 
-5.2.2
+## 5.2.2
 [x] Fix compatability with Ocaml 5
 [x] Avoid linking against ppxlib
 
-5.2.1
+## 5.2.1
 [x] Set minimum ocaml version to 4.08
 [x] Remove warnings on using kprintf and switch to reference Stdlib and not Caml
 [x] Require yojson >= 1.6.0 and remove upper constraint on yojson
 [x] Fix package description for yaml driver
 
-5.2.0
+## 5.2.0
 [x] Extend tests to serialize and deserialize to string for completeness
 [x] Fix bugs when deserializing msgpck
 [x] Test using yaml >= 3.0.0 and msgpck >= 1.7.0
 [x] Enable tests for xmlm driver and fix naming of raw serialized composed types
 [x] Enable tests for xml_light driver and fix naming of raw serialized composed types
 
-5.1.3 (2020-09-23)
+## 5.1.3 (2020-09-23)
 [x] Remove dependency on stdio
 [x] Fix warning when compiling with 4.11
 
-5.1.2 (2020-06-26)
+## 5.1.2 (2020-06-26)
 [x] Compatible with Base v0.14
 
-5.1.1 (2020-05-10)
+## 5.1.1 (2020-05-10)
 [x] Add xmlm driver for xml (by Nick Betteridge)
 
 
-5.1.0 (2020-02-01)
+## 5.1.0 (2020-02-01)
 [x] Add support for primitive type 'bytes'
 [x] Add of_<driver>_exn for deserializing of Driver.t
 [x] Dont depend on ppxlib for the runtime
@@ -45,7 +45,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Support result type
 [x] Require ppx >= 0.9.0 => support ocaml 4.10 (Thanks kit-ty-kate)
 
-5.0.0 (2019-04-19)
+## 5.0.0 (2019-04-19)
 [x] Add option make make lazy type indeed lazy
 [x] Add option to mangle variant names
 [*] Refactor tuple, variant and record code to be more efficient
@@ -63,7 +63,7 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Switch to use alcotest
 [x] Expose constructor to driver error type for custom parsers. (@paurkedal)
 
-4.0.0 (released 2019-03-26)
+## 4.0.0 (released 2019-03-26)
 [*] Support "@default" argument on record fields. #9
 [x] Add @name attribute to be compatible with ppx_deriving_yojson
 [*] Support ref cells
@@ -71,27 +71,27 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [*] Replace mangle option with driver functors.
 [x] Add compatability with yojson 1.5
 
-3.2.0
+## 3.2.0
 [x] Require ppx_protocol_conv in all drivers. #12
 [*] Handle char primitive type
 
-3.1.3
+## 3.1.3
 [x] Require yojson >= 1.6.0
 [x] Require ppxlib >= 0.3.0
 
-3.1.2
+## 3.1.2
 [x] Support arrays
 
-3.1.1
+## 3.1.1
 [x] Do not reference ppx in libraries
 
-3.1.0
+## 3.1.0
 [x] Generalise json/jsonm/yaml/msgpack driver into one.
 [x] Switch to dune
 [x] Use ppxlib
 [x] Xml: Decode </x> to the empty string
 
-3.0.0
+## 3.0.0
 [x] Support inline records
 [x] Improve error messages on unsupported type constructs
 [x] Support polymorphic variants
@@ -102,21 +102,21 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Msgpack: Add fine grained control of serialised types
 [x] *Only emit <of|to>_protocol for types named t (Breaks backward compatibility)
 
-2.0.1
+## 2.0.1
 [x] Move tests to own packages
 
-2.0.0
+## 2.0.0
 [x] Split drivers into multiple driver packages
 [x] Implement yaml driver
 
-1.0.0
+## 1.0.0
 [x] Xml driver: Error when deserialising singleton lists in records
 
-0.10.0
+## 0.10.0
 [x] Suport for non-recursive types
 [x] Add alias to allow use without 't_' for types named 't' to mimic deriving_yojson behaviour
 
-0.9.0
+## 0.9.0
 [x] Handle lazy types.
 [x] Allow overriding Variant constructor names in serialisation
 [x] Add t_of_xml and t_to_xml to drivers.
@@ -128,5 +128,5 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 [x] Add msgpack driver
 [x] Renamed package to ppx_protocol_conv
 
-0.8:
+## 0.8
 [x] Initial release
