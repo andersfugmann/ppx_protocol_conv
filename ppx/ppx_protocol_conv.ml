@@ -279,6 +279,8 @@ and serialize_expr_of_tdecl t ~loc tdecl =
         serialize_expr_of_type_descr t ~loc core_type.ptyp_desc
       | None -> raise_errorf ~loc "Opaque types are not supported."
     end
+  | Ptype_variant [] ->
+    raise_errorf ~loc "ADTs with no constructors not supported"
   | Ptype_variant constrs ->
     test_constructor_mapping t constrs;
     let bindings, cases =
