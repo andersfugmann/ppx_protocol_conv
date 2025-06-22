@@ -34,6 +34,7 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-local-packages: ${{ matrix.packages }}
+          opam-pin: false
 
       - run: |
           opam install . --deps-only --with-doc --with-test
