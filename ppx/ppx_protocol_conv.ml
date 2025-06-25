@@ -279,6 +279,8 @@ and serialize_expr_of_tdecl t ~loc tdecl =
         serialize_expr_of_type_descr t ~loc core_type.ptyp_desc
       | None -> raise_errorf ~loc "Opaque types are not supported."
     end
+  | Ptype_variant [] ->
+    raise_errorf ~loc "ADTs with no constructors not supported"
   | Ptype_variant constrs ->
     test_constructor_mapping t constrs;
     let bindings, cases =
@@ -291,7 +293,7 @@ and serialize_expr_of_tdecl t ~loc tdecl =
         ) constrs
       |> List.unzip
     in
-    pexp_let ~loc Nonrecursive bindings @@ pexp_function ~loc cases
+    pexp_let ~loc Nonrecursive bindings @@ pexp_function_cases ~loc cases
 
   | Ptype_record labels ->
     let spec, patt, args = serialize_record t ~loc labels in
@@ -341,7 +343,7 @@ and serialize_expr_of_type_descr t ~loc = function
         ) rows
       |> List.unzip
     in
-    pexp_let ~loc Nonrecursive bindings @@ pexp_function ~loc cases
+    pexp_let ~loc Nonrecursive bindings @@ pexp_function_cases ~loc cases
   | Ptyp_var core_type ->
     pexp_ident ~loc { loc; txt = Lident ( sprintf "__param_to_%s" core_type) }
   | Ptyp_arrow _ -> raise_errorf ~loc "Functions not supported"
@@ -351,6 +353,7 @@ and serialize_expr_of_type_descr t ~loc = function
   | Ptyp_class _
   | Ptyp_alias _
   | Ptyp_package _
+  | Ptyp_open _
   | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
 
 
@@ -534,7 +537,8 @@ and deserialize_expr_of_type_descr t ~loc = function
   | Ptyp_class _
   | Ptyp_alias _
   | Ptyp_package _
-  | Ptyp_extension _ -> raise_errorf ~loc "Unsupported type descr"
+  | Ptyp_extension _
+  | Ptyp_open _ -> raise_errorf ~loc "Unsupported type descr"
 
 let serialize_function_name ~loc ~driver name =
   let prefix = match name.txt with
@@ -586,19 +590,16 @@ let name_of_core_type ~prefix = function
   | { ptyp_desc = Ptyp_poly (_, _); _} -> failwith "Ptyp_poly "
   | { ptyp_desc = Ptyp_package _; _} -> failwith "Ptyp_package "
   | { ptyp_desc = Ptyp_extension _; _} -> failwith "Ptyp_extension "
+  | { ptyp_desc = Ptyp_open _; _} -> failwith "Ptyp_open "
 
 
 let rec is_recursive_ct types = function
   | { ptyp_desc = Ptyp_var var; _ } ->
     List.mem types var ~equal:String.equal
-  | { ptyp_desc = Ptyp_any; _ } -> false
-  | { ptyp_desc = Ptyp_arrow _; _} -> false
   | { ptyp_desc = Ptyp_tuple cts; _} -> List.exists ~f:(is_recursive_ct types) cts
   | { ptyp_desc = Ptyp_constr (l, cts); _} ->
     List.mem types (string_of_ident_loc l).txt ~equal:String.equal ||
     List.exists ~f:(is_recursive_ct types) cts
-  | { ptyp_desc = Ptyp_object _; _} -> false
-  | { ptyp_desc = Ptyp_class _; _} -> false
   | { ptyp_desc = Ptyp_alias (c, _); _} -> is_recursive_ct types c
   | { ptyp_desc = Ptyp_variant (rows, _, _); _} ->
     List.exists ~f:(fun row -> match row.prf_desc with
@@ -606,8 +607,14 @@ let rec is_recursive_ct types = function
         | Rinherit _ -> false
       ) rows
   | { ptyp_desc = Ptyp_poly (_, ct); _} -> is_recursive_ct types ct
-  | { ptyp_desc = Ptyp_package _; _} -> false
-  | { ptyp_desc = Ptyp_extension _; _} -> false
+  | { ptyp_desc = (Ptyp_any
+                  | Ptyp_arrow _
+                  | Ptyp_object _
+                  | Ptyp_class _
+                  | Ptyp_package _
+                  | Ptyp_extension _
+                  | Ptyp_open _); _ } -> false
+
 
 let is_recursive types = function
   | Ptype_abstract -> false
@@ -710,13 +717,15 @@ let make_recursive ~loc (e : expression) = function
   | true ->
     [%expr
       ( let f = ref None in
-            (fun t -> match !f with
-               | None ->
-                 let f' = [%e e] in f := Some f'; f' t
-               | Some f -> f t
-            ))
+        (fun t ->
+           match !f with
+           | None ->
+             let f' = [%e e] in
+             f := Some f';
+             f' t
+           | Some f -> f t
+        ))
     ]
-
 
 let to_protocol_str_type_decls t rec_flag ~loc tydecls =
   let (defs, is_recursive) =
