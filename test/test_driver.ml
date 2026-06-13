@@ -40,11 +40,10 @@ module Make(Driver: Testable.Driver) = struct
       vlist: v list;
       varray: v array;
       record: t1;
-      mutable z: int;
+      z: int;
       v : Driver.t;
       u : Driver.t;
     }
-    [@@warning "-69"]
     [@@deriving protocol ~driver:(module Driver), sexp_of]
 
     let v = B ([5; 6; 7], [10;11;12])

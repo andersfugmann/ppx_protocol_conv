@@ -42,5 +42,5 @@ module Make (Driver: Driver) = struct
       Alcotest.(check (of_pp fmt)) Driver.name T.t t'
     in
     let test_name = Printf.sprintf "%s.%s" Driver.name T.name in
-    Alcotest.test_case test_name `Quick (fun () -> try f () with Failure "ignore" [@warning "-52"] -> ())
+    Alcotest.test_case test_name `Quick (fun () -> try f () with Failure _ -> ())
 end

@@ -22,7 +22,7 @@ module Make(Driver: Testable.Driver) = struct
             |> of_driver_exn
             |> ignore
           with
-          | Failure "ignore" [@warning "-52"] -> ()
+          | Failure s when String.equal "ignore" s -> ()
         )
   end
 

@@ -99,7 +99,7 @@ module Make(Driver: Driver)(P: Parameters) = struct
   let to_string_hum = Driver.to_string_hum
 
   let raise_errorf t fmt =
-    Printf.kprintf (fun s -> raise (Protocol_error (s, t))) fmt
+    Printf.ksprintf (fun s -> raise (Protocol_error (s, t))) fmt
 
   let try_with: (t -> 'a) -> t -> ('a, error) Runtime.result = fun f t ->
     match f t with

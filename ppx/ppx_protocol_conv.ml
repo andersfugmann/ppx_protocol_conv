@@ -20,7 +20,7 @@ let debug = false
 let debug fmt = match debug with
   | true -> eprintf (fmt ^^ "\n%!")
   | false -> ifprintf Stdlib.stderr fmt
-[@@warning "-32"]
+let _ = debug
 
 let string_of_ident_loc { loc; txt } =
   let rec inner = function
