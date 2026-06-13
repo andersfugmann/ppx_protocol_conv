@@ -17,7 +17,10 @@
  (depends
   (ocaml (>= 4.08))
   (base (>= v0.14.0))
-  (ppxlib (>= 0.36.0))))
+  (ppxlib (>= 0.36.0))
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))
 
 (package
  (name ppx_protocol_conv_json)
@@ -26,7 +29,13 @@
   "This package provides a driver for json (Yojson.Safe.json) serialization and de-serialization using the yojson library")
  (depends
   (ocaml (>= 4.08))
-  (yojson (>= 1.6.0))))
+  (ppx_protocol_conv (= :version))
+  (yojson (>= 1.6.0))
+  ppx_expect
+  ppx_inline_test
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))
 
 (package
  (name ppx_protocol_conv_jsonm)
@@ -34,7 +43,12 @@
  (description
   "This package provides a driver for json (Ezjson.value) serialization and de-serialization using the Ezjson library")
  (depends
-  (ocaml (>= 4.08))))
+  (ocaml (>= 4.08))
+  (ppx_protocol_conv (= :version))
+  ezjsonm
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))
 
 (package
  (name ppx_protocol_conv_msgpack)
@@ -43,7 +57,11 @@
   "This package provides a driver for message pack (Msgpck.t) serialization and deserialization using the msgpck library")
  (depends
   (ocaml (>= 4.08))
-  (msgpck (>= 1.3))))
+  (ppx_protocol_conv (= :version))
+  (msgpck (>= 1.3))
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))
 
 (package
  (name ppx_protocol_conv_xml_light)
@@ -51,7 +69,12 @@
  (description
   "This package provides a driver for xml (Xml.t) serialization and de-serialization using the xml-light library")
  (depends
-  (ocaml (>= 4.08))))
+  (ocaml (>= 4.08))
+  (ppx_protocol_conv (= :version))
+  xml-light
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))
 
 (package
  (name ppx_protocol_conv_xmlm)
@@ -62,7 +85,12 @@
   "Anders Fugmann <anders@fugmann.net>"
   "Nick Betteridge <lists.nick.betteridge@gmail.com>")
  (depends
-  (ocaml (>= 4.08))))
+  (ocaml (>= 4.08))
+  (ppx_protocol_conv (= :version))
+  ezxmlm
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))
 
 (package
  (name ppx_protocol_conv_yaml)
@@ -71,4 +99,8 @@
   "This package provides a driver for yaml (Yaml.value) serialization and de-serialization using the Yaml")
  (depends
   (ocaml (>= 4.08))
-  (yaml (>= 2.0.0))))
+  (ppx_protocol_conv (= :version))
+  (yaml (>= 2.0.0))
+  (ppx_sexp_conv :with-test)
+  (sexplib :with-test)
+  (alcotest :with-test)))

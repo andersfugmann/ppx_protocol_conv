@@ -23,6 +23,14 @@ jobs:
           - 4.11.x
           - 4
           - 5
+        package:
+          - ppx_protocol_conv
+          - ppx_protocol_conv_json
+          - ppx_protocol_conv_jsonm
+          - ppx_protocol_conv_msgpack
+          - ppx_protocol_conv_xml_light
+          - ppx_protocol_conv_xmlm
+          - ppx_protocol_conv_yaml
 
     runs-on: ${{ matrix.os }}
 
@@ -34,15 +42,30 @@ jobs:
         uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          cache: true
           dune-cache: true
 
-      - name: Install dependencies
+      - name: Install build dependencies (${{ matrix.package }})
         run: |
-          opam install . --deps-only --with-doc --with-test
+          opam_files="./ppx_protocol_conv.opam"
+          if [ "${{ matrix.package }}" != "ppx_protocol_conv" ]; then
+            opam_files="$opam_files ./${{ matrix.package }}.opam"
+          fi
+          opam install $opam_files --deps-only
 
-      - name: Build
-        run: opam exec -- dune build @install
+      - name: Build (${{ matrix.package }})
+        run: |
+          dune_packages="${{ matrix.package }}"
+          if [ "${{ matrix.package }}" != "ppx_protocol_conv" ]; then
+            dune_packages="ppx_protocol_conv,${{ matrix.package }}"
+          fi
+          opam exec -- dune build -p "$dune_packages" @install
 
-      - name: Test
-        run: opam exec -- dune runtest
+      - name: Test (${{ matrix.package }})
+        if: startsWith(matrix.ocaml-compiler, '5')
+        run: |
+          opam_files="./ppx_protocol_conv.opam"
+          if [ "${{ matrix.package }}" != "ppx_protocol_conv" ]; then
+            opam_files="$opam_files ./${{ matrix.package }}.opam"
+          fi
+          opam install $opam_files --deps-only --with-test
+          opam exec -- dune runtest -p ${{ matrix.package }}
