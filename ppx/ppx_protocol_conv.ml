@@ -580,17 +580,28 @@ let name_of_core_type ~prefix = function
     { loc = ptyp_loc; txt = sprintf "__param_%s_%s" prefix var }
   | { ptyp_desc = Ptyp_any; ptyp_loc; _ } ->
     raise_errorf ~loc:ptyp_loc "Generalized algebraic datatypes not supported"
-  | { ptyp_desc = Ptyp_arrow (_, _, _); _} -> failwith "Ptyp_arrow "
-  | { ptyp_desc = Ptyp_tuple _; _} -> failwith "Ptyp_tuple "
-  | { ptyp_desc = Ptyp_constr (_, _); _} -> failwith "Ptyp_constr "
-  | { ptyp_desc = Ptyp_object (_, _); _} -> failwith "Ptyp_object "
-  | { ptyp_desc = Ptyp_class (_, _); _} -> failwith "Ptyp_class "
-  | { ptyp_desc = Ptyp_alias (_, _); _} -> failwith "Ptyp_alias "
-  | { ptyp_desc = Ptyp_variant (_, _, _); _} -> failwith "Ptyp_variant "
-  | { ptyp_desc = Ptyp_poly (_, _); _} -> failwith "Ptyp_poly "
-  | { ptyp_desc = Ptyp_package _; _} -> failwith "Ptyp_package "
-  | { ptyp_desc = Ptyp_extension _; _} -> failwith "Ptyp_extension "
-  | { ptyp_desc = Ptyp_open _; _} -> failwith "Ptyp_open "
+  | { ptyp_desc = Ptyp_arrow (_, _, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Function types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_tuple _; ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Tuple types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_constr (_, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Constructed types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_object (_, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Object types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_class (_, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Class types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_alias (_, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Aliased types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_variant (_, _, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Polymorphic variants are not supported as type parameters"
+  | { ptyp_desc = Ptyp_poly (_, _); ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Polymorphic types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_package _; ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "First-class module package types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_extension _; ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Extension types are not supported as type parameters"
+  | { ptyp_desc = Ptyp_open _; ptyp_loc; _} ->
+    raise_errorf ~loc:ptyp_loc "Open types are not supported as type parameters"
 
 
 let rec is_recursive_ct types = function

@@ -9,6 +9,9 @@ Changes marked with '*' indicates a changes that breaks backward compatibility
 - [ ] Add namespaces to attributes
 - [ ] Unify xmlm and xml_light driver to share codebase
 
+## Unreleased
+- [x] Improve PPX diagnostics for unsupported type-parameter shapes by raising location-aware errors.
+
 ## 5.2.3
 - [x] Compatibility against ppxlib 0.36.0
 

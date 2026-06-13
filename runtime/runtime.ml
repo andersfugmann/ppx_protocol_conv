@@ -157,13 +157,6 @@ module Helper = struct
     in
     count_map ~f l 0
 
-  let () =
-    let l = [1;2;3;4;5] in
-    let l' = list_map ~f:(fun x -> x + 2) l in
-    let l'' = List.map ~f:(fun x -> x + 2) l in
-    assert (l' = l'');
-
-
   (** Excpetion raised if the type could not be serialized *)
   exception Protocol_error of string
 
