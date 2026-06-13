@@ -1,8 +1,15 @@
 name: Main workflow
 
 on:
-  - push
-  - workflow_dispatch
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 
 jobs:
@@ -13,7 +20,7 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - 4.08.x
+          - 4.11.x
           - 4
           - 5
 
@@ -21,13 +28,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      - run: |
+      - name: Install dependencies
+        run: |
           opam install . --deps-only --with-doc --with-test
-          opam exec -- dune runtest
+
+      - name: Build
+        run: opam exec -- dune build @install
+
+      - name: Test
+        run: opam exec -- dune runtest
