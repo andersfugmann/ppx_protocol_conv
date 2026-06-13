@@ -1,4 +1,4 @@
-module Make(P: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver with type t = Msgpck.t)
+module Make(_: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver with type t = Msgpck.t)
 include Protocol_conv.Runtime.Driver with type t = Msgpck.t
 
 val of_msgpack_exn: t -> t

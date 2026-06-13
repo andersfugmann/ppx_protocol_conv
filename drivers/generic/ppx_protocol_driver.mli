@@ -99,5 +99,5 @@ end
 *)
 val mangle: string -> string
 
-module Make: functor (D : Driver)(P : Parameters) ->
+module Make: functor (D : Driver)(_ : Parameters) ->
   Protocol_conv.Runtime.Driver with type t = D.t

@@ -1,6 +1,6 @@
 (* Json Protocol *)
 include Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t [@@warning "-3"]
-module Make(P: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t) [@@warning "-3"]
+module Make(_: Ppx_protocol_driver.Parameters) : (Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t) [@@warning "-3"]
 module Yojson : sig
   include Protocol_conv.Runtime.Driver with type t = Yojson.Safe.t [@@warning "-3"]
   val of_yojson_exn: t -> t

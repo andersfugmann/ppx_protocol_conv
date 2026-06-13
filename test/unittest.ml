@@ -1,5 +1,5 @@
 module type Test_module = sig
-  module Make : functor (Driver : Testable.Driver) -> sig
+  module Make : functor (_ : Testable.Driver) -> sig
     val unittest: unit Alcotest.test
   end
 end
