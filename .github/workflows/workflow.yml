@@ -63,9 +63,27 @@ jobs:
       - name: Test (${{ matrix.package }})
         if: startsWith(matrix.ocaml-compiler, '5')
         run: |
-          opam_files="./ppx_protocol_conv.opam"
-          if [ "${{ matrix.package }}" != "ppx_protocol_conv" ]; then
-            opam_files="$opam_files ./${{ matrix.package }}.opam"
-          fi
-          opam install $opam_files --deps-only --with-test
-          opam exec -- dune runtest -p ${{ matrix.package }}
+          opam install ./*.opam --deps-only --with-test
+          case "${{ matrix.package }}" in
+            ppx_protocol_conv)
+              opam exec -- dune runtest ppx/test test
+              ;;
+            ppx_protocol_conv_json)
+              opam exec -- dune runtest drivers/json drivers/json/test
+              ;;
+            ppx_protocol_conv_jsonm)
+              opam exec -- dune runtest drivers/jsonm/test
+              ;;
+            ppx_protocol_conv_msgpack)
+              opam exec -- dune runtest drivers/msgpack/test
+              ;;
+            ppx_protocol_conv_xml_light)
+              opam exec -- dune runtest drivers/xml_light/test
+              ;;
+            ppx_protocol_conv_xmlm)
+              opam exec -- dune runtest drivers/xmlm/test
+              ;;
+            ppx_protocol_conv_yaml)
+              opam exec -- dune runtest drivers/yaml/test
+              ;;
+          esac

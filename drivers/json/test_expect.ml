@@ -1,5 +1,5 @@
 module Default_parameters = Ppx_protocol_driver.Default_parameters
-module Make = Json.Make
+module Make = Protocol_conv_json.Json.Make
 
 (** Test parameters. *)
 module Test = struct
@@ -182,7 +182,7 @@ module Test = struct
   end
 
   module Yojson_test = struct
-    module Json = Json.Yojson
+    module Json = Protocol_conv_json.Json.Yojson
     type 'a v = A of int | B of { int: int; t: 'a } | C [@name "C-D"]
     and t = {
       int : int [@default 5];

@@ -31,8 +31,7 @@
   (ocaml (>= 4.08))
   (ppx_protocol_conv (= :version))
   (yojson (>= 1.6.0))
-  ppx_expect
-  ppx_inline_test
+  (ppx_expect :with-test)
   (ppx_sexp_conv :with-test)
   (sexplib :with-test)
   (alcotest :with-test)))
